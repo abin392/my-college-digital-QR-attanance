@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="img/ksk logo.jpeg" type="image/x-icon">
+    <title>Student Dashboard</title>
+    
+    <!-- Google Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Your existing CSS file -->
+    <link rel="stylesheet" href="index.css">
+
+    <!-- React & ReactDOM CDNs -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Babel CDN for compiling JSX in the browser -->
+    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- FIREBASE SETUP via ES Modules -->
+    <script type="module" src="firebaseconfig.js"></script>
+
+    <!-- Isolated Styles for the React Auth UI -->
+    <style>
+        .react-overlay-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; background: radial-gradient(circle at 30% 20%, #e6eff9 0%, #f4f7fb 40%, #e0eaf5 100%); font-family: 'Inter', sans-serif; overflow-y: auto; backdrop-filter: blur(5px); }
+        .auth-brand-header { text-align: center; margin-bottom: 32px; }
+        .auth-logo { color: var(--primary-red); font-size: 2rem; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px; }
+        .auth-brand-header p { color: var(--text-muted); font-size: 0.95rem; }
+        .auth-card-ui { width: 100%; max-width: 440px; padding: 40px; background: var(--white); border-radius: var(--border-radius-lg); box-shadow: var(--shadow-md); position: relative; }
+        .auth-title { font-size: 1.25rem; font-weight: 700; color: var(--text-dark); margin-bottom: 24px; }
+        .auth-form { display: flex; flex-direction: column; gap: 20px; }
+        .input-group label { display: block; font-size: 0.85rem; font-weight: 500; color: var(--text-main); margin-bottom: 8px; }
+        .input-with-icon { position: relative; display: flex; align-items: center; }
+        .input-with-icon i { position: absolute; left: 14px; color: var(--text-muted); font-size: 1rem; }
+        .input-with-icon input { width: 100%; padding: 12px 16px 12px 42px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit; font-size: 0.95rem; color: var(--text-dark); transition: all 0.2s ease; background-color: var(--white); }
+        .input-with-icon input::placeholder { color: #94a3b8; }
+        .input-with-icon input:focus { outline: none; border-color: var(--primary-red); box-shadow: 0 0 0 3px rgba(187, 15, 28, 0.1); }
+        
+        /* NEW: Password Toggle Styles */
+        .input-with-icon i.password-toggle-icon { left: auto; right: 14px; cursor: pointer; z-index: 10; font-size: 1.05rem; transition: color 0.2s; }
+        .input-with-icon i.password-toggle-icon:hover { color: var(--primary-red); }
+        .input-with-icon input.password-input { padding-right: 42px; } /* Prevents text from hiding behind the eye icon */
+        .auth-submit-btn { margin-top: 8px; padding: 14px; font-size: 1rem; border-radius: 6px; background-color: var(--primary-red); color: var(--white); border: none; width: 100%; font-weight: 600; cursor: pointer; transition: background 0.3s ease; }
+        .auth-submit-btn:hover { background-color: var(--primary-red-hover); }
+        .auth-footer { text-align: center; margin-top: 24px; font-size: 0.9rem; color: var(--text-muted); }
+        .login-link { color: var(--primary-red); font-weight: 700; text-decoration: none; transition: color 0.2s ease; cursor: pointer;}
+        .login-link:hover { color: var(--primary-red-hover); }
+        .avatar-icon { font-size: 32px; color: var(--text-main); cursor: pointer; transition: color 0.2s ease; }
+        .avatar-icon:hover { color: var(--primary-red); }
+        .error-message { background-color: #fef2f2; color: var(--primary-red); padding: 12px; border-radius: 6px; font-size: 0.85rem; margin-bottom: 16px; text-align: center; font-weight: 500; border: 1px solid #fecaca; }
+        .divider { display: flex; align-items: center; text-align: center; margin: 20px 0; color: var(--text-muted); font-size: 0.85rem; }
+        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #cbd5e1; }
+        .divider span { padding: 0 10px; }
+        .btn-outline { background-color: var(--white); color: var(--text-main); border: 1px solid #cbd5e1; padding: 12px 20px; width: 100%; border-radius: 6px; font-size: 0.95rem; font-weight: 600; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; transition: background 0.3s ease; }
+        .btn-outline:hover { background-color: #f8fafc; }
+        .google-icon { width: 20px; height: 20px; }
+        .btn-disabled { opacity: 0.7; cursor: not-allowed; }
+        
+        /* NEW: Profile Dropdown Styles */
+        .profile-dropdown { position: relative; display: inline-block; }
+        .dropdown-content { display: none; position: absolute; right: 0; top: 120%; background-color: var(--white); min-width: 220px; box-shadow: var(--shadow-md); border-radius: var(--border-radius-md); padding: 16px; z-index: 1000; text-align: center; border: 1px solid #e2e8f0; }
+        .dropdown-content.show { display: block; }
+        .dropdown-profile-img { width: 56px; height: 56px; border-radius: 50%; margin-bottom: 12px; object-fit: cover; }
+        .dropdown-email { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px; word-break: break-all; }
+        .logout-btn { background-color: #fef2f2; color: var(--primary-red); border: 1px solid #fecaca; padding: 10px 16px; border-radius: 6px; width: 100%; cursor: pointer; font-weight: 600; transition: all 0.2s; font-size: 0.9rem;}
+        .logout-btn:hover { background-color: var(--primary-red); color: var(--white); }
+        .user-avatar-img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; }
+        .user-avatar-img:hover { border-color: var(--primary-red); }
+        
+        /* NEW: Mobile Bottom Navigation Styles */
+        .bottom-mobile-nav { display: none; }
+        
+        @media (max-width: 768px) {
+            /* Hide top links and notifications on mobile */
+            .nav-links, .notification-icon { display: none !important; }
+            
+            /* Clean up the top nav spacing and text wrapping for small screens */
+            .top-nav { padding: 0 16px; height: 65px; gap: 10px; }
+            .logo span { font-size: 0.85rem; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+            
+            /* Show the bottom app bar */
+            .bottom-mobile-nav { 
+                display: flex; 
+                position: fixed; 
+                bottom: 0; 
+                left: 0; 
+                width: 100%; 
+                background-color: var(--white); 
+                box-shadow: 0 -4px 15px rgba(0,0,0,0.06); 
+                justify-content: space-around; 
+                align-items: center; 
+                height: 65px; 
+                z-index: 9990; 
+                padding-bottom: env(safe-area-inset-bottom); /* iOS safe area support */
+            }
+            
+            .bottom-mobile-nav a { 
+                display: flex; 
+                flex-direction: column; 
+                align-items: center; 
+                justify-content: center; 
+                text-decoration: none; 
+                color: var(--text-muted); 
+                font-size: 0.75rem; 
+                font-weight: 600; 
+                gap: 5px; 
+                flex: 1; 
+                height: 100%;
+                transition: color 0.2s ease;
+            }
+            .bottom-mobile-nav a.active { color: var(--primary-red); }
+            .bottom-mobile-nav a i { font-size: 1.25rem; }
+            
+            /* Prevent dashboard content from hiding behind the bottom nav */
+            body { padding-bottom: 75px; }
+        }
+        
+        /* NEW: Scanner UI Styles */
+        .scanner-overlay { position: fixed; top: 70px; left: 0; width: 100%; height: calc(100vh - 70px); z-index: 9980; background: radial-gradient(circle at center, #1f2937 0%, #000000 100%); display: flex; flex-direction: column; align-items: center; padding-top: 60px; overflow-y: auto; }
+        .scanner-header { text-align: center; color: var(--white); margin-bottom: 40px; }
+        .scanner-title { color: #3b82f6; font-size: 2.5rem; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.5px; }
+        .scanner-subtitle { color: #9ca3af; font-size: 1rem; line-height: 1.5; }
+        .camera-container { position: relative; width: 340px; height: 420px; background-color: #e5e7eb; border-radius: 24px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        
+        /* Simulated Camera Feed */
+        .camera-feed-placeholder { width: 100%; height: 100%; object-fit: cover; filter: blur(4px) brightness(0.9); }
+        
+        /* Camera Reticle / Frame */
+        .camera-frame { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); width: 240px; height: 240px; }
+        .frame-corner { position: absolute; width: 40px; height: 40px; border-color: rgba(255, 255, 255, 0.9); border-style: solid; }
+        .top-left { top: 0; left: 0; border-width: 4px 0 0 4px; border-radius: 8px 0 0 0; }
+        .top-right { top: 0; right: 0; border-width: 4px 4px 0 0; border-radius: 0 8px 0 0; }
+        .bottom-left { bottom: 0; left: 0; border-width: 0 0 4px 4px; border-radius: 0 0 0 8px; }
+        .bottom-right { bottom: 0; right: 0; border-width: 0 4px 4px 0; border-radius: 0 0 8px 0; }
+        
+        /* Scanning text */
+        .scanning-indicator { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.85); border-radius: 20px; padding: 6px 16px; display: flex; align-items: center; gap: 8px; color: #ef4444; font-size: 0.85rem; font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .red-dot { width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; display: inline-block; animation: pulse 1.5s infinite; }
+        .close-scanner-btn { position: absolute; top: 20px; right: 30px; color: #9ca3af; background: none; border: none; font-size: 2rem; cursor: pointer; transition: color 0.2s ease; }
+        .close-scanner-btn:hover { color: var(--white); }
+        
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        
+        /* Responsive adjustments for mobile devices */
+        @media (max-width: 768px) {
+            .scanner-overlay { top: 65px; height: calc(100vh - 130px); padding-top: 30px; }
+            .camera-container { width: 300px; height: 380px; }
+        }
+        
+        /* NEW: History Page Specific Styles */
+        .history-container { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: flex; flex-direction: column; gap: 32px; font-family: 'Inter', sans-serif; }
+        .page-header-row { display: flex; justify-content: space-between; align-items: flex-end; }
+        .page-title h1 { font-size: 2.8rem; font-weight: 800; color: #0f172a; letter-spacing: -1px; margin-bottom: 8px; }
+        .page-title p { color: var(--text-muted); font-size: 1.05rem; }
+        .search-container { display: flex; gap: 12px; align-items: center; }
+        .search-box { background: #e2e8f0; border-radius: 8px; padding: 10px 16px; display: flex; align-items: center; width: 250px; }
+        .search-box input { background: transparent; border: none; outline: none; width: 100%; font-family: inherit; font-size: 0.9rem; color: var(--text-dark); }
+        .search-box input::placeholder { color: #94a3b8; }
+        .filter-btn { background: var(--white); border: none; border-radius: 8px; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; box-shadow: var(--shadow-sm); cursor: pointer; color: var(--text-main); font-size: 1rem; }
+        .overview-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 24px; }
+        .history-container .card { background: var(--white); border-radius: var(--border-radius-lg); padding: 32px; box-shadow: var(--shadow-md); }
+        .card-header-title { font-size: 1.1rem; font-weight: 600; color: var(--text-dark); margin-bottom: 24px; }
+        .stats-row { display: flex; gap: 48px; margin-bottom: 24px; }
+        .stat-item h4 { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; font-weight: 600; }
+        .stat-item .stat-value { font-size: 3.5rem; font-weight: 800; line-height: 1; color: #0f172a; }
+        .stat-item .stat-value.danger { color: var(--primary-red); }
+        .action-pill { display: inline-flex; background: #ffeef0; color: var(--primary-red); padding: 8px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        .today-card { position: relative; }
+        .today-card .date-label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+        .check-circle { position: absolute; top: 32px; right: 32px; color: #10b981; font-size: 1.5rem; }
+        .today-card h3 { font-size: 1.25rem; color: var(--text-dark); font-weight: 600; margin-bottom: 4px; }
+        .today-card p.course-code { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; }
+        .today-card .time-log { font-size: 2.2rem; font-weight: 800; color: #0f172a; margin-bottom: 4px; line-height: 1; }
+        .today-card .status-text { font-size: 0.85rem; color: var(--text-muted); }
+        .section-title { font-size: 1.25rem; font-weight: 700; color: var(--text-dark); margin-bottom: 16px; }
+        .sessions-list { display: flex; flex-direction: column; gap: 16px; }
+        .session-item { background: var(--white); border-radius: 12px; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm); border-left: 4px solid transparent; }
+        .session-item.warning { border-left-color: var(--primary-red); }
+        .session-info-wrapper { display: flex; align-items: center; gap: 20px; }
+        .icon-box { width: 48px; height: 48px; background: #f1f5f9; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #475569; font-size: 1.2rem; }
+        .session-info h3 { font-size: 1.05rem; font-weight: 600; color: var(--text-dark); margin-bottom: 4px; }
+        .session-info p { font-size: 0.85rem; color: var(--text-muted); }
+        .session-meta { display: flex; align-items: center; gap: 24px; text-align: right; }
+        .date-time p:first-child { font-size: 0.85rem; font-weight: 600; color: var(--text-dark); margin-bottom: 4px; }
+        .date-time p:last-child { font-size: 0.8rem; color: var(--text-muted); }
+        .badge { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border: 1px solid transparent; width: 100px; justify-content: center; }
+        .badge-present { background: #ecfdf5; color: #059669; border-color: #a7f3d0; }
+        .badge-late { background: #fff1f2; color: var(--primary-red); border-color: #fecaca; }
+        .badge-absent { background: var(--primary-red); color: var(--white); }
+        .load-more-container { display: flex; justify-content: center; margin-top: 16px; }
+        .load-more-btn { background: var(--white); border: none; padding: 12px 24px; border-radius: 24px; font-size: 0.9rem; font-weight: 600; color: var(--text-main); box-shadow: var(--shadow-sm); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.2s; }
+        .load-more-btn:hover { background: #f8fafc; }
+        
+        /* Mobile History Adjustments */
+        @media (max-width: 992px) {
+            .overview-grid { grid-template-columns: 1fr; }
+            .page-header-row { flex-direction: column; align-items: flex-start; gap: 20px; }
+            .search-container { width: 100%; }
+            .search-box { width: 100%; }
+        }
+        @media (max-width: 768px) {
+            .session-item { flex-direction: column; align-items: flex-start; gap: 16px; position: relative; }
+            .session-meta { width: 100%; justify-content: space-between; text-align: left; }
+            .date-time { display: flex; gap: 10px; align-items: center; }
+            .date-time p:first-child { margin-bottom: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. React Auth Root Container -->
+    <div id="react-auth-root"></div>
+
+    <!-- 2. Your Existing Dashboard HTML -->
+    <header class="top-nav">
+        <div class="logo" style="display: flex; align-items: center; gap: 12px;">
+            <img src="img/ksk logo.jpeg" alt="KSK Logo" style="height: 45px; width: auto;">
+            <span>KSK College of Engineering & Technology</span>
+        </div>
+        <nav class="nav-links">
+            <a href="#" class="active" id="nav-dashboard" onclick="window.dispatchEvent(new Event('show-dashboard')); event.preventDefault();">Dashboard</a>
+            <a href="#" id="nav-history" onclick="window.dispatchEvent(new Event('show-history')); event.preventDefault();">History</a>
+        </nav>
+        <div class="user-profile">
+            <i class="fa-regular fa-bell notification-icon"></i>
+            
+            <div class="profile-dropdown">
+                <!-- Default Icon (Shown when Logged Out) -->
+                <i class="fa-solid fa-circle-user avatar-icon" id="default-avatar-icon" onclick="window.dispatchEvent(new Event('open-signup'))" title="Click to Sign Up / Log In"></i>
+                
+                <!-- Dynamic User Image (Shown when Logged In) -->
+                <img src="" alt="User Avatar" class="user-avatar-img" id="logged-in-avatar" style="display: none;" onclick="document.getElementById('profile-dropdown-menu').classList.toggle('show')" title="Profile">
+                
+                <!-- Dropdown Menu -->
+                <div class="dropdown-content" id="profile-dropdown-menu">
+                    <img src="" alt="User Avatar" class="dropdown-profile-img" id="dropdown-img">
+                    <h4 style="font-size: 0.95rem; color: var(--text-dark); margin-bottom: 4px;" id="dropdown-name">User</h4>
+                    <p class="dropdown-email" id="dropdown-email">user@example.com</p>
+                    <button class="logout-btn" onclick="window.dispatchEvent(new Event('logout-user'))">Log Out <i class="fa-solid fa-right-from-bracket" style="margin-left: 5px;"></i></button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- NEW: Bottom App Navigation Bar (Only visible on Mobile) -->
+    <nav class="bottom-mobile-nav">
+        <a href="#" class="active" id="mob-nav-dashboard" onclick="window.dispatchEvent(new Event('show-dashboard')); event.preventDefault();">
+            <i class="fa-solid fa-house"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="#" id="mob-nav-history" onclick="window.dispatchEvent(new Event('show-history')); event.preventDefault();">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            <span>History</span>
+        </a>
+        <a href="#">
+            <i class="fa-regular fa-bell"></i>
+            <span>Alerts</span>
+        </a>
+    </nav>
+
+    <!-- 3. React History Root (Properly positioned below the navigation bars) -->
+    <div id="react-history-root"></div>
+
+    <main class="dashboard-container">
+        <!-- Kept your exact dashboard structure intact -->
+        <div class="top-row">
+            <div class="card welcome-card">
+                <p class="greeting">Good morning,</p>
+                <h1 class="user-name">Loading...</h1>
+                <p class="subtitle">You're on track! Your attendance for this semester is currently at 94%.</p>
+                <div class="status-pill">
+                    <i class="fa-solid fa-circle-check check-icon"></i>
+                    <span>Computer Science 101 marked present</span>
+                </div>
+            </div>
+            <div class="card check-in-card">
+                <div class="icon-circle">
+                    <i class="fa-solid fa-qrcode"></i>
+                </div>
+                <h2 class="card-title">Check In Now</h2>
+                <p class="card-desc">Class starting soon? Scan the professor's code.</p>
+                <button class="btn-primary" onclick="window.location.href='scan.html'">
+                    <i class="fa-solid fa-camera"></i> SCAN QR CODE
+                </button>
+            </div>
+        </div>
+
+        <div class="bottom-row">
+            <div class="card classes-card">
+                <div class="card-header">
+                    <h2><i class="fa-regular fa-calendar"></i> Today's Classes</h2>
+                    <span class="badge-total">3 Total</span>
+                </div>
+                <div class="class-list">
+                    <div class="class-item present">
+                        <div class="class-info">
+                            <h3>Data Structures</h3>
+                            <p>09:00 AM - 10:30 AM &bull; Room 302</p>
+                        </div>
+                        <div class="status-badge status-present">Present</div>
+                    </div>
+                    <div class="class-item upcoming">
+                        <div class="class-info">
+                            <h3>Linear Algebra</h3>
+                            <p>01:00 PM - 02:30 PM &bull; Hall B</p>
+                        </div>
+                        <div class="status-text">Upcoming</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card overview-card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-chart-simple"></i> Weekly Overview</h2>
+                    <a href="#" class="view-link">View Full Details</a>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-number text-red">14</div>
+                        <div class="stat-label">CLASSES ATTENDED</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number text-dark">1</div>
+                        <div class="stat-label">MISSED</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 3. React Component Script -->
+    <script type="text/babel">
+        function SignUpUI() {
+            // Show UI by default
+            const [isVisible, setIsVisible] = React.useState(true);
+            
+            // New state to toggle between Login and Sign Up
+            const [isLogin, setIsLogin] = React.useState(false);
+            
+            // New state to hold form data and errors
+            const [formData, setFormData] = React.useState({ name: '', rollNo: '', email: '', password: '' });
+            const [error, setError] = React.useState('');
+            // State to toggle forgot password view
+            const [isForgotPassword, setIsForgotPassword] = React.useState(false);
+            // State for the 5-second rate limit
+            const [isRateLimited, setIsRateLimited] = React.useState(false);
+            // State to toggle password visibility
+            const [showPassword, setShowPassword] = React.useState(false);
+
+            React.useEffect(() => {
+                const handleOpen = () => setIsVisible(true);
+                window.addEventListener('open-signup', handleOpen);
+                
+                // Track Auth State for persistent login
+                let unsubscribe = null;
+                if (window.firebaseAuth && window.firebaseAuth.onAuthStateChanged) {
+                    // Make the callback async so we can await the database fetch
+                    unsubscribe = window.firebaseAuth.onAuthStateChanged(window.firebaseAuth.auth, async (user) => {
+                        if (user) {
+                            // --- NEW: ADMIN RBAC CHECK ---
+                            if (user.email === 'kskcet774@gmail.com') {
+                                window.location.href = 'admin.html';
+                                return; // Stop executing student dashboard logic
+                            }
+
+                            // User is logged in: Hide Auth UI overlay, setup Dashboard UI
+                            setIsVisible(false); 
+                            
+                            document.getElementById('default-avatar-icon').style.display = 'none';
+                            document.getElementById('logged-in-avatar').style.display = 'block';
+                            
+                            // 1. Prioritize Google Profile Photo (if available via Google Login)
+                            // If they used standard Email/Password, generate a fallback avatar based on their email
+                            let photoUrl = user.photoURL 
+                                ? user.photoURL 
+                                : `https://ui-avatars.com/api/?name=${user.email}&background=bb0f1c&color=fff`;
+
+                            // 2. Set default display name to their Google name or email prefix
+                            let displayName = user.displayName || user.email.split('@')[0];
+
+                            // 3. Fetch custom Student Name from Firestore Database (if they signed up manually)
+                            try {
+                                const userDocRef = window.firebaseAuth.doc(window.firebaseAuth.db, "users", user.uid);
+                                const userDocSnap = await window.firebaseAuth.getDoc(userDocRef);
+                                
+                                if (userDocSnap.exists()) {
+                                    const userData = userDocSnap.data();
+                                    if (userData.name) {
+                                        displayName = userData.name; // Override default with DB name
+                                    }
+                                }
+                            } catch (dbError) {
+                                console.error("Error fetching user data from Firestore:", dbError);
+                            }
+                            
+                            // 4. Inject the Google Photo (or fallback) into the Nav UI and Dropdown
+                            document.getElementById('logged-in-avatar').src = photoUrl;
+                            document.getElementById('dropdown-img').src = photoUrl;
+                            
+                            // 5. Inject the Name and Email into the Dropdown
+                            document.getElementById('dropdown-name').textContent = displayName;
+                            document.getElementById('dropdown-email').textContent = user.email;
+
+                            // Update dashboard header dynamically
+                            const dashboardNameEl = document.querySelector('.user-name');
+                            if(dashboardNameEl) dashboardNameEl.textContent = displayName;
+                        } else {
+                            // User is logged out: Show Auth UI, reset Dashboard UI
+                            setIsVisible(true); 
+                            
+                            document.getElementById('default-avatar-icon').style.display = 'block';
+                            document.getElementById('logged-in-avatar').style.display = 'none';
+                            document.getElementById('profile-dropdown-menu').classList.remove('show');
+                        }
+                    });
+                }
+
+                // Handle Logout click
+                const handleLogout = () => {
+                    if (window.firebaseAuth && window.firebaseAuth.signOut) {
+                        window.firebaseAuth.signOut(window.firebaseAuth.auth).catch((error) => console.error(error));
+                    }
+                };
+                window.addEventListener('logout-user', handleLogout);
+
+                // Close dropdown if clicked outside of it
+                const closeDropdown = (e) => {
+                    const dropdown = document.getElementById('profile-dropdown-menu');
+                    const avatar = document.getElementById('logged-in-avatar');
+                    if (dropdown && dropdown.classList.contains('show') && e.target !== avatar && !dropdown.contains(e.target)) {
+                        dropdown.classList.remove('show');
+                    }
+                };
+                window.addEventListener('click', closeDropdown);
+
+                return () => {
+                    window.removeEventListener('open-signup', handleOpen);
+                    window.removeEventListener('logout-user', handleLogout);
+                    window.removeEventListener('click', closeDropdown);
+                    if (unsubscribe) unsubscribe();
+                };
+            }, []);
+
+            const handleChange = (e) => {
+                setFormData({ ...formData, [e.target.name]: e.target.value });
+            };
+
+            const handleResetPassword = async (e) => {
+                e.preventDefault();
+                setError('');
+                if (!formData.email) {
+                    setError("Please enter your email address to reset your password.");
+                    return;
+                }
+                try {
+                    if (!window.firebaseAuth || !window.firebaseAuth.sendPasswordResetEmail) {
+                        throw new Error("Firebase reset method not initialized. Check firebaseconfig.js");
+                    }
+                    // Send the secure Firebase reset email
+                    await window.firebaseAuth.sendPasswordResetEmail(
+                        window.firebaseAuth.auth, 
+                        formData.email
+                    );
+                    alert("Password reset email sent! Please check your inbox.");
+                    setIsForgotPassword(false); // Return to login view
+                } catch (err) {
+                    setError(err.message);
+                }
+            };
+
+            const triggerRateLimit = () => {
+                setIsRateLimited(true);
+                setTimeout(() => {
+                    setIsRateLimited(false);
+                }, 5000); // 5 seconds
+            };
+
+            const handleGoogleLogin = async () => {
+                setError('');
+                if (isRateLimited) return;
+                
+                triggerRateLimit();
+                try {
+                    if (!window.firebaseAuth || !window.firebaseAuth.signInWithPopup) {
+                        throw new Error("Firebase Google auth not initialized. Check firebaseconfig.js");
+                    }
+                    await window.firebaseAuth.signInWithPopup(
+                        window.firebaseAuth.auth, 
+                        window.firebaseAuth.googleProvider
+                    );
+                    alert("Logged in with Google successfully!");
+                    setIsVisible(false); // Hide overlay to reveal dashboard
+                } catch (err) {
+                    setError(err.message);
+                }
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setError('');
+                
+                if (isRateLimited) {
+                    setError("Please wait 5 seconds before trying again.");
+                    return;
+                }
+                
+                triggerRateLimit();
+                try {
+                    // Check if Firebase was loaded properly
+                    if (!window.firebaseAuth) {
+                        throw new Error("Firebase is not initialized. Please check your config.");
+                    }
+
+                    if (isLogin) {
+                        // Firebase Login
+                        await window.firebaseAuth.signInWithEmailAndPassword(
+                            window.firebaseAuth.auth, 
+                            formData.email, 
+                            formData.password
+                        );
+                        alert("Logged in successfully!");
+                        setIsVisible(false); // Hide overlay to reveal dashboard
+                    } else {
+                        // Firebase Sign Up
+                        const userCredential = await window.firebaseAuth.createUserWithEmailAndPassword(
+                            window.firebaseAuth.auth, 
+                            formData.email, 
+                            formData.password
+                        );
+                        
+                        const user = userCredential.user;
+
+                        // Save extra student details (Name & Roll No) to Firestore Database
+                        await window.firebaseAuth.setDoc(
+                            window.firebaseAuth.doc(window.firebaseAuth.db, "users", user.uid), 
+                            {
+                                name: formData.name,
+                                rollNo: formData.rollNo,
+                                email: formData.email
+                            }
+                        );
+
+                        alert("Account created successfully!");
+                        setIsVisible(false); // Hide overlay to reveal dashboard
+                    }
+                } catch (err) {
+                    setError(err.message); // Display error message
+                }
+            };
+
+            if (!isVisible) return null;
+
+            return (
+                <div className="react-overlay-wrapper">
+                    <div className="auth-brand-header">
+                        <h1 className="auth-logo">AttendancePro</h1>
+                        <p>Join the platform. Manage your presence.</p>
+                    </div>
+
+                    <div className="auth-card-ui">
+                        <h2 className="auth-title">
+                            {isForgotPassword ? "Reset Password" : (isLogin ? "Welcome Back" : "Create Student Account")}
+                        </h2>
+                        
+                        {error && <div className="error-message">{error}</div>}
+                        
+                        {isForgotPassword ? (
+                            // --- FORGOT PASSWORD FORM ---
+                            <form className="auth-form" onSubmit={handleResetPassword}>
+                                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '-10px' }}>
+                                    Enter your email address and we'll send you a link to reset your password.
+                                </p>
+                                <div className="input-group">
+                                    <label>Email</label>
+                                    <div className="input-with-icon">
+                                        <i className="fa-regular fa-envelope"></i>
+                                        <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Your Email Address" required />
+                                    </div>
+                                </div>
+                                <button type="submit" className={`auth-submit-btn ${isRateLimited ? 'btn-disabled' : ''}`} disabled={isRateLimited}>
+                                    {isRateLimited ? "Please Wait..." : "Send Reset Link"} <i className="fa-regular fa-paper-plane" style={{marginLeft: "8px"}}></i>
+                                </button>
+                            </form>
+                        ) : (
+                            // --- LOGIN / SIGN UP FORM & GOOGLE LOGIN ---
+                            <>
+                                <form className="auth-form" onSubmit={handleSubmit}>
+                                    {!isLogin && (
+                                        <>
+                                            <div className="input-group">
+                                                <label>Student Name</label>
+                                                <div className="input-with-icon">
+                                                    <i className="fa-regular fa-user"></i>
+                                                    <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Your Correct Name With Initials" required={!isLogin} />
+                                                </div>
+                                            </div>
+                                            <div className="input-group">
+                                                <label>Roll No</label>
+                                                <div className="input-with-icon">
+                                                    <i className="fa-regular fa-id-badge"></i>
+                                                    <input type="text" name="rollNo" value={formData.rollNo} onChange={handleChange} placeholder="8210xxxxxxxx" required={!isLogin} />
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                    <div className="input-group">
+                                        <label>Email</label>
+                                        <div className="input-with-icon">
+                                            <i className="fa-regular fa-envelope"></i>
+                                            <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Your Email Address" required />
+                                        </div>
+                                    </div>
+                                    <div className="input-group">
+                                        <label>Password</label>
+                                        <div className="input-with-icon">
+                                            <i className="fa-solid fa-lock"></i>
+                                            <input 
+                                                type={showPassword ? "text" : "password"} 
+                                                name="password" 
+                                                value={formData.password} 
+                                                onChange={handleChange} 
+                                                placeholder="••••••••" 
+                                                className="password-input"
+                                                required 
+                                            />
+                                            <i 
+                                                className={`fa-regular ${showPassword ? "fa-eye-slash" : "fa-eye"} password-toggle-icon`} 
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                title={showPassword ? "Hide Password" : "Show Password"}
+                                            ></i>
+                                        </div>
+                                    </div>
+
+                                    {/* Forgot Password Link (Only shown on Login View) */}
+                                    {isLogin && (
+                                        <div style={{ textAlign: 'right', marginTop: '-10px' }}>
+                                            <a onClick={() => { setIsForgotPassword(true); setError(''); }} className="login-link" style={{ fontSize: '0.85rem' }}>
+                                                Forgot Password?
+                                            </a>
+                                        </div>
+                                    )}
+
+                                    <button type="submit" className={`auth-submit-btn ${isRateLimited ? 'btn-disabled' : ''}`} disabled={isRateLimited}>
+                                        {isRateLimited ? "Please Wait..." : (isLogin ? "Log In" : "Create Account")} <i className="fa-solid fa-arrow-right" style={{marginLeft: "8px"}}></i>
+                                    </button>
+                                </form>
+
+                                {/* Google Login UI (Only shown on Login View) */}
+                                {isLogin && (
+                                    <>
+                                        <div className="divider"><span>OR</span></div>
+                                        <button type="button" onClick={handleGoogleLogin} className={`btn-outline ${isRateLimited ? 'btn-disabled' : ''}`} disabled={isRateLimited}>
+                                            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="google-icon" />
+                                            Login with Google
+                                        </button>
+                                    </>
+                                )}
+                            </>
+                        )}
+
+                        <p className="auth-footer">
+                            {isForgotPassword ? (
+                                <>Remember your password? <a onClick={() => { setIsForgotPassword(false); setError(''); }} className="login-link">Log In</a></>
+                            ) : (
+                                <>
+                                    {isLogin ? "Don't have an account? " : "Already have an account? "} 
+                                    <a onClick={() => { setIsLogin(!isLogin); setError(''); setIsForgotPassword(false); }} className="login-link">
+                                        {isLogin ? "Sign Up" : "Log In"}
+                                    </a>
+                                </>
+                            )}
+                        </p>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('react-auth-root'));
+        root.render(<SignUpUI />);
+
+        // NEW: History Single-Page Application (SPA) Logic
+        function HistoryUI() {
+            const [isVisible, setIsVisible] = React.useState(false);
+
+            React.useEffect(() => {
+                const showHistory = () => {
+                    setIsVisible(true);
+                    // Hide the standard HTML dashboard
+                    document.querySelector('.dashboard-container').style.display = 'none';
+                    
+                    // Update active state on Nav links
+                    document.getElementById('nav-dashboard').classList.remove('active');
+                    document.getElementById('mob-nav-dashboard').classList.remove('active');
+                    document.getElementById('nav-history').classList.add('active');
+                    document.getElementById('mob-nav-history').classList.add('active');
+                };
+
+                const showDashboard = () => {
+                    setIsVisible(false);
+                    // Show the standard HTML dashboard
+                    document.querySelector('.dashboard-container').style.display = 'block';
+                    
+                    // Update active state on Nav links
+                    document.getElementById('nav-history').classList.remove('active');
+                    document.getElementById('mob-nav-history').classList.remove('active');
+                    document.getElementById('nav-dashboard').classList.add('active');
+                    document.getElementById('mob-nav-dashboard').classList.add('active');
+                };
+
+                // Listeners for the Navigation Clicks
+                window.addEventListener('show-history', showHistory);
+                window.addEventListener('show-dashboard', showDashboard);
+
+                return () => {
+                    window.removeEventListener('show-history', showHistory);
+                    window.removeEventListener('show-dashboard', showDashboard);
+                };
+            }, []);
+
+            if (!isVisible) return null;
+
+            return (
+                <main className="history-container">
+                    
+                    <div className="page-header-row">
+                        <div className="page-title">
+                            <h1>Your History</h1>
+                            <p>Track your attendance across all registered courses.</p>
+                        </div>
+                        <div className="search-container">
+                            <div className="search-box">
+                                <input type="text" placeholder="Search courses..." />
+                            </div>
+                            <button className="filter-btn"><i className="fa-solid fa-filter"></i></button>
+                        </div>
+                    </div>
+
+                    <div className="overview-grid">
+                        <div className="card">
+                            <h2 className="card-header-title">Current Semester Overview</h2>
+                            <div className="stats-row">
+                                <div className="stat-item">
+                                    <h4>OVERALL ATTENDANCE</h4>
+                                    <div className="stat-value">92%</div>
+                                </div>
+                                <div className="stat-item">
+                                    <h4>MISSED SESSIONS</h4>
+                                    <div className="stat-value danger">3</div>
+                                </div>
+                            </div>
+                            <div className="action-pill">Action Required: Check CS301</div>
+                        </div>
+
+                        <div className="card today-card">
+                            <div className="date-label">TODAY</div>
+                            <i className="fa-regular fa-circle-check check-circle"></i>
+                            <h3>Advanced UI Design</h3>
+                            <p className="course-code">DES402</p>
+                            <div className="time-log">10:05 AM</div>
+                            <p className="status-text">Checked in on time</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h2 className="section-title">Past Sessions</h2>
+                        <div className="sessions-list">
+                            
+                            <div className="session-item">
+                                <div className="session-info-wrapper">
+                                    <div className="icon-box"><i className="fa-solid fa-laptop"></i></div>
+                                    <div className="session-info">
+                                        <h3>Data Structures</h3>
+                                        <p>CS301 &bull; Prof. Alan Turing</p>
+                                    </div>
+                                </div>
+                                <div className="session-meta">
+                                    <div className="date-time">
+                                        <p>Oct 24, 2026</p>
+                                        <p>09:00 AM</p>
+                                    </div>
+                                    <span className="badge badge-present"><i className="fa-solid fa-check"></i> Present</span>
+                                </div>
+                            </div>
+
+                            <div className="session-item warning">
+                                <div className="session-info-wrapper">
+                                    <div className="icon-box"><i className="fa-solid fa-pen-ruler"></i></div>
+                                    <div className="session-info">
+                                        <h3>Advanced UI Design</h3>
+                                        <p>DES402 &bull; Prof. J. Ive</p>
+                                    </div>
+                                </div>
+                                <div className="session-meta">
+                                    <div className="date-time">
+                                        <p>Oct 22, 2026</p>
+                                        <p>10:15 AM <span style={{color: 'var(--primary-red)'}}>(15m late)</span></p>
+                                    </div>
+                                    <span className="badge badge-late"><i className="fa-regular fa-clock"></i> Late</span>
+                                </div>
+                            </div>
+
+                            <div className="session-item warning">
+                                <div className="session-info-wrapper">
+                                    <div className="icon-box"><i className="fa-solid fa-flask"></i></div>
+                                    <div className="session-info">
+                                        <h3>Quantum Mechanics</h3>
+                                        <p>PHY401 &bull; Prof. R. Feynman</p>
+                                    </div>
+                                </div>
+                                <div className="session-meta">
+                                    <div className="date-time">
+                                        <p>Oct 20, 2026</p>
+                                        <p>14:00 PM</p>
+                                    </div>
+                                    <span className="badge badge-absent"><i className="fa-solid fa-xmark"></i> Absent</span>
+                                </div>
+                            </div>
+
+                            <div className="session-item">
+                                <div className="session-info-wrapper">
+                                    <div className="icon-box"><i className="fa-solid fa-laptop"></i></div>
+                                    <div className="session-info">
+                                        <h3>Data Structures</h3>
+                                        <p>CS301 &bull; Prof. Alan Turing</p>
+                                    </div>
+                                </div>
+                                <div className="session-meta">
+                                    <div className="date-time">
+                                        <p>Oct 17, 2026</p>
+                                        <p>09:00 AM</p>
+                                    </div>
+                                    <span className="badge badge-present"><i className="fa-solid fa-check"></i> Present</span>
+                                </div>
+                            </div>
+
+                        </div>
+                        
+                        <div className="load-more-container">
+                            <button className="load-more-btn">Load More <i className="fa-solid fa-chevron-down"></i></button>
+                        </div>
+                    </div>
+                </main>
+            );
+        }
+
+        const historyRoot = ReactDOM.createRoot(document.getElementById('react-history-root'));
+        historyRoot.render(<HistoryUI />);
+
+        </script>
+
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan Code - Dashboard</title>
+    
+    <!-- Google Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- React & ReactDOM CDNs -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        :root {
+            --primary-red: #bb0f1c;
+            --white: #ffffff;
+            --text-muted: #64748b;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top, #111827 0%, #030712 100%);
+            color: var(--white);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Scanner Specific Styles */
+        .scanner-wrapper {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 50px;
+            flex: 1;
+        }
+
+        .close-scanner-btn {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            color: #9ca3af;
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: color 0.2s ease;
+            text-decoration: none;
+        }
+        .close-scanner-btn:hover { color: var(--white); }
+
+        .scanner-header { text-align: center; margin-bottom: 40px; padding: 0 20px; }
+        .scanner-title { color: #3b82f6; font-size: 2.2rem; font-weight: 700; margin-bottom: 12px; }
+        .scanner-subtitle { color: #9ca3af; font-size: 0.95rem; line-height: 1.5; }
+
+        .camera-container {
+            position: relative;
+            width: 320px;
+            height: 420px;
+            background-color: #1f2937;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Live Camera Feed */
+        .camera-feed {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .camera-error {
+            text-align: center;
+            color: #ef4444;
+            padding: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Camera Reticle / Frame */
+        .camera-frame {
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 220px;
+            height: 220px;
+            pointer-events: none;
+        }
+        .frame-corner { position: absolute; width: 40px; height: 40px; border-color: rgba(255, 255, 255, 1); border-style: solid; }
+        .top-left { top: 0; left: 0; border-width: 4px 0 0 4px; border-radius: 8px 0 0 0; }
+        .top-right { top: 0; right: 0; border-width: 4px 4px 0 0; border-radius: 0 8px 0 0; }
+        .bottom-left { bottom: 0; left: 0; border-width: 0 0 4px 4px; border-radius: 0 0 0 8px; }
+        .bottom-right { bottom: 0; right: 0; border-width: 0 4px 4px 0; border-radius: 0 0 8px 0; }
+
+        /* Scanning text */
+        .scanning-indicator {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 6px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ef4444;
+            font-size: 0.85rem;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            pointer-events: none;
+        }
+        .red-dot { width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; display: inline-block; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
+        /* Bottom Mobile Navigation */
+        .bottom-mobile-nav { 
+            display: flex; 
+            width: 100%; 
+            background-color: var(--white); 
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.06); 
+            justify-content: space-around; 
+            align-items: center; 
+            height: 65px; 
+            padding-bottom: env(safe-area-inset-bottom);
+            margin-top: auto;
+        }
+        
+        .bottom-mobile-nav a { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            text-decoration: none; 
+            color: var(--text-muted); 
+            font-size: 0.75rem; 
+            font-weight: 600; 
+            gap: 5px; 
+            flex: 1; 
+            height: 100%;
+            transition: color 0.2s ease;
+        }
+        .bottom-mobile-nav a.active { color: var(--primary-red); }
+        .bottom-mobile-nav a i { font-size: 1.25rem; }
+    </style>
+</head>
+<body>
+
+    <div id="scanner-root" style="width: 100%; height: 100%; display: flex; flex-direction: column;"></div>
+
+    <script type="text/babel">
+        function LiveScanner() {
+            const videoRef = React.useRef(null);
+            const [errorMsg, setErrorMsg] = React.useState('');
+            
+            React.useEffect(() => {
+                let currentStream = null;
+
+                // Function to request camera permission and stream video
+                const startCamera = async () => {
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({ 
+                            video: { facingMode: "environment" } // Prioritizes rear camera on mobile
+                        });
+                        currentStream = stream;
+                        
+                        if (videoRef.current) {
+                            videoRef.current.srcObject = stream;
+                        }
+                    } catch (err) {
+                        console.error("Error accessing camera: ", err);
+                        setErrorMsg("Camera permission denied or device not found. Please allow camera access in your browser settings.");
+                    }
+                };
+
+                startCamera();
+
+                // Cleanup: Stop the camera stream when leaving the page
+                return () => {
+                    if (currentStream) {
+                        currentStream.getTracks().forEach(track => track.stop());
+                    }
+                };
+            }, []);
+
+            return (
+                <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%' }}>
+                    <div className="scanner-wrapper">
+                        
+                        {/* Close button routes back to dashboard */}
+                        <a href="index.html" className="close-scanner-btn" title="Back to Dashboard">
+                            <i className="fa-solid fa-xmark"></i>
+                        </a>
+                        
+                        <div className="scanner-header">
+                            <h1 className="scanner-title">Scan Code</h1>
+                            <p className="scanner-subtitle">Align the QR code within the frame to record your<br/>attendance.</p>
+                        </div>
+                        
+                        <div className="camera-container">
+                            {errorMsg ? (
+                                <div className="camera-error">
+                                    <i className="fa-solid fa-camera-slash" style={{fontSize: '2rem', marginBottom: '10px'}}></i>
+                                    <p>{errorMsg}</p>
+                                </div>
+                            ) : (
+                                <video 
+                                    ref={videoRef}
+                                    autoPlay 
+                                    playsInline 
+                                    muted 
+                                    className="camera-feed"
+                                ></video>
+                            )}
+                            
+                            {/* Reticle / Frame overlay */}
+                            {!errorMsg && (
+                                <>
+                                    <div className="camera-frame">
+                                        <div className="frame-corner top-left"></div>
+                                        <div className="frame-corner top-right"></div>
+                                        <div className="frame-corner bottom-left"></div>
+                                        <div className="frame-corner bottom-right"></div>
+                                    </div>
+                                    <div className="scanning-indicator">
+                                        <span className="red-dot"></span> Scanning...
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Bottom Navigation Bar */}
+                    <nav className="bottom-mobile-nav">
+                        <a href="index.html" className="active">
+                            <i className="fa-solid fa-house"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="#">
+                            <i className="fa-solid fa-clock-rotate-left"></i>
+                            <span>History</span>
+                        </a>
+                        <a href="#">
+                            <i className="fa-regular fa-bell"></i>
+                            <span>Alerts</span>
+                        </a>
+                    </nav>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('scanner-root'));
+        root.render(<LiveScanner />);
+    </script>
+</body>
+</html>
