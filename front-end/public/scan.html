@@ -13,6 +13,16 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- NEW: jsQR Library for scanning video frames -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    
+    <!-- FIREBASE SETUP via ES Modules -->
+    <script type="module" src="firebaseconfig.js"></script>
+
+    <!-- NEW: Leaflet Map Library for Location UI -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
         :root {
@@ -126,6 +136,37 @@
         .red-dot { width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; display: inline-block; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
+        /* NEW: Verification UI Overlay Styles - Upgraded to Full Screen Popups */
+        .status-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9995; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; animation: fadeIn 0.3s ease; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); background: rgba(15, 23, 42, 0.85); }
+        .status-icon-wrapper { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 24px; }
+        .icon-pulse { animation: pulseWarning 1.5s infinite; }
+        .icon-shake { animation: shake 0.5s ease-in-out; }
+        .status-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px; }
+        .status-desc { font-size: 0.9rem; line-height: 1.5; margin-bottom: 24px; }
+        .btn-retry { background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 10px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-retry:hover { background: #ef4444; color: white; }
+        .btn-success { background: white; border: none; color: #10b981; padding: 14px 32px; border-radius: 12px; font-weight: 800; font-size: 1.1rem; cursor: pointer; transition: background 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin-top: 16px; }
+        .btn-success:hover { background: #f1f5f9; }
+        
+        @keyframes fadeIn { 0% { opacity: 0; } 100% { opacity: 1; } }
+        @keyframes pulseWarning { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.7; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-6px); } }
+        @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+        /* NEW: Map Confirmation Modal Styles - Scaled for full screen view */
+        .map-confirm-modal { background: #ffffff; border-radius: 28px; padding: 32px 24px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6); animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; align-items: center; }
+        .map-confirm-modal::-webkit-scrollbar { width: 0px; } /* Clean scrollbar */
+        .map-confirm-modal h3 { font-size: 1.6rem; font-weight: 800; margin-bottom: 8px; color: #0f172a; letter-spacing: -0.5px; }
+        .map-confirm-modal p { font-size: 1rem; color: #64748b; margin-bottom: 24px; line-height: 1.5; padding: 0 10px; }
+        
+        /* The pointer-events: none completely disables clicking/dragging on the map */
+        .readonly-map-container { height: 220px; width: 100%; border-radius: 16px; margin-bottom: 24px; border: 3px solid #f1f5f9; overflow: hidden; pointer-events: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+        
+        .btn-confirm-location { background: #bb0f1c; color: #ffffff; border: none; padding: 16px; width: 100%; border-radius: 16px; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 8px 20px rgba(187, 15, 28, 0.25); display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .btn-confirm-location:hover { background: #9b0c16; transform: translateY(-2px); box-shadow: 0 10px 25px rgba(187, 15, 28, 0.35); }
+        .btn-retry-location { background: transparent; border: 2px solid #e2e8f0; color: #64748b; padding: 14px; width: 100%; border-radius: 16px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 12px; }
+        .btn-retry-location:hover { background: #f8fafc; color: #0f172a; border-color: #cbd5e1; }
+
         /* Bottom Mobile Navigation */
         .bottom-mobile-nav { 
             display: flex; 
@@ -155,6 +196,29 @@
         }
         .bottom-mobile-nav a.active { color: var(--primary-red); }
         .bottom-mobile-nav a i { font-size: 1.25rem; }
+
+        /* NEW: Network Status Indicator Styles */
+        .network-indicator {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 9990;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+        .network-strong { background: rgba(16, 185, 129, 0.9); color: white; border: 1px solid #059669; }
+        .network-slow { background: rgba(245, 158, 11, 0.9); color: white; border: 1px solid #d97706; }
+        .network-offline { background: rgba(239, 68, 68, 0.9); color: white; border: 1px solid #b91c1c; }
     </style>
 </head>
 <body>
@@ -164,44 +228,339 @@
     <script type="text/babel">
         function LiveScanner() {
             const videoRef = React.useRef(null);
-            const [errorMsg, setErrorMsg] = React.useState('');
+            const canvasRef = React.useRef(null);
             
+            const [errorMsg, setErrorMsg] = React.useState('');
+            const [scanStatus, setScanStatus] = React.useState('locating'); // locating, scanning, verifying, success, out_of_range
+            const [userLocation, setUserLocation] = React.useState(null);
+            const [qrPayload, setQrPayload] = React.useState(null);
+            const [distanceVal, setDistanceVal] = React.useState(0);
+            const [currentUser, setCurrentUser] = React.useState(null);
+
+            // NEW: Network Status & Offline Sync State
+            const [networkStatus, setNetworkStatus] = React.useState('strong'); // strong, slow, offline
+
+            // Live Internet Speed Detection
+            React.useEffect(() => {
+                const updateNetworkStatus = () => {
+                    if (!navigator.onLine) {
+                        setNetworkStatus('offline');
+                        return;
+                    }
+                    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                    if (conn) {
+                        if (conn.effectiveType === 'slow-2g' || conn.effectiveType === '2g' || conn.effectiveType === '3g') {
+                            setNetworkStatus('slow');
+                        } else {
+                            setNetworkStatus('strong');
+                        }
+                    } else {
+                        setNetworkStatus('strong'); // Fallback if API unsupported but online
+                    }
+                };
+
+                window.addEventListener('online', updateNetworkStatus);
+                window.addEventListener('offline', updateNetworkStatus);
+                
+                const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                if (conn) conn.addEventListener('change', updateNetworkStatus);
+
+                updateNetworkStatus();
+
+                return () => {
+                    window.removeEventListener('online', updateNetworkStatus);
+                    window.removeEventListener('offline', updateNetworkStatus);
+                    if (conn) conn.removeEventListener('change', updateNetworkStatus);
+                };
+            }, []);
+
+            // Background Offline Sync Task
+            React.useEffect(() => {
+                if ((networkStatus === 'strong' || networkStatus === 'slow') && window.firebaseAuth && window.firebaseAuth.db) {
+                    const queue = JSON.parse(localStorage.getItem('kskcet_offline_scans') || '[]');
+                    if (queue.length > 0) {
+                        queue.forEach(async (item) => {
+                            try {
+                                await window.firebaseAuth.setDoc(
+                                    window.firebaseAuth.doc(window.firebaseAuth.db, "qr_attendance_records", item.id),
+                                    item.payload
+                                );
+                                // Successfully synced! Remove from queue safely
+                                const currentQueue = JSON.parse(localStorage.getItem('kskcet_offline_scans') || '[]');
+                                const filtered = currentQueue.filter(q => q.id !== item.id);
+                                localStorage.setItem('kskcet_offline_scans', JSON.stringify(filtered));
+                            } catch (e) {
+                                console.warn("Background sync delayed:", e);
+                            }
+                        });
+                    }
+                }
+            }, [networkStatus]);
+
+            // 1. Authenticate User Data on Mount
+            React.useEffect(() => {
+                let unsubscribe = null;
+                const checkAuth = () => {
+                    if (window.firebaseAuth && window.firebaseAuth.onAuthStateChanged) {
+                        unsubscribe = window.firebaseAuth.onAuthStateChanged(window.firebaseAuth.auth, async (user) => {
+                            if(user) {
+                                // NEW: Fetch the student's Roll Number from their profile database
+                                try {
+                                    const userDocRef = window.firebaseAuth.doc(window.firebaseAuth.db, "users", user.uid);
+                                    const userDocSnap = await window.firebaseAuth.getDoc(userDocRef);
+                                    if (userDocSnap.exists() && userDocSnap.data().rollNo) {
+                                        user.rollNo = userDocSnap.data().rollNo;
+                                    }
+                                } catch (err) {
+                                    console.error("Could not fetch roll number:", err);
+                                }
+                                setCurrentUser(user);
+                            }
+                        });
+                    } else setTimeout(checkAuth, 100);
+                };
+                checkAuth();
+                return () => { if(unsubscribe) unsubscribe(); }
+            }, []);
+
+            // 2. Fetch User GPS Location
+            const fetchLocationData = (isVerificationRetry = false) => {
+                setScanStatus('locating');
+                if ("geolocation" in navigator) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            const newLoc = { lat: position.coords.latitude, lng: position.coords.longitude };
+                            setUserLocation(newLoc);
+                            
+                            // If they clicked 'Recalculate' after failing a scan, immediately re-check the result!
+                            if (isVerificationRetry && qrPayload) {
+                                const dataString = encodeURIComponent(JSON.stringify(qrPayload));
+                                handleQRFound(dataString, newLoc);
+                            } else {
+                                setScanStatus('location_confirm');
+                            }
+                        },
+                        (err) => {
+                            setErrorMsg("GPS Location access is strictly required to verify attendance range.");
+                            setScanStatus('error');
+                        },
+                        // Force a brand-new GPS lock by bypassing cached coordinates
+                        { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
+                    );
+                } else {
+                    setErrorMsg("Geolocation is not supported by your browser.");
+                    setScanStatus('error');
+                }
+            };
+
+            React.useEffect(() => {
+                fetchLocationData();
+            }, []);
+
+            // NEW: Leaflet Map Initialization for Read-Only Confirmation
+            const mapRef = React.useRef(null);
+            React.useEffect(() => {
+                if (scanStatus === 'location_confirm' && userLocation) {
+                    setTimeout(() => {
+                        const mapContainer = document.getElementById('readonly-leaflet-map');
+                        if (mapContainer) {
+                            // Safely completely clean up any previous map instances left behind by React DOM recycling
+                            if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; }
+                            if (mapContainer._leaflet_id) { mapContainer._leaflet_id = null; mapContainer.innerHTML = ''; }
+
+                            const map = window.L.map(mapContainer, {
+                                zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false, touchZoom: false
+                            }).setView([userLocation.lat, userLocation.lng], 17);
+                            
+                            window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+                            
+                            const marker = window.L.marker([userLocation.lat, userLocation.lng]).addTo(map);
+                            marker.bindPopup("<b>Your Location</b>").openPopup();
+                            
+                            mapRef.current = map;
+                        }
+                    }, 100);
+                } else {
+                    if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; }
+                }
+            }, [scanStatus, userLocation]);
+
+            // 3. Start Camera & Scan Loop
             React.useEffect(() => {
                 let currentStream = null;
+                let requestAnimId = null;
 
-                // Function to request camera permission and stream video
                 const startCamera = async () => {
+                    if (scanStatus !== 'scanning') return;
                     try {
-                        const stream = await navigator.mediaDevices.getUserMedia({ 
-                            video: { facingMode: "environment" } // Prioritizes rear camera on mobile
-                        });
+                        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
                         currentStream = stream;
-                        
                         if (videoRef.current) {
                             videoRef.current.srcObject = stream;
+                            // Wait for video to be ready before starting frame capture
+                            videoRef.current.onloadedmetadata = () => {
+                                videoRef.current.play();
+                                requestAnimId = requestAnimationFrame(tick);
+                            };
                         }
                     } catch (err) {
-                        console.error("Error accessing camera: ", err);
-                        setErrorMsg("Camera permission denied or device not found. Please allow camera access in your browser settings.");
+                        setErrorMsg("Camera permission denied. Required to scan QR codes.");
+                        setScanStatus('error');
+                    }
+                };
+
+                const tick = () => {
+                    if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA && scanStatus === 'scanning') {
+                        const canvas = canvasRef.current;
+                        if(!canvas) return;
+                        
+                        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+                        canvas.height = videoRef.current.videoHeight;
+                        canvas.width = videoRef.current.videoWidth;
+                        ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+                        
+                        // Extract frame data and pass to jsQR
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+                        
+                        if (code) {
+                            handleQRFound(code.data);
+                        } else {
+                            requestAnimId = requestAnimationFrame(tick);
+                        }
+                    } else if (scanStatus === 'scanning') {
+                        requestAnimId = requestAnimationFrame(tick);
                     }
                 };
 
                 startCamera();
 
-                // Cleanup: Stop the camera stream when leaving the page
                 return () => {
-                    if (currentStream) {
-                        currentStream.getTracks().forEach(track => track.stop());
-                    }
+                    if (currentStream) currentStream.getTracks().forEach(track => track.stop());
+                    if (requestAnimId) cancelAnimationFrame(requestAnimId);
                 };
-            }, []);
+            }, [scanStatus]);
+
+            // Precise Haversine Distance Formula (Returns Meters)
+            const getDistanceInMeters = (lat1, lon1, lat2, lon2) => {
+                const R = 6371e3; // Earth radius in meters
+                const p1 = lat1 * Math.PI/180;
+                const p2 = lat2 * Math.PI/180;
+                const dp = (lat2-lat1) * Math.PI/180;
+                const dl = (lon2-lon1) * Math.PI/180;
+                const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                return R * c;
+            };
+
+            // 4. Verify & Store Logic
+            const handleQRFound = async (dataString, retryLocation = null) => {
+                setScanStatus('verifying');
+                
+                let parsedQRData = null;
+                try {
+                    // Decrypt URL Encoded Payload generated by department.html
+                    const decodedStr = decodeURIComponent(dataString);
+                    parsedQRData = JSON.parse(decodedStr);
+                } catch (parseErr) {
+                    console.error("Invalid QR Format:", parseErr);
+                    // Silently ignore random barcodes that aren't ours and keep scanning
+                    setTimeout(() => setScanStatus('scanning'), 1500);
+                    return;
+                }
+
+                try {
+                    const activeLocation = retryLocation || userLocation;
+                    if(!activeLocation) throw new Error("Location not locked yet.");
+
+                    // Calculate proximity limit (Handle NaN issues if latitude was missing during generation)
+                    const qrLat = parseFloat(parsedQRData.latitude) || 0;
+                    const qrLng = parseFloat(parsedQRData.longitude) || 0;
+                    const distance = getDistanceInMeters(activeLocation.lat, activeLocation.lng, qrLat, qrLng);
+                    
+                    setDistanceVal(distance);
+                    setQrPayload(parsedQRData); // Save for plotting on the map if out of range
+
+                    // 30 Meter Verification Logic
+                    if (distance <= 30.0) {
+                        
+                        if(!currentUser) {
+                            setErrorMsg("Authentication Error: You must be logged in to record attendance.");
+                            setScanStatus('error');
+                            return;
+                        }
+
+                        // Convert decrypted QR data into a fully readable, structured format
+                        // Ensure NO 'undefined' fields exist, which crashes Firebase silently.
+                        const readableDecryptedData = {
+                            courseName: parsedQRData.course || "Unknown Course",
+                            departmentName: parsedQRData.department || "Unknown Department",
+                            academicYear: parsedQRData.year || "N/A",
+                            academicSemester: parsedQRData.semester || "N/A",
+                            classroom: parsedQRData.room || "N/A",
+                            qrExpirationLimitMinutes: parsedQRData.expiration || "N/A"
+                        };
+
+                        // Store verified record to a NEW Firebase Database collection: "qr_attendance_records"
+                        const uniqueLogId = `log_${currentUser.uid}_${Date.now()}`;
+                        const logRef = window.firebaseAuth.doc(window.firebaseAuth.db, "qr_attendance_records", uniqueLogId);
+                        
+                        const payload = {
+                            // 1. Authenticated Student Data (Using Roll No as ID)
+                            studentId: currentUser.rollNo || currentUser.uid || "Unknown Roll No",
+                            studentEmail: currentUser.email || "Unknown Email",
+                            
+                            // 2. Readable Decrypted QR Code Data
+                            ...readableDecryptedData,
+                            
+                            // 3. Precise Location Verification Data
+                            qrLatitude: qrLat,
+                            qrLongitude: qrLng,
+                            deviceLatitude: activeLocation.lat || 0,
+                            deviceLongitude: activeLocation.lng || 0,
+                            verifiedDistanceMeters: parseFloat(distance.toFixed(2)) || 0,
+                            
+                            // 4. Secure Timestamps & Status
+                            scanVerifiedTimestamp: new Date().toISOString(),
+                            // Enforce strict 12-hour AM/PM format for the database string regardless of device settings
+                            scanVerifiedLocalTime: new Date().toLocaleString('en-US', { hour12: true }),
+                            status: "Present",
+                            successMessage: "Attendance recorded successfully via QR Scan"
+                        };
+
+                        try {
+                            // Prevent slow networks from freezing the app. Race the setDoc promise against a 2.5-second timeout!
+                            const savePromise = window.firebaseAuth.setDoc(logRef, payload);
+                            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('network_timeout')), 2500));
+                            
+                            await Promise.race([savePromise, timeoutPromise]);
+                        } catch (err) {
+                            console.warn("Network delayed/offline. Scan queued securely for background sync.");
+                            // Queue locally so the student does not lose their attendance
+                            const queue = JSON.parse(localStorage.getItem('kskcet_offline_scans') || '[]');
+                            queue.push({ id: uniqueLogId, payload });
+                            localStorage.setItem('kskcet_offline_scans', JSON.stringify(queue));
+                        }
+
+                        setScanStatus('success');
+
+                    } else {
+                        // User is outside the 50-meter threshold
+                        setScanStatus('out_of_range');
+                    }
+                } catch (err) {
+                    // CATCH FIREBASE ERRORS AND DISPLAY THEM ON THE UI
+                    console.error("Database/Processing Error:", err);
+                    setErrorMsg("System Error: " + (err.message || "Could not save to database. Check connection."));
+                    setScanStatus('error');
+                }
+            };
 
             return (
                 <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%' }}>
                     <div className="scanner-wrapper">
                         
-                        {/* Close button routes back to dashboard */}
-                        <a href="index.html" className="close-scanner-btn" title="Back to Dashboard">
+                        <a href="#" onClick={(e) => { e.preventDefault(); window.history.back(); }} className="close-scanner-btn" title="Back to Previous Page">
                             <i className="fa-solid fa-xmark"></i>
                         </a>
                         
@@ -211,23 +570,19 @@
                         </div>
                         
                         <div className="camera-container">
-                            {errorMsg ? (
+                            {/* Hidden canvas required for jsQR to process frames */}
+                            <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
+
+                            {scanStatus === 'error' ? (
                                 <div className="camera-error">
-                                    <i className="fa-solid fa-camera-slash" style={{fontSize: '2rem', marginBottom: '10px'}}></i>
+                                    <i className="fa-solid fa-triangle-exclamation" style={{fontSize: '2rem', marginBottom: '10px'}}></i>
                                     <p>{errorMsg}</p>
                                 </div>
                             ) : (
-                                <video 
-                                    ref={videoRef}
-                                    autoPlay 
-                                    playsInline 
-                                    muted 
-                                    className="camera-feed"
-                                ></video>
+                                <video ref={videoRef} autoPlay playsInline muted className="camera-feed" style={{opacity: scanStatus === 'scanning' ? 1 : 0.5}}></video>
                             )}
                             
-                            {/* Reticle / Frame overlay */}
-                            {!errorMsg && (
+                            {scanStatus === 'scanning' && (
                                 <>
                                     <div className="camera-frame">
                                         <div className="frame-corner top-left"></div>
@@ -240,10 +595,101 @@
                                     </div>
                                 </>
                             )}
-                        </div>
+
+                            </div>
                     </div>
 
-                    {/* Bottom Navigation Bar */}
+                    {/* FULL SCREEN OVERLAYS (Extracted from camera container to prevent cut-offs) */}
+                    
+                    {/* Verification Loaders UI */}
+                    {(scanStatus === 'locating' || scanStatus === 'verifying') && (
+                        <div className="status-overlay">
+                            <i className="fa-solid fa-satellite-dish fa-fade" style={{fontSize: '3.5rem', color: '#3b82f6', marginBottom: '20px'}}></i>
+                            <h3 className="status-title" style={{color: 'white', fontSize: '1.4rem'}}>
+                                {scanStatus === 'locating' ? "Location Access Required" : "Decrypting Class Data..."}
+                            </h3>
+                            <p className="status-desc" style={{color: '#d1d5db', maxWidth: '300px', margin: '0 auto 24px', fontSize: '1rem'}}>
+                                {scanStatus === 'locating' ? "Please click 'Allow' on your device's permission popup to verify your attendance distance." : "Please hold still..."}
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Read-Only Map Location Confirmation UI */}
+                    {scanStatus === 'location_confirm' && (
+                        <div className="status-overlay">
+                            <div className="map-confirm-modal">
+                                <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', width: '64px', height: '64px', borderRadius: '50%', background: '#ffeef0', color: '#bb0f1c', marginBottom: '16px', fontSize: '1.6rem'}}>
+                                    <i className="fa-solid fa-location-crosshairs"></i>
+                                </div>
+                                <h3>Location Acquired</h3>
+                                <p>We've locked your device's exact coordinates. You must be within 30 meters of the class QR code.</p>
+                                
+                                <div id="readonly-leaflet-map" className="readonly-map-container"></div>
+                                
+                                <div style={{width: '100%'}}>
+                                    <button className="btn-confirm-location" onClick={() => setScanStatus('scanning')}>
+                                        <i className="fa-solid fa-camera"></i> Confirm & Start Scanner
+                                    </button>
+                                    <button className="btn-retry-location" onClick={() => fetchLocationData(false)}>
+                                        <i className="fa-solid fa-rotate-right"></i> Recalibrate Location
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Failure SVG Animation UI */}
+                    {scanStatus === 'out_of_range' && (
+                        <div className="status-overlay">
+                            <div className="map-confirm-modal" style={{background: '#1e293b', border: '1px solid #334155'}}>
+                                <div className="status-icon-wrapper" style={{marginBottom: '16px'}}>
+                                    <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', width: '72px', height: '72px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.15)'}}>
+                                        <svg className="icon-shake" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <h3 className="status-title" style={{color: '#f8fafc', fontSize: '1.6rem'}}>Out of Range</h3>
+                                <p className="status-desc" style={{color: '#94a3b8', marginBottom: '28px', fontSize: '1.05rem'}}>
+                                    You are <strong style={{color: '#ef4444'}}>{distanceVal.toFixed(1)}m</strong> away from the classroom.<br/>You must be within 30m to verify.
+                                </p>
+                                
+                                <div style={{width: '100%'}}>
+                                    <button className="btn-confirm-location" style={{background: '#3b82f6', boxShadow: '0 8px 20px rgba(59, 130, 246, 0.25)'}} onClick={() => fetchLocationData(true)}>
+                                        <i className="fa-solid fa-location-crosshairs"></i> Update Location & Recalculate
+                                    </button>
+                                    <button className="btn-retry-location" style={{borderColor: '#334155', color: '#94a3b8'}} onClick={() => setScanStatus('scanning')}>
+                                        <i className="fa-solid fa-qrcode"></i> Scan New Code
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Success UI */}
+                    {scanStatus === 'success' && (
+                        <div className="status-overlay" style={{background: 'rgba(5, 150, 105, 0.95)'}}>
+                            <div style={{animation: 'popIn 0.4s ease forwards', textAlign: 'center'}}>
+                                <i className="fa-regular fa-circle-check" style={{fontSize: '5rem', color: 'white', marginBottom: '24px'}}></i>
+                                <h3 className="status-title" style={{color: 'white', fontSize: '1.8rem'}}>Attendance Recorded!</h3>
+                                <p className="status-desc" style={{color: '#d1fae5', fontWeight: '500', marginBottom: '36px', fontSize: '1.1rem'}}>
+                                    {qrPayload?.course}<br/><br/>
+                                    {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                </p>
+                                <button className="btn-success" onClick={() => window.location.href='index.html'}>Return to Dashboard</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* NEW: Live Network Status UI Indicator */}
+                    <div className={`network-indicator network-${networkStatus}`}>
+                        {networkStatus === 'strong' && <><i className="fa-solid fa-wifi"></i> Your internet strong</>}
+                        {networkStatus === 'slow' && <><i className="fa-solid fa-satellite-dish"></i> Your internet slow</>}
+                        {networkStatus === 'offline' && <><i className="fa-solid fa-plane-slash"></i> You're offline</>}
+                    </div>
+
                     <nav className="bottom-mobile-nav">
                         <a href="index.html" className="active">
                             <i className="fa-solid fa-house"></i>

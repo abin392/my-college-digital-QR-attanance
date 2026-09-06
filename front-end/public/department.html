@@ -1,0 +1,3287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="img/ksk logo.jpeg" type="image/x-icon">
+    <title>Department Workspace - KSK College</title>
+
+    <!-- Google Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- React & ReactDOM CDNs -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- jsPDF for true PDF Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- Leaflet Map Library for Location UI -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- FIREBASE SETUP via ES Modules -->
+    <script type="module" src="firebaseconfig.js"></script>
+
+    <style>
+        .btn-disabled {
+            opacity: 0.7;
+            cursor: not-allowed !important;
+        }
+
+        :root {
+            --primary-red: #bb0f1c;
+            --primary-red-hover: #9b0c16;
+            --sidebar-width: 260px;
+            --bg-color: #f4f7fb;
+            --white: #ffffff;
+            --text-dark: #0f172a;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --border-light: #e2e8f0;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            background: linear-gradient(135deg, #fdfdfe 0%, #edf2f8 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar Layout */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--white);
+            border-right: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            padding: 32px 0;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 0 24px;
+            margin-bottom: 40px;
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            line-height: 1.2;
+            margin-bottom: 4px;
+        }
+
+        .sidebar-header p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 0 16px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item i {
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-item:hover {
+            background-color: #f8fafc;
+            color: var(--text-dark);
+        }
+
+        .nav-item.active {
+            background-color: #fff1f2;
+            color: var(--primary-red);
+            border-left-color: var(--primary-red);
+        }
+
+        .sidebar-footer {
+            padding: 0 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .btn-start-class {
+            background-color: var(--primary-red);
+            color: var(--white);
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: 100%;
+        }
+
+        .btn-start-class:hover {
+            background-color: var(--primary-red-hover);
+        }
+
+        .footer-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .footer-link:hover {
+            color: var(--text-dark);
+        }
+
+        /* Main Content Layout */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Top Header */
+        .top-header {
+            height: 70px;
+            padding: 0 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: transparent;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-left: auto;
+        }
+
+        .profile-img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--white);
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .profile-img:hover {
+            border-color: var(--primary-red);
+        }
+
+        /* Profile Dropdown Styles */
+        .profile-dropdown {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 120%;
+            background-color: var(--white);
+            min-width: 220px;
+            box-shadow: var(--shadow-md);
+            border-radius: 10px;
+            padding: 16px;
+            z-index: 1000;
+            text-align: center;
+            border: 1px solid var(--border-light);
+        }
+
+        .dropdown-content.show {
+            display: block;
+        }
+
+        .dropdown-profile-img {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            margin-bottom: 12px;
+            object-fit: cover;
+        }
+
+        .dropdown-email {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            word-break: break-all;
+        }
+
+        .logout-btn {
+            background-color: #fef2f2;
+            color: var(--primary-red);
+            border: 1px solid #fecaca;
+            padding: 10px 16px;
+            border-radius: 6px;
+            width: 100%;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            background-color: var(--primary-red);
+            color: var(--white);
+        }
+
+        /* Page Content */
+        .page-content {
+            padding: 20px 40px 40px;
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .page-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .page-subtitle {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        /* Current Department Badge */
+        .active-dept-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #ecfdf5;
+            color: #059669;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid #a7f3d0;
+        }
+
+        .active-dept-badge span {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* Split Layout */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1.1fr 0.9fr;
+            gap: 24px;
+            align-items: stretch;
+        }
+
+        /* History Card Styles */
+        .history-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-height: 620px;
+            overflow-y: auto;
+        }
+
+        .history-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 12px;
+            margin-bottom: 8px;
+            position: sticky;
+            top: -24px;
+            background: var(--white);
+            z-index: 10;
+            margin-top: -8px;
+            padding-top: 8px;
+        }
+
+        .history-item {
+            background: #f8fafc;
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+
+        .history-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .hist-course {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 2px;
+        }
+
+        .hist-dept {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .hist-date {
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+
+        .hist-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: auto;
+        }
+
+        .btn-hist-action {
+            flex: 1;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--white);
+            border: 1px solid var(--border-light);
+            color: var(--text-main);
+        }
+
+        .btn-hist-action:hover {
+            background: #f1f5f9;
+            color: var(--primary-red);
+            border-color: #cbd5e1;
+        }
+
+        /* Custom Scrollbar for History */
+        .history-card::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .history-card::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .history-card::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        /* Left Column: Form Card */
+        .form-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .form-section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 12px;
+            margin-bottom: 8px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        /* Custom Select & Input */
+        .custom-input {
+            background-color: #f1f5f9;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            color: var(--text-dark);
+            width: 100%;
+            transition: all 0.2s;
+            outline: none;
+            appearance: none;
+        }
+
+        .custom-input:focus {
+            background-color: var(--white);
+            border-color: #cbd5e1;
+            box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.05);
+        }
+
+        .select-wrapper {
+            position: relative;
+        }
+
+        .select-wrapper::after {
+            content: '\f078';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .btn-generate {
+            background-color: #0f172a;
+            color: var(--white);
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: auto;
+        }
+
+        .btn-generate:hover {
+            background-color: #1e293b;
+        }
+
+        /* Right Column: QR Preview Card */
+        .qr-preview-container {
+            background-color: var(--white);
+            border-radius: 16px;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+            min-height: 500px;
+        }
+
+        .qr-preview-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: linear-gradient(to right, #f1f5f9 1px, transparent 1px), linear-gradient(to bottom, #f1f5f9 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: 1;
+        }
+
+        .qr-card-inner {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 40px 32px;
+            box-shadow: var(--shadow-lg);
+            z-index: 2;
+            text-align: center;
+            width: 340px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .qr-image {
+            width: 180px;
+            height: 180px;
+            margin-bottom: 32px;
+            object-fit: contain;
+        }
+
+        .qr-course-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+        }
+
+        .qr-meta-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        .qr-actions {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-download {
+            background: transparent;
+            border: 1px solid var(--border-light);
+            color: var(--text-dark);
+        }
+
+        .btn-download:hover {
+            background: #f8fafc;
+        }
+
+        .btn-print {
+            background: var(--primary-red);
+            border: 1px solid var(--primary-red);
+            color: var(--white);
+        }
+
+        .btn-print:hover {
+            background: var(--primary-red-hover);
+        }
+
+        /* Map Modal Overlay Styles */
+        .map-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.6);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            animation: fadeIn 0.2s forwards;
+        }
+
+        .map-modal {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 32px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: var(--shadow-lg);
+            transform: scale(0.95);
+            animation: scaleUp 0.2s forwards;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .map-modal h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+        }
+
+        .map-modal p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .map-error-msg {
+            background: #fff1f2;
+            color: var(--primary-red);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+            border: 1px solid #fecaca;
+            font-weight: 500;
+        }
+
+        #leaflet-map-container {
+            height: 320px;
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-light);
+            z-index: 1;
+        }
+
+        .map-modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleUp {
+            to {
+                transform: scale(1);
+            }
+        }
+
+        /* Class Management / Timetable Styles */
+        .timetable-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-cancel {
+            background: transparent;
+            border: 1px solid var(--border-light);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-main);
+            transition: background 0.2s;
+        }
+
+        .btn-cancel:hover {
+            background: #f8fafc;
+        }
+
+        .btn-save {
+            background: var(--primary-red);
+            color: var(--white);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .btn-save:hover {
+            background: var(--primary-red-hover);
+        }
+
+        .timetable-grid {
+            display: grid;
+            grid-template-columns: 260px minmax(0, 1fr) 280px;
+            gap: 24px;
+            align-items: start;
+        }
+
+        /* Timetable Context Panel */
+        .context-panel {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border-light);
+        }
+
+        .panel-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .template-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .template-card {
+            background: var(--white);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .template-card:hover {
+            border-color: var(--primary-red);
+            color: var(--primary-red);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .template-card i {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+
+        .template-card:hover i {
+            color: var(--primary-red);
+        }
+
+        /* Timetable Schedule Entry */
+        .schedule-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .schedule-entry-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            overflow: hidden;
+        }
+
+        .schedule-entry-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .day-tabs {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+            overflow-x: auto;
+        }
+
+        .day-tab {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .day-tab.active {
+            background: #ffeef0;
+            color: var(--primary-red);
+        }
+
+        .table-responsive-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        .schedule-table th {
+            text-align: left;
+            padding: 0 12px 12px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .schedule-table td {
+            padding: 8px;
+        }
+
+        .schedule-table input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        .schedule-table input:focus {
+            border-color: var(--primary-red);
+        }
+
+        .btn-delete-row {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 8px;
+            transition: color 0.2s;
+            width: 100%;
+        }
+
+        .btn-delete-row:hover {
+            color: var(--primary-red);
+        }
+
+        .btn-add-row {
+            background: #0f172a;
+            color: var(--white);
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin: 0 auto;
+            transition: background 0.2s;
+        }
+
+        .btn-add-row:hover {
+            background: var(--primary-red);
+        }
+
+        /* Timetable Preview */
+        .timeline-preview-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+        }
+
+        .timeline-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+        }
+
+        .timeline-track {
+            display: flex;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f8fafc;
+            height: 80px;
+        }
+
+        .timeline-block {
+            border-right: 1px solid #e2e8f0;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .timeline-block.filled-1 {
+            background: #eff6ff;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .timeline-block.filled-2 {
+            background: #f5f3ff;
+            border-left: 3px solid #8b5cf6;
+        }
+
+        .timeline-block h5 {
+            font-size: 0.85rem;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .timeline-block p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* NEW: Cohort & Report Styles */
+        .cohort-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr);
+            gap: 24px;
+            align-items: start;
+        }
+
+        .report-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .report-stat-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .report-stat-card h5 {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .stat-main {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            line-height: 1;
+        }
+
+        .stat-sub {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .section-tabs {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .section-tab {
+            padding: 10px 20px;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: all 0.2s;
+            background: var(--white);
+        }
+
+        .section-tab.active {
+            background: var(--primary-red);
+            color: var(--white);
+            border-color: var(--primary-red);
+        }
+
+        .section-tab:hover:not(.active) {
+            border-color: #cbd5e1;
+            color: var(--text-dark);
+        }
+
+        .roster-wrapper {
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            overflow-x: auto;
+        }
+
+        .roster-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+            text-align: left;
+        }
+
+        .roster-table th {
+            padding: 16px 20px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 700;
+            border-bottom: 1px solid var(--border-light);
+            letter-spacing: 0.5px;
+        }
+
+        .roster-table td {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f8fafc;
+            vertical-align: middle;
+        }
+
+        .roster-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .student-name-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .student-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .progress-bar-bg {
+            background: #e2e8f0;
+            height: 6px;
+            border-radius: 3px;
+            width: 100%;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .badge-danger {
+            background: #fff1f2;
+            color: var(--primary-red);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .badge-safe {
+            background: #f8fafc;
+            color: var(--text-muted);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            border: 1px solid var(--border-light);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .grid-layout {
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            }
+
+            .timetable-grid {
+                grid-template-columns: 280px minmax(0, 1fr);
+            }
+
+            .history-card {
+                grid-column: span 2;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .timetable-grid {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .history-card {
+                grid-column: span 1;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .grid-layout {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .history-card {
+                grid-column: span 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: var(--shadow-lg);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100vw;
+                overflow-x: hidden;
+            }
+
+            .top-header {
+                padding: 0 16px;
+                justify-content: space-between;
+            }
+
+            .page-content {
+                padding: 16px;
+                width: 100%;
+                overflow-x: hidden;
+            }
+
+            .menu-toggle-btn {
+                display: block;
+                margin-right: 12px;
+                background: transparent;
+                border: none;
+                font-size: 1.4rem;
+                color: var(--text-dark);
+                cursor: pointer;
+                transition: color 0.2s;
+            }
+
+            .menu-toggle-btn:hover {
+                color: var(--primary-red);
+            }
+
+            .page-title {
+                font-size: 1.6rem;
+                text-align: left;
+            }
+
+            .input-row {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 16px !important;
+            }
+
+            .form-card,
+            .context-panel,
+            .schedule-entry-card,
+            .timeline-preview-card,
+            .history-card {
+                padding: 16px !important;
+            }
+
+            .timetable-header-row {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 16px !important;
+                margin-bottom: 24px !important;
+                width: 100%;
+            }
+
+            .timetable-actions {
+                width: 100% !important;
+                display: flex !important;
+                flex-direction: row !important;
+                gap: 12px !important;
+            }
+
+            .btn-cancel,
+            .btn-save {
+                flex: 1 !important;
+                justify-content: center !important;
+                text-align: center !important;
+                padding: 12px !important;
+            }
+
+            .qr-preview-container {
+                padding: 16px;
+                min-height: auto;
+            }
+
+            .qr-card-inner {
+                width: 100%;
+                padding: 24px 16px;
+            }
+
+            .qr-actions {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 10px !important;
+                width: 100%;
+            }
+        }
+
+        /* NEW: Period-Wise Attendance Sheet Styles */
+        .att-badge { display: inline-flex; justify-content: center; align-items: center; width: 26px; height: 26px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: transform 0.1s; }
+        .att-badge:hover { transform: scale(1.1); }
+        .att-p { background: #ecfdf5; color: #059669; }
+        .att-a { background: var(--primary-red); color: white; }
+        .att-od { background: #fef08a; color: #ca8a04; }
+        .att-legend { display: flex; gap: 16px; align-items: center; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 20px; background: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border-light); flex-wrap: wrap; }
+        .att-table-wrapper { width: 100%; overflow-x: auto; }
+        .att-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; min-width: 600px; }
+        .att-table th { font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; padding: 0 12px 8px; text-align: left; border-bottom: 1px solid var(--border-light); letter-spacing: 0.5px; }
+        .att-table td { padding: 12px; background: #f8fafc; vertical-align: middle; font-size: 0.85rem; font-weight: 600; color: var(--text-dark); border-top: 1px solid transparent; border-bottom: 1px solid transparent; }
+        .att-table tr td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; color: var(--text-muted); font-weight: 500; font-family: monospace; font-size: 0.8rem; border-left: 1px solid transparent; }
+        .att-table tr td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-right: 1px solid transparent; }
+        .att-table tbody tr:hover td { border-color: var(--border-light); background: var(--white); box-shadow: var(--shadow-sm); }
+        
+        /* NEW: Hover Edit Styles */
+        .att-cell { position: relative; }
+        .att-edit-btn { position: absolute; top: -2px; right: 4px; background: var(--text-dark); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 0.55rem; display: flex; justify-content: center; align-items: center; cursor: pointer; opacity: 0; transform: scale(0.8); transition: all 0.2s; z-index: 10; box-shadow: var(--shadow-sm); }
+        .att-table tbody tr td:hover .att-edit-btn { opacity: 1; transform: scale(1); }
+        .att-edit-btn:hover { background: var(--primary-red); }
+
+        .quorum-bar-container { margin-bottom: 18px; }
+        .quorum-header { display: flex; justify-content: space-between; align-items: flex-end; font-size: 0.75rem; font-weight: 700; color: var(--text-dark); margin-bottom: 6px; }
+        .quorum-track { height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+        .quorum-fill { height: 100%; background: #10b981; border-radius: 3px; }
+        .quorum-fill.warn { background: #f59e0b; }
+        .info-metric { background: #f8fafc; border: 1px solid var(--border-light); padding: 12px 16px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.85rem; font-weight: 600; color: var(--text-dark); }
+        .info-metric span { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .warning-box { background: #fffbeb; border: 1px solid #fde68a; padding: 16px; border-radius: 8px; display: flex; gap: 12px; align-items: flex-start; margin-bottom: 16px; }
+        .warning-box i { color: #f59e0b; font-size: 1.2rem; margin-top: 2px; }
+        .warning-box p { font-size: 0.8rem; color: #92400e; margin: 0; line-height: 1.5; font-weight: 500; }
+        .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
+        .page-dots { display: flex; gap: 6px; }
+        .page-dot { width: 32px; height: 32px; display: flex; justify-content: center; align-items: center; border-radius: 6px; background: var(--white); border: 1px solid var(--border-light); cursor: pointer; color: var(--text-main); font-weight: 600; transition: all 0.2s; }
+        .page-dot.active { background: var(--primary-red); color: white; border-color: var(--primary-red); }
+        .page-dot:hover:not(.active) { background: #f1f5f9; }
+    </style>
+</head>
+
+<body>
+
+    <div id="react-workspace-root"></div>
+
+    <script type="text/babel">
+        function DepartmentWorkspace() {
+            // Check context first: If no department was selected, kick back to admin.html
+            const activeDeptContext = JSON.parse(localStorage.getItem('active_department'));
+            if (!activeDeptContext) {
+                window.location.href = 'admin.html';
+            }
+
+            // Navigation State (SPA Routing)
+            const [activeView, setActiveView] = React.useState('class_management');
+
+            // Security State for Admin Access
+            const [isAuthorized, setIsAuthorized] = React.useState(false);
+            const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+            const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+            const [adminProfile, setAdminProfile] = React.useState({ name: 'Admin', email: '', photoUrl: '' });
+
+            // --- QR GENERATOR STATES ---
+            const [formData, setFormData] = React.useState({
+                department: activeDeptContext ? activeDeptContext.title : '',
+                year: '2-year',
+                semester: 'sem-3',
+                course: '',
+                room: 'CR-200',
+                expiration: '15',
+                latitude: '',
+                longitude: ''
+            });
+
+            const [isMapModalOpen, setIsMapModalOpen] = React.useState(false);
+            const [mapError, setMapError] = React.useState('');
+            const mapRef = React.useRef(null);
+            const markerRef = React.useRef(null);
+            const [qrUrl, setQrUrl] = React.useState(null);
+            const [highResQrUrl, setHighResQrUrl] = React.useState(null);
+            const [isGenerating, setIsGenerating] = React.useState(false);
+            const [isDownloading, setIsDownloading] = React.useState(false);
+            const [isPrinting, setIsPrinting] = React.useState(false);
+            const [qrHistory, setQrHistory] = React.useState([]);
+
+            React.useEffect(() => {
+                const savedHistory = localStorage.getItem('kskcet_qr_history');
+                if (savedHistory) setQrHistory(JSON.parse(savedHistory));
+            }, []);
+
+            // --- STUDENT REPORT STATES & FIREBASE FETCH ---
+            const [cohortFilter, setCohortFilter] = React.useState({ year: '3rd Year (Junior)', semester: 'Semester 6', section: 'Section A' });
+            const [rosterData, setRosterData] = React.useState([]);
+            const [isFetchingRoster, setIsFetchingRoster] = React.useState(false);
+
+            // --- NEW: ATTENDANCE SHEET STATES & FETCH LOGIC ---
+            const [sheetFilters, setSheetFilters] = React.useState({
+                year: '4th year',
+                semester: 'semester-7',
+                batch: '2023-2027',
+                academicDate: new Date().toISOString().split('T')[0]
+            });
+            const [sheetData, setSheetData] = React.useState([]);
+            
+            // NEW: State to track which Day Tab is active
+            const [sheetActiveDay, setSheetActiveDay] = React.useState('');
+            const [sheetCourses, setSheetCourses] = React.useState([]); // Used to dynamically generate Period columns
+            const [isFetchingSheet, setIsFetchingSheet] = React.useState(false);
+
+            // NEW: Pagination State
+            const [currentPage, setCurrentPage] = React.useState(1);
+            const studentsPerPage = 8; // Show 8 students per page to match your UI perfectly
+
+            const handleSheetFilterChange = (e) => setSheetFilters({ ...sheetFilters, [e.target.name]: e.target.value });
+
+            const fetchSheetData = async () => {
+                if (!activeDeptContext) return;
+                setIsFetchingSheet(true);
+                setCurrentPage(1); // Reset to first page whenever new data is fetched
+
+                // NEW: Automatically determine the day of the week based on selected academic date
+                const [y, m, d] = sheetFilters.academicDate.split('-');
+                const localDateObj = new Date(y, m - 1, d);
+                const dayName = localDateObj.toLocaleDateString('en-US', { weekday: 'long' });
+                setSheetActiveDay(dayName);
+
+                try {
+                    // 1. Fetch all Students registered to this Department, Year, and Semester
+                    const usersRef = window.firebaseAuth.collection(window.firebaseAuth.db, "users");
+                    const usersSnap = await window.firebaseAuth.getDocs(usersRef);
+                    const students = [];
+                    usersSnap.forEach(doc => {
+                        const data = doc.data();
+                        if (data.department === activeDeptContext.title && data.year === sheetFilters.year && data.semester === sheetFilters.semester) { 
+                            students.push({ id: doc.id, ...data });
+                        }
+                    });
+                    // Sort students sequentially by Roll Number
+                    students.sort((a, b) => (a.rollNo || '').localeCompare(b.rollNo || ''));
+
+                    // 2. NEW: Fetch Timetable to build the Columns (Periods) for this specific Day
+                    const docId = `${activeDeptContext.title}_${sheetFilters.year}_${sheetFilters.semester}_${sheetFilters.batch}`.replace(/[^a-zA-Z0-9]/g, '_');
+                    let todaysClasses = [];
+                    
+                    if (window.firebaseAuth.getDoc) {
+                        const timetableRef = window.firebaseAuth.doc(window.firebaseAuth.db, "timetables", docId);
+                        const timetableSnap = await window.firebaseAuth.getDoc(timetableRef);
+                        if (timetableSnap.exists()) {
+                            todaysClasses = timetableSnap.data().schedule[dayName] || [];
+                        }
+                    }
+
+                    // NEW: Smart 24h Converter strictly for chronological sorting of 12h strings
+                    const to24hSort = (time12) => {
+                        if (!time12) return "00:00";
+                        const parts = time12.split(' ');
+                        if (parts.length < 2) return time12;
+                        let [hours, minutes] = parts[0].split(':');
+                        if (hours === '12') hours = '00';
+                        if (parts[1] === 'PM') hours = (parseInt(hours, 10) + 12).toString();
+                        return `${hours.padStart(2, '0')}:${minutes}`;
+                    };
+
+                    // Sort chronologically using the 24h converter to keep P1, P2, P3 in exact time order
+                    todaysClasses.sort((a, b) => {
+                        const timeA = to24hSort(a.startTime);
+                        const timeB = to24hSort(b.startTime);
+                        return timeA.localeCompare(timeB);
+                    });
+                    setSheetCourses(todaysClasses);
+
+                    // 3. Fetch all QR Attendance Scans matching this Context and Academic Date
+                    const logsRef = window.firebaseAuth.collection(window.firebaseAuth.db, "qr_attendance_records");
+                    const logsSnap = await window.firebaseAuth.getDocs(logsRef);
+                    const logs = [];
+                    
+                    // Helper to safely bridge format gaps (e.g., "4-year" from QR Generator vs "4th year" from UI)
+                    const extractNum = (str) => {
+                        const match = String(str || "").match(/\d+/);
+                        return match ? match[0] : "";
+                    };
+                    const filterYearNum = extractNum(sheetFilters.year);
+                    const filterSemNum = extractNum(sheetFilters.semester);
+                    
+                    // Format UI YYYY-MM-DD into M/D/YYYY to strictly match Firebase scanVerifiedLocalTime
+                    const filterParts = sheetFilters.academicDate.split('-');
+                    const targetLocalFormat = `${parseInt(filterParts[1], 10)}/${parseInt(filterParts[2], 10)}/${filterParts[0]}`;
+
+                    logsSnap.forEach(doc => {
+                        const data = doc.data();
+                        
+                        // Strict Department Match & Smart Number Match for Year/Sem
+                        const dbYearNum = extractNum(data.academicYear);
+                        const dbSemNum = extractNum(data.academicSemester);
+                        
+                        if (data.departmentName === activeDeptContext.title && dbYearNum === filterYearNum && dbSemNum === filterSemNum) {
+                            
+                            // Explicitly extract the local date portion (e.g. "9/6/2026") from the saved log string
+                            const logLocalTimeStr = data.scanVerifiedLocalTime || "";
+                            const dbLocalDateOnly = logLocalTimeStr.split(',')[0].trim();
+                            
+                            // Check if the local date matches the filtered academic date perfectly
+                            if (dbLocalDateOnly === targetLocalFormat) {
+                                logs.push(data);
+                            }
+                        }
+                    });
+
+                    // 4. Map the Scans against enrolled Students AND Timetable Columns (Strict Time-Bound Bypass)
+                    const tableData = students.map(student => {
+                        const studentLogs = logs.filter(log => log.studentEmail === student.email || log.studentId === student.rollNo);
+                        
+                        // Helper function to extract and convert ANY time string into mathematical minutes (0 - 1440)
+                        const timeToMinutes = (timeStr) => {
+                            if (!timeStr) return -1; 
+                            
+                            const match12 = timeStr.match(/(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)/i);
+                            if (match12) {
+                                let hours = parseInt(match12[1], 10);
+                                const mins = parseInt(match12[2], 10);
+                                const ampm = match12[3].toUpperCase();
+                                
+                                if (hours === 12 && ampm === 'AM') hours = 0; 
+                                if (hours < 12 && ampm === 'PM') hours += 12; 
+                                
+                                return (hours * 60) + mins;
+                            }
+
+                            const match24 = timeStr.match(/(\d{1,2}):(\d{2})/);
+                            if (match24) {
+                                return (parseInt(match24[1], 10) * 60) + parseInt(match24[2], 10);
+                            }
+                            
+                            return -1;
+                        };
+
+                        const attendanceRecord = todaysClasses.map(course => {
+                            const startMins = timeToMinutes(course.startTime);
+                            const endMins = timeToMinutes(course.endTime);
+
+                            const validLog = studentLogs.find(log => {
+                                const rawTimeData = log.scanVerifiedLocalTime || log.scanVerifiedTimestamp || "";
+                                const scanMins = timeToMinutes(rawTimeData);
+                                if (scanMins === -1 || startMins === -1 || endMins === -1) return false;
+                                return scanMins >= (startMins - 15) && scanMins <= endMins;
+                            });
+                            
+                            // If a log is found inside the time window, check if it's an OD override, otherwise standard Present
+                            return validLog ? (validLog.status === 'OD' ? 'OD' : 'P') : 'A';
+                        });
+                        return { rollNo: student.rollNo || 'N/A', name: student.name || 'Unknown', email: student.email || '', attendance: attendanceRecord };
+                    });
+                    
+                    setSheetData(tableData);
+                    setHasUnsavedChanges(false);
+                    setModifiedRecords([]);
+                } catch (err) {
+                    console.error("Error fetching attendance sheet:", err);
+                    alert("Failed to fetch attendance data.");
+                } finally {
+                    setIsFetchingSheet(false);
+                }
+            };
+
+            // NEW: States and Functions for Manual Edits
+            const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false);
+            const [modifiedRecords, setModifiedRecords] = React.useState([]);
+
+            const handleStatusEdit = (studentIdx, periodIdx) => {
+                const updatedSheet = [...sheetData];
+                const currentStatus = updatedSheet[studentIdx].attendance[periodIdx];
+                
+                // Toggle Logic: If it's P or A, change to OD. If it's OD, change back to A.
+                let newStatus = currentStatus === 'OD' ? 'A' : 'OD';
+
+                updatedSheet[studentIdx].attendance[periodIdx] = newStatus;
+                setSheetData(updatedSheet);
+                setHasUnsavedChanges(true);
+
+                const student = updatedSheet[studentIdx];
+                const course = sheetCourses[periodIdx];
+                
+                setModifiedRecords(prev => {
+                    const filtered = prev.filter(m => !(m.rollNo === student.rollNo && m.periodIdx === periodIdx));
+                    return [...filtered, { rollNo: student.rollNo, name: student.name, email: student.email, course, newStatus, periodIdx }];
+                });
+            };
+
+            const handleSaveAttendanceChanges = async () => {
+                if (modifiedRecords.length === 0) return;
+                setIsFetchingSheet(true); 
+                try {
+                    const dateParts = sheetFilters.academicDate.split('-');
+                    const spoofedDate = `${parseInt(dateParts[1], 10)}/${parseInt(dateParts[2], 10)}/${dateParts[0]}`;
+
+                    const batchPromises = modifiedRecords.map(mod => {
+                        const safeCourse = (mod.course.subject || 'class').replace(/[^a-zA-Z0-9]/g, '');
+                        // Create a highly unique, deterministic ID so modifying the same class repeatedly overwrites cleanly
+                        const docId = `manual_od_${mod.rollNo}_${sheetFilters.academicDate.replace(/-/g, '')}_${safeCourse}`;
+                        
+                        if (mod.newStatus === 'OD') {
+                            const payload = {
+                                departmentName: activeDeptContext.title,
+                                academicYear: sheetFilters.year,
+                                academicSemester: sheetFilters.semester,
+                                studentId: mod.rollNo,
+                                studentEmail: mod.email,
+                                courseName: mod.course.subject,
+                                // Securely spoof the time so it perfectly fits the time-bounds mathematically 
+                                scanVerifiedLocalTime: `${spoofedDate}, ${mod.course.startTime}`, 
+                                scanVerifiedTimestamp: new Date().toISOString(),
+                                status: "OD",
+                                isManualOverride: true,
+                                recordedByAdmin: adminProfile.email
+                            };
+                            return window.firebaseAuth.setDoc(window.firebaseAuth.doc(window.firebaseAuth.db, "qr_attendance_records", docId), payload);
+                        } else if (mod.newStatus === 'A') {
+                            // If toggled back to A, erase the manual document to revert to default absence
+                            if (window.firebaseAuth.deleteDoc) {
+                                return window.firebaseAuth.deleteDoc(window.firebaseAuth.doc(window.firebaseAuth.db, "qr_attendance_records", docId)).catch(() => {});
+                            }
+                        }
+                    });
+
+                    await Promise.all(batchPromises);
+                    alert("Attendance manually updated and locked to database.");
+                    fetchSheetData(); 
+                } catch (err) {
+                    alert("Failed to save changes to database.");
+                    setIsFetchingSheet(false);
+                }
+            };
+
+            // Auto-fetch data initially when the view is opened
+            React.useEffect(() => {
+                if (activeView === 'attendance_sheet') {
+                    fetchSheetData();
+                }
+            }, [activeView]);
+
+            // ==========================================
+            // NEW: PARENT CONTACTS STATES & LOGIC
+            // ==========================================
+            const [contactFilters, setContactFilters] = React.useState({ year: '4th year', semester: 'semester-7', batch: '2023-2027' });
+            const [contactStudents, setContactStudents] = React.useState([]);
+            const [savedContactCohorts, setSavedContactCohorts] = React.useState([]);
+            const [isFetchingContacts, setIsFetchingContacts] = React.useState(false);
+            const [isSavingContacts, setIsSavingContacts] = React.useState(false);
+
+            const handleContactFilterChange = (e) => setContactFilters({ ...contactFilters, [e.target.name]: e.target.value });
+
+            // Fetch Saved Cohort Cards globally on mount so Parent Mobile numbers are instantly ready for Notifications
+            React.useEffect(() => {
+                if (window.firebaseAuth && window.firebaseAuth.db && activeDeptContext) {
+                    const fetchSavedContacts = async () => {
+                        try {
+                            const contactsRef = window.firebaseAuth.collection(window.firebaseAuth.db, "parent_contacts");
+                            const snap = await window.firebaseAuth.getDocs(contactsRef);
+                            const list = [];
+                            snap.forEach(doc => {
+                                const data = doc.data();
+                                if (data.department === activeDeptContext.title) list.push({ id: doc.id, ...data });
+                            });
+                            setSavedContactCohorts(list);
+                        } catch (err) { console.error("Error fetching saved contacts:", err); }
+                    };
+                    fetchSavedContacts();
+                }
+            // Use a primitive string dependency to prevent React infinite re-render loops
+            }, [activeDeptContext?.title]);
+
+            const fetchStudentsForContacts = async () => {
+                if (!activeDeptContext) return;
+                setIsFetchingContacts(true);
+                try {
+                    // 1. Fetch Students
+                    const usersRef = window.firebaseAuth.collection(window.firebaseAuth.db, "users");
+                    const usersSnap = await window.firebaseAuth.getDocs(usersRef);
+                    const students = [];
+                    usersSnap.forEach(doc => {
+                        const data = doc.data();
+                        if (data.department === activeDeptContext.title && data.year === contactFilters.year && data.semester === contactFilters.semester) { 
+                            students.push({ rollNo: data.rollNo || 'N/A', name: data.name || 'Unknown', parentMobile: '' });
+                        }
+                    });
+                    students.sort((a, b) => (a.rollNo || '').localeCompare(b.rollNo || ''));
+                    
+                    // 2. Check if we already have saved numbers for this cohort and merge them!
+                    const docId = `${activeDeptContext.title}_${contactFilters.year}_${contactFilters.semester}_${contactFilters.batch}`.replace(/[^a-zA-Z0-9]/g, '_');
+                    const existingCohort = savedContactCohorts.find(c => c.id === docId);
+                    if (existingCohort && existingCohort.students) {
+                        students.forEach(s => {
+                            const found = existingCohort.students.find(es => es.rollNo === s.rollNo);
+                            if (found && found.parentMobile) s.parentMobile = found.parentMobile;
+                        });
+                    }
+                    setContactStudents(students);
+                } catch (err) { alert("Failed to load students."); } 
+                finally { setIsFetchingContacts(false); }
+            };
+
+            const handleMobileChange = (index, value) => {
+                const updated = [...contactStudents];
+                updated[index].parentMobile = value;
+                setContactStudents(updated);
+            };
+
+            const handleSaveContacts = async () => {
+                if (contactStudents.length === 0) return;
+                setIsSavingContacts(true);
+                try {
+                    const docId = `${activeDeptContext.title}_${contactFilters.year}_${contactFilters.semester}_${contactFilters.batch}`.replace(/[^a-zA-Z0-9]/g, '_');
+                    const payload = {
+                        department: activeDeptContext.title,
+                        year: contactFilters.year,
+                        semester: contactFilters.semester,
+                        batch: contactFilters.batch,
+                        students: contactStudents,
+                        updatedAt: new Date().toISOString()
+                    };
+                    await window.firebaseAuth.setDoc(window.firebaseAuth.doc(window.firebaseAuth.db, "parent_contacts", docId), payload);
+                    
+                    // Instantly update the UI cards
+                    setSavedContactCohorts(prev => {
+                        const filtered = prev.filter(c => c.id !== docId);
+                        return [{ id: docId, ...payload }, ...filtered];
+                    });
+                    alert("Parent Contact Details saved successfully!");
+                } catch (err) { alert("Failed to save data."); } 
+                finally { setIsSavingContacts(false); }
+            };
+
+            const handleLoadSavedCohort = (cohort) => {
+                setContactFilters({ year: cohort.year, semester: cohort.semester, batch: cohort.batch });
+                setContactStudents(cohort.students || []);
+            };
+            // ==========================================
+
+            // ==========================================
+            // NEW: ABSENTEE ALERTS STATES & LOGIC
+            // ==========================================
+            const [absenteeList, setAbsenteeList] = React.useState([]);
+            const [isFetchingAbsentees, setIsFetchingAbsentees] = React.useState(false);
+
+            React.useEffect(() => {
+                if (activeView === 'absent_alerts') {
+                    // Instantly trigger UI loader
+                    setIsFetchingAbsentees(true);
+                    
+                    // Small timeout ensures the UI renders the loader smoothly before instantly processing memory
+                    setTimeout(() => {
+                        try {
+                            // 1. Identify absentees safely
+                            const absentees = sheetData.filter(s => s.attendance && s.attendance.includes('A')).map(s => {
+                                const absentSubjects = s.attendance
+                                    .map((status, idx) => status === 'A' ? (sheetCourses[idx]?.subject || `Period ${idx+1}`) : null)
+                                    .filter(Boolean);
+                                return { ...s, absentSubjects, parentMobile: '' };
+                            });
+
+                            // 2. Map Parent Mobile numbers directly from globally loaded memory (REMOVED DB FETCH TO PREVENT LONG LOADS)
+                            if (activeDeptContext && sheetFilters) {
+                                const docId = `${activeDeptContext.title}_${sheetFilters.year}_${sheetFilters.semester}_${sheetFilters.batch}`.replace(/[^a-zA-Z0-9]/g, '_');
+                                const existingCohort = savedContactCohorts.find(c => c.id === docId);
+                                
+                                if (existingCohort && existingCohort.students) {
+                                    absentees.forEach(a => {
+                                        const contact = existingCohort.students.find(c => c.rollNo === a.rollNo);
+                                        if (contact && contact.parentMobile) a.parentMobile = contact.parentMobile;
+                                    });
+                                }
+                            }
+                            
+                            setAbsenteeList(absentees);
+                        } catch (e) {
+                            console.error("Error processing absentees:", e);
+                        } finally {
+                            // Guarantees spinner turns off instantly
+                            setIsFetchingAbsentees(false); 
+                        }
+                    }, 200); 
+                }
+            // Removed activeDeptContext object from dependencies to permanently fix the infinite loop bug
+            }, [activeView, sheetData, sheetCourses, sheetFilters, savedContactCohorts]);
+
+            const handleSendWhatsApp = (student) => {
+                if (!student.parentMobile) {
+                    alert("No parent mobile number saved for this student! Please add it in the 'Parent Contacts' directory first.");
+                    return;
+                }
+                
+                const formattedDate = sheetFilters.academicDate.split('-').reverse().join('/');
+                const subjectsStr = student.absentSubjects.join(', ');
+                
+                // Professional Bilingual WhatsApp Message
+                const message = `*Attendance Alert / வருகை பதிவு தகவல்*\n\n` +
+                `Dear Parent,\nThis is to inform you that your ward *${student.name}* (${activeDeptContext.title}, ${sheetFilters.year}) is marked ABSENT for the following subject(s) today (${formattedDate}):\n` +
+                `*${subjectsStr}*\n` +
+                `Please ensure their regular attendance.\n\n` +
+                `அன்புள்ள பெற்றோர்,\n${formattedDate} அன்று உங்கள் மகன்/மகள் *${student.name}* (${activeDeptContext.title}, ${sheetFilters.year}) கீழ்க்கண்ட வகுப்புகளுக்கு வருகை தரவில்லை என்பதை தெரிவித்துக் கொள்கிறோம்:\n` +
+                `*${subjectsStr}*\n` +
+                `தயவுசெய்து அவர்களின் தினசரி வருகையை உறுதிப்படுத்தவும்.\n\n` +
+                `- KSK College of Engineering & Technology`;
+
+                // Clean the mobile number for the WhatsApp API (remove spaces, append country code if needed)
+                let mobile = student.parentMobile.replace(/[^0-9]/g, '');
+                if (mobile.length === 10) mobile = '91' + mobile;
+
+                const encodedMessage = encodeURIComponent(message);
+                window.open(`https://wa.me/${mobile}?text=${encodedMessage}`, '_blank');
+            };
+            // ==========================================
+
+            const handleCohortChange = (e) => setCohortFilter({ ...cohortFilter, [e.target.name]: e.target.value });
+
+            const fetchStudentRoster = async () => {
+                setIsFetchingRoster(true);
+                try {
+                    const usersRef = window.firebaseAuth.collection(window.firebaseAuth.db, "users");
+                    const snapshot = await window.firebaseAuth.getDocs(usersRef);
+                    const students = [];
+
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        // Filter students who belong to this active department
+                        if (data.department === activeDeptContext.title) {
+                            // Generate simulated realistic attendance data for the UI based on real DB profiles
+                            const randAttended = Math.floor(Math.random() * (48 - 30 + 1) + 30); // Random between 30 and 48
+                            const percentage = ((randAttended / 48) * 100).toFixed(1);
+
+                            students.push({
+                                id: doc.id,
+                                name: data.name || 'Unknown Student',
+                                rollNo: data.rollNo || 'N/A',
+                                email: data.email,
+                                initials: (data.name || 'U S').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase(),
+                                attended: randAttended,
+                                total: 48,
+                                percentage: parseFloat(percentage)
+                            });
+                        }
+                    });
+
+                    // Sort alphabetically by name
+                    students.sort((a, b) => a.name.localeCompare(b.name));
+                    setRosterData(students);
+                    setActiveView('student_report'); // Switch view once data is loaded
+                } catch (error) {
+                    console.error("Error fetching roster:", error);
+                    alert("Failed to load student roster from database.");
+                } finally {
+                    setIsFetchingRoster(false);
+                }
+            };
+
+            // --- TIMETABLE STATES ---
+            const [timetableContext, setTimetableContext] = React.useState({
+                program: activeDeptContext ? activeDeptContext.title : '',
+                year: '',
+                semester: '',
+                batch: '',
+                startDate: '',
+                endDate: ''
+            });
+
+            const [activeDay, setActiveDay] = React.useState('Monday');
+            const [scheduleData, setScheduleData] = React.useState({
+                Monday: [], Tuesday: [], Wednesday: [], Thursday: [], Friday: [], Saturday: [], Sunday: []
+            });
+            const [isSavingTimetable, setIsSavingTimetable] = React.useState(false);
+            const [timetableList, setTimetableList] = React.useState([]);
+            const [isLoadingTimetables, setIsLoadingTimetables] = React.useState(false);
+            const [fetchError, setFetchError] = React.useState('');
+
+            // Fetch stored timetables when the view opens
+            React.useEffect(() => {
+                if (activeView === 'class_management' && window.firebaseAuth && window.firebaseAuth.db) {
+                    const fetchTimetables = async () => {
+                        setIsLoadingTimetables(true);
+                        setFetchError('');
+                        try {
+                            if (window.firebaseAuth.collection && window.firebaseAuth.getDocs) {
+                                const collRef = window.firebaseAuth.collection(window.firebaseAuth.db, "timetables");
+                                const snapshot = await window.firebaseAuth.getDocs(collRef);
+                                const list = [];
+                                snapshot.forEach(doc => {
+                                    // Only pull timetables for the active department
+                                    const data = doc.data();
+                                    if (data.context.program === activeDeptContext.title) {
+                                        list.push({ id: doc.id, ...data });
+                                    }
+                                });
+                                list.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+                                setTimetableList(list);
+                            } else if (typeof window.firebaseAuth.db.collection === 'function') {
+                                const snapshot = await window.firebaseAuth.db.collection("timetables").get();
+                                const list = [];
+                                snapshot.forEach(doc => {
+                                    const data = doc.data();
+                                    if (data.context.program === activeDeptContext.title) {
+                                        list.push({ id: doc.id, ...data });
+                                    }
+                                });
+                                list.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+                                setTimetableList(list);
+                            } else {
+                                setFetchError('missing_exports');
+                            }
+                        } catch (err) {
+                            console.error("Error fetching timetables:", err);
+                            setFetchError('permission_error');
+                        } finally {
+                            setIsLoadingTimetables(false);
+                        }
+                    };
+                    fetchTimetables();
+                }
+            }, [activeView]);
+
+            // Handlers
+            const handleTimetableChange = (e) => setTimetableContext({ ...timetableContext, [e.target.name]: e.target.value });
+            const handleAddRow = () => setScheduleData(prev => ({ ...prev, [activeDay]: [...prev[activeDay], { startTime: '', endTime: '', subject: '', faculty: '', room: '' }] }));
+            const handleRemoveRow = (index) => setScheduleData(prev => ({ ...prev, [activeDay]: prev[activeDay].filter((_, i) => i !== index) }));
+            const handleScheduleChange = (index, field, value) => {
+                setScheduleData(prev => {
+                    const newDayData = [...prev[activeDay]];
+                    newDayData[index][field] = value;
+                    return { ...prev, [activeDay]: newDayData };
+                });
+            };
+            // TIME FORMAT HELPERS (12hr <-> 24hr Translation)
+            const convertTo12Hour = (time24) => {
+                if (!time24) return '';
+                const [h, m] = time24.split(':');
+                const hours = parseInt(h, 10);
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                const hours12 = hours % 12 || 12;
+                return `${hours12.toString().padStart(2, '0')}:${m} ${ampm}`;
+            };
+
+            const convertTo24Hour = (time12) => {
+                if (!time12) return '';
+                const parts = time12.split(' ');
+                if (parts.length < 2) return time12; // Already 24h fallback
+                let [hours, minutes] = parts[0].split(':');
+                if (hours === '12') hours = '00';
+                if (parts[1] === 'PM') hours = (parseInt(hours, 10) + 12).toString();
+                return `${hours.padStart(2, '0')}:${minutes}`;
+            };
+
+            const handleLoadTimetable = (item) => { 
+                setTimetableContext(item.context); 
+                
+                // Convert fetched 12-hour DB format back to 24-hour for the HTML5 Inputs
+                const loadedSchedule = { Monday: [], Tuesday: [], Wednesday: [], Thursday: [], Friday: [], Saturday: [], Sunday: [], ...item.schedule };
+                Object.keys(loadedSchedule).forEach(day => {
+                    loadedSchedule[day] = loadedSchedule[day].map(row => ({
+                        ...row,
+                        startTime: convertTo24Hour(row.startTime),
+                        endTime: convertTo24Hour(row.endTime)
+                    }));
+                });
+                
+                setScheduleData(loadedSchedule); 
+                setActiveDay('Monday'); 
+            };
+
+            const handleDeleteTimetable = async (e, id) => {
+                e.stopPropagation();
+                if (window.confirm("WARNING: This action will completely erase this timetable data from the database. Proceed?")) {
+                    try {
+                        if (window.firebaseAuth.deleteDoc && window.firebaseAuth.doc) {
+                            await window.firebaseAuth.deleteDoc(window.firebaseAuth.doc(window.firebaseAuth.db, "timetables", id));
+                        } else if (typeof window.firebaseAuth.db.collection === 'function') {
+                            await window.firebaseAuth.db.collection("timetables").doc(id).delete();
+                        }
+                        setTimetableList(prev => prev.filter(t => t.id !== id));
+                    } catch (error) {
+                        console.error("Error deleting:", error);
+                        alert("Failed to delete timetable.");
+                    }
+                }
+            };
+
+            const handleSaveTimetable = async () => {
+                if (!timetableContext.year || !timetableContext.semester || !timetableContext.batch) {
+                    alert("Please fill all context details before saving.");
+                    return;
+                }
+                setIsSavingTimetable(true);
+                try {
+                    const docId = `${timetableContext.program}_${timetableContext.year}_${timetableContext.semester}_${timetableContext.batch}`.replace(/[^a-zA-Z0-9]/g, '_');
+                    
+                    // Convert HTML5 24-hour state strictly to 12-hour format before saving to database
+                    const formattedSchedule = {};
+                    Object.keys(scheduleData).forEach(day => {
+                        formattedSchedule[day] = scheduleData[day].map(row => ({
+                            ...row,
+                            startTime: convertTo12Hour(row.startTime),
+                            endTime: convertTo12Hour(row.endTime)
+                        }));
+                    });
+                    
+                    const newTimetable = { context: timetableContext, schedule: formattedSchedule, updatedAt: new Date().toISOString(), createdBy: adminProfile.email };
+
+                    await window.firebaseAuth.setDoc(window.firebaseAuth.doc(window.firebaseAuth.db, "timetables", docId), newTimetable);
+
+                    setTimetableList(prev => {
+                        const filtered = prev.filter(t => t.id !== docId);
+                        return [{ id: docId, ...newTimetable }, ...filtered];
+                    });
+                    alert("Timetable saved successfully!");
+                } catch (err) {
+                    alert("Failed to save: " + err.message);
+                } finally {
+                    setIsSavingTimetable(false);
+                }
+            };
+
+            const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+            // QR & Map Handlers
+            const handleDetectLocation = React.useCallback(() => {
+                setMapError('');
+                if ("geolocation" in navigator) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            const lat = position.coords.latitude; const lng = position.coords.longitude;
+                            setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
+                            if (mapRef.current) {
+                                mapRef.current.setView([lat, lng], 17);
+                                if (markerRef.current) markerRef.current.setLatLng([lat, lng]);
+                                else markerRef.current = window.L.marker([lat, lng]).addTo(mapRef.current);
+                            }
+                        },
+                        (error) => setMapError("Location permission denied."),
+                        { enableHighAccuracy: true }
+                    );
+                } else setMapError("Geolocation not supported.");
+            }, []);
+
+            React.useEffect(() => {
+                if (isMapModalOpen) {
+                    setTimeout(() => {
+                        if (!mapRef.current) {
+                            const map = window.L.map('leaflet-map-container').setView([20.5937, 78.9629], 5);
+                            window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+                            mapRef.current = map;
+                            handleDetectLocation();
+                        }
+                    }, 100);
+                } else {
+                    if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; markerRef.current = null; }
+                }
+            }, [isMapModalOpen, handleDetectLocation]);
+
+            const executeDownload = async (dataPayload, url, loaderSetter) => {
+                if (loaderSetter) loaderSetter(true);
+                try {
+                    const response = await fetch(url);
+                    const blob = await response.blob();
+                    const imgUrl = window.URL.createObjectURL(blob);
+
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(22);
+                    doc.setTextColor(187, 15, 28);
+                    doc.text("KSK College of Engineering & Technology", 105, 30, { align: "center" });
+                    doc.setFontSize(18);
+                    doc.setTextColor(15, 23, 42);
+                    doc.text(dataPayload.department, 105, 45, { align: "center" });
+                    doc.addImage(imgUrl, 'PNG', 45, 60, 120, 120);
+                    doc.setFontSize(16);
+                    doc.text(dataPayload.course, 105, 200, { align: "center" });
+                    doc.setFontSize(12);
+                    doc.setTextColor(100, 116, 139);
+                    doc.setFont("helvetica", "normal");
+                    doc.text(`${dataPayload.room} - Valid for ${dataPayload.expiration} mins`, 105, 210, { align: "center" });
+                    doc.save(`KSK_QR_${dataPayload.course.split(' ')[0]}.pdf`);
+                    window.URL.revokeObjectURL(imgUrl);
+                } catch (error) { window.open(url, '_blank'); }
+                finally { if (loaderSetter) loaderSetter(false); }
+            };
+
+            const executePrint = (dataPayload, url, loaderSetter) => {
+                if (loaderSetter) loaderSetter(true);
+                setTimeout(() => {
+                    const printWindow = window.open('', '_blank');
+                    printWindow.document.write(`
+                        <html>
+                        <head>
+                            <title>Print QR Code - ${dataPayload.course}</title>
+                            <style>
+                                @page { size: A4 portrait; margin: 0; }
+                                body { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Inter', sans-serif; text-align: center; color: #0f172a; }
+                                .qr-image { width: 500px; height: 500px; margin: 40px 0; }
+                                h1 { font-size: 2.5rem; margin-bottom: 10px; color: #bb0f1c; }
+                                h2 { font-size: 2rem; margin-bottom: 5px; }
+                                p { font-size: 1.5rem; color: #64748b; }
+                            </style>
+                        </head>
+                        <body>
+                            <h1>KSK College of Engineering & Technology</h1>
+                            <h2>${dataPayload.department}</h2>
+                            <img src="${url}" class="qr-image" onload="window.print(); window.close();" />
+                            <h2>${dataPayload.course}</h2>
+                            <p>${dataPayload.room} &bull; Valid for ${dataPayload.expiration} mins</p>
+                        </body>
+                        </html>
+                    `);
+                    printWindow.document.close();
+                    if (loaderSetter) loaderSetter(false);
+                }, 600);
+            };
+
+            const handleGenerateCode = () => {
+                setIsGenerating(true);
+                setTimeout(() => {
+                    const qrPayload = JSON.stringify(formData);
+                    const encodedPayload = encodeURIComponent(qrPayload);
+                    const newQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodedPayload}`;
+                    const newHighResUrl = `https://api.qrserver.com/v1/create-qr-code/?size=1000x1000&data=${encodedPayload}`;
+                    setQrUrl(newQrUrl); setHighResQrUrl(newHighResUrl);
+
+                    const newItem = { id: Date.now(), ...formData, highResQrUrl: newHighResUrl, timestamp: new Date().toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) };
+                    const updatedHistory = [newItem, ...qrHistory].slice(0, 50);
+                    setQrHistory(updatedHistory);
+                    localStorage.setItem('kskcet_qr_history', JSON.stringify(updatedHistory));
+                    setIsGenerating(false);
+                }, 800);
+            };
+
+            const handleRemoveHistoryItem = (id) => {
+                const updatedHistory = qrHistory.filter(item => item.id !== id);
+                setQrHistory(updatedHistory);
+                localStorage.setItem('kskcet_qr_history', JSON.stringify(updatedHistory));
+            };
+
+            // Admin Auth Check
+            React.useEffect(() => {
+                let unsubscribe = null;
+                const checkAuth = () => {
+                    if (window.firebaseAuth && window.firebaseAuth.onAuthStateChanged) {
+                        unsubscribe = window.firebaseAuth.onAuthStateChanged(window.firebaseAuth.auth, (user) => {
+                            if (user && user.email === 'kskcet774@gmail.com') {
+                                setIsAuthorized(true);
+                                const photoUrl = user.photoURL || `https://ui-avatars.com/api/?name=${user.email}&background=0f172a&color=fff`;
+                                const displayName = user.displayName || user.email.split('@')[0];
+                                setAdminProfile({ name: displayName, email: user.email, photoUrl: photoUrl });
+                            } else {
+                                window.location.href = 'index.html';
+                            }
+                        });
+                    } else setTimeout(checkAuth, 100);
+                };
+                checkAuth();
+
+                const closeDropdown = (e) => { if (!e.target.closest('.profile-dropdown')) setIsDropdownOpen(false); };
+                window.addEventListener('click', closeDropdown);
+                return () => { if (unsubscribe) unsubscribe(); window.removeEventListener('click', closeDropdown); };
+            }, []);
+
+            const handleLogout = (e) => {
+                e.preventDefault();
+                localStorage.removeItem('active_department');
+                if (window.firebaseAuth && window.firebaseAuth.signOut) {
+                    window.firebaseAuth.signOut(window.firebaseAuth.auth).then(() => window.location.href = 'index.html');
+                }
+            };
+
+            const handleBackToDepartments = (e) => {
+                e.preventDefault();
+                localStorage.removeItem('active_department');
+                window.location.href = 'admin.html';
+            };
+
+            if (!isAuthorized) return <div style={{ display: 'flex', height: '100vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}><h2>Verifying Session...</h2></div>;
+
+            return (
+                <>
+                    <div className={`map-modal-overlay ${isSidebarOpen ? '' : 'hide'}`} onClick={() => setIsSidebarOpen(false)} style={{ display: isSidebarOpen ? 'block' : 'none', zIndex: 90 }}></div>
+
+                    <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
+                        <div className="sidebar-header">
+                            <h1>KSK College Admin</h1>
+                            <p>Professor Portal</p>
+                        </div>
+
+                        <nav className="sidebar-nav">
+                            <a href="#" className="nav-item" onClick={handleBackToDepartments}>
+                                <i className="fa-solid fa-arrow-left"></i> Change Department
+                            </a>
+                            <a href="#" className={`nav-item ${activeView === 'class_management' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveView('class_management'); setIsSidebarOpen(false); }}>
+                                <i className="fa-regular fa-calendar"></i> Class Management
+                            </a>
+                            <a href="#" className={`nav-item ${activeView === 'qr_generator' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveView('qr_generator'); setIsSidebarOpen(false); }}>
+                                <i className="fa-solid fa-qrcode"></i> QR Generator
+                            </a>
+                            <a href="#" className={`nav-item ${activeView === 'cohort_selection' || activeView === 'student_report' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveView('cohort_selection'); setIsSidebarOpen(false); }}>
+                                <i className="fa-solid fa-user-graduate"></i> Student Report
+                            </a>
+                            <a href="#" className={`nav-item ${activeView === 'attendance_sheet' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveView('attendance_sheet'); setIsSidebarOpen(false); }}>
+                                <i className="fa-solid fa-clipboard-user"></i> Attendance Sheet
+                            </a>
+                            {/* NEW: Parent Contacts Page Menu Item */}
+                            <a href="#" className={`nav-item ${activeView === 'parent_contacts' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveView('parent_contacts'); setIsSidebarOpen(false); }}>
+                                <i className="fa-solid fa-address-book"></i> Parent Contacts
+                            </a>
+                        </nav>
+
+                        <div className="sidebar-footer">
+                            <button className="btn-start-class">Start Class</button>
+                            <a href="#" onClick={handleLogout} className="footer-link" style={{ marginTop: '16px' }}>
+                                <i className="fa-solid fa-arrow-right-from-bracket"></i> Logout
+                            </a>
+                        </div>
+                    </aside>
+
+                    <main className="main-content">
+                        <header className="top-header">
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <button className="menu-toggle-btn" onClick={() => setIsSidebarOpen(true)} title="Open Menu" style={{ display: 'none' }}>
+                                    <i className="fa-solid fa-bars"></i>
+                                </button>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <img src="img/ksk logo.jpeg" alt="KSK Logo" style={{ height: '42px', width: '42px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--white)', boxShadow: 'var(--shadow-sm)' }} />
+                                    <h2 style={{ fontSize: '1.3rem', fontWeight: '800', color: 'var(--text-dark)', margin: 0, letterSpacing: '-0.5px' }}>KSK College Of E&T</h2>
+                                </div>
+                            </div>
+                            <div className="header-actions">
+                                <div className="profile-dropdown">
+                                    <img src={adminProfile.photoUrl} alt="Profile" className="profile-img" onClick={() => setIsDropdownOpen(!isDropdownOpen)} />
+                                    <div className={`dropdown-content ${isDropdownOpen ? 'show' : ''}`}>
+                                        <img src={adminProfile.photoUrl} alt="Avatar" className="dropdown-profile-img" />
+                                        <h4 style={{ fontSize: '0.95rem', color: 'var(--text-dark)', marginBottom: '4px' }}>{adminProfile.name}</h4>
+                                        <p className="dropdown-email">{adminProfile.email}</p>
+                                        <button className="logout-btn" onClick={handleLogout}>Log Out <i className="fa-solid fa-right-from-bracket"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </header>
+
+                        {/* CLASS MANAGEMENT VIEW */}
+                        {activeView === 'class_management' && (
+                            <div className="page-content">
+                                <div className="page-header" style={{ marginBottom: '32px' }}>
+                                    <div>
+                                        <h2 className="page-title">Add Timetable</h2>
+                                        <p className="page-subtitle">Configure class schedules for a new academic term.</p>
+                                    </div>
+                                    <div className="active-dept-badge">
+                                        <span></span> {activeDeptContext?.title} Workspace
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '24px' }}>
+                                    <div className="timetable-actions">
+                                        <button className="btn-cancel" onClick={() => setActiveView('qr_generator')}>Cancel</button>
+                                        <button className={`btn-save ${isSavingTimetable ? 'btn-disabled' : ''}`} onClick={handleSaveTimetable} disabled={isSavingTimetable}>
+                                            {isSavingTimetable ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-regular fa-floppy-disk"></i>} Save Timetable
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="timetable-grid">
+                                    <div className="context-panel">
+                                        <h3 className="panel-title"><i className="fa-solid fa-sliders" style={{ color: 'var(--primary-red)' }}></i> Context</h3>
+                                        <div className="form-group" style={{ marginBottom: '16px' }}>
+                                            <label>Program / Course</label>
+                                            <input type="text" className="custom-input" value={timetableContext.program} disabled style={{ backgroundColor: '#e2e8f0', color: '#64748b' }} />
+                                        </div>
+                                        <div className="input-row" style={{ marginBottom: '16px' }}>
+                                            <div className="form-group">
+                                                <label>Year</label>
+                                                <div className="select-wrapper">
+                                                    <select name="year" value={timetableContext.year} onChange={handleTimetableChange} className="custom-input">
+                                                        <option value="">Select Year...</option>
+                                                        <option value="1st year">1st year</option>
+                                                        <option value="2nd year">2nd year</option>
+                                                        <option value="3rd year">3rd year</option>
+                                                        <option value="4th year">4th year</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Semester</label>
+                                                <div className="select-wrapper">
+                                                    <select name="semester" value={timetableContext.semester} onChange={handleTimetableChange} className="custom-input">
+                                                        <option value="">Select Sem...</option>
+                                                        <option value="semester-1">semester-1</option>
+                                                        <option value="semester-2">semester-2</option>
+                                                        <option value="semester-3">semester-3</option>
+                                                        <option value="semester-4">semester-4</option>
+                                                        <option value="semester-5">semester-5</option>
+                                                        <option value="semester-6">semester-6</option>
+                                                        <option value="semester-7">semester-7</option>
+                                                        <option value="semester-8">semester-8</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="form-group" style={{ marginBottom: '16px' }}>
+                                            <label>Section / Batch</label>
+                                            <div className="select-wrapper">
+                                                <select name="batch" value={timetableContext.batch} onChange={handleTimetableChange} className="custom-input">
+                                                    <option value="">Select Batch...</option><option value="2023-2027">2023-2027</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="form-group" style={{ marginBottom: '16px' }}><label>Start Date</label><input type="date" name="startDate" value={timetableContext.startDate} onChange={handleTimetableChange} className="custom-input" /></div>
+                                        <div className="form-group" style={{ marginBottom: '24px' }}><label>End Date</label><input type="date" name="endDate" value={timetableContext.endDate} onChange={handleTimetableChange} className="custom-input" /></div>
+                                    </div>
+
+                                    <div className="schedule-panel">
+                                        <div className="schedule-entry-card">
+                                            <div className="schedule-entry-header">
+                                                <i className="fa-regular fa-calendar-days" style={{ fontSize: '1.5rem', color: 'var(--primary-red)' }}></i>
+                                                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-dark)' }}>Schedule Entry</h3>
+                                                <div className="day-tabs">
+                                                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
+                                                        <div key={day} className={`day-tab ${activeDay === day ? 'active' : ''}`} onClick={() => setActiveDay(day)}>{day}</div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <div className="table-responsive-wrapper">
+                                                <table className="schedule-table">
+                                                    <thead>
+                                                        <tr><th style={{ width: '110px' }}>Start Time</th><th style={{ width: '110px' }}>End Time</th><th>Subject</th><th>Faculty</th><th style={{ width: '110px' }}>Room</th><th style={{ width: '60px', textAlign: 'center' }}>Action</th></tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {scheduleData[activeDay].map((row, index) => (
+                                                            <tr key={index}>
+                                                                <td><input type="time" value={row.startTime} onChange={(e) => handleScheduleChange(index, 'startTime', e.target.value)} /></td>
+                                                                <td><input type="time" value={row.endTime} onChange={(e) => handleScheduleChange(index, 'endTime', e.target.value)} /></td>
+                                                                <td><input type="text" value={row.subject} onChange={(e) => handleScheduleChange(index, 'subject', e.target.value)} placeholder="Subject" /></td>
+                                                                <td><input type="text" value={row.faculty} onChange={(e) => handleScheduleChange(index, 'faculty', e.target.value)} placeholder="Faculty" /></td>
+                                                                <td><input type="text" value={row.room} onChange={(e) => handleScheduleChange(index, 'room', e.target.value)} placeholder="Room" /></td>
+                                                                <td style={{ textAlign: 'center' }}><button className="btn-delete-row" onClick={() => handleRemoveRow(index)}><i className="fa-regular fa-trash-can"></i></button></td>
+                                                            </tr>
+                                                        ))}
+                                                        <tr><td colSpan="6" style={{ textAlign: 'center', padding: '16px' }}><button className="btn-add-row" onClick={handleAddRow}><i className="fa-solid fa-plus"></i></button></td></tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        <div className="timeline-preview-card">
+                                            <h4 className="timeline-title">Timeline Preview - {activeDay}</h4>
+                                            <div className="timeline-track" style={{ overflowX: 'auto' }}>
+                                                {scheduleData[activeDay].length === 0 ? (
+                                                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#cbd5e1', fontSize: '0.9rem' }}>No classes scheduled for {activeDay}.</div>
+                                                ) : (
+                                                    <>
+                                                        {scheduleData[activeDay].map((row, i) => (
+                                                            <div key={i} className={`timeline-block filled-${(i % 2) + 1}`} style={{ flex: 1, minWidth: '150px' }}>
+                                                                <h5>{row.subject || 'Empty'}</h5><p>{convertTo12Hour(row.startTime) || '--:--'} - {convertTo12Hour(row.endTime) || '--:--'}</p>
+                                                            </div>
+                                                        ))}
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="history-card">
+                                        <h3 className="history-title"><i className="fa-solid fa-cloud-arrow-down"></i> Saved Schedules</h3>
+                                        {isLoadingTimetables ? (
+                                            <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}><i className="fa-solid fa-spinner fa-spin" style={{ fontSize: '2rem' }}></i></div>
+                                        ) : fetchError === 'missing_exports' ? (
+                                            <div style={{ textAlign: 'center', color: 'var(--primary-red)' }}><p>Setup Required in firebaseconfig.js</p></div>
+                                        ) : timetableList.length === 0 ? (
+                                            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center', marginTop: '30px' }}>No timetables saved.</p>
+                                        ) : (
+                                            timetableList.map(item => (
+                                                <div key={item.id} className="history-item" onClick={() => handleLoadTimetable(item)} style={{ cursor: 'pointer' }}>
+                                                    <button onClick={(e) => handleDeleteTimetable(e, item.id)} style={{ position: 'absolute', top: '12px', right: '12px', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', zIndex: 10 }}>
+                                                        <i className="fa-solid fa-trash-can"></i>
+                                                    </button>
+                                                    <div style={{ paddingRight: '24px' }}>
+                                                        <h4 className="hist-course">{item.context.program}</h4>
+                                                        <p className="hist-dept">{item.context.year} &bull; {item.context.semester}</p>
+                                                        <p className="hist-date"><i className="fa-solid fa-users"></i> {item.context.batch}</p>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* QR GENERATOR VIEW */}
+                        {activeView === 'qr_generator' && (
+                            <div className="page-content">
+                                <div className="page-header">
+                                    <div>
+                                        <h2 className="page-title">QR Generator</h2>
+                                        <p className="page-subtitle">Configure and generate attendance tracking codes.</p>
+                                    </div>
+                                    <div className="active-dept-badge">
+                                        <span></span> {activeDeptContext?.title} Workspace
+                                    </div>
+                                </div>
+                                <div className="grid-layout">
+                                    <div className="form-card">
+                                        <h3 className="form-section-title">Session Details</h3>
+                                        <div className="form-group">
+                                            <label>Department</label>
+                                            <input type="text" className="custom-input" value={formData.department} disabled style={{ backgroundColor: '#e2e8f0', color: '#64748b' }} />
+                                        </div>
+                                        <div className="input-row">
+                                            <div className="form-group"><label>Year</label><div className="select-wrapper"><select name="year" value={formData.year} onChange={handleChange} className="custom-input"><option>1st year</option><option>2nd year</option><option>3rd year</option><option>4th year</option></select></div></div>
+                                            <div className="form-group"><label>Semester</label><div className="select-wrapper"><select name="semester" value={formData.semester} onChange={handleChange} className="custom-input"><option>semester-1</option><option>semester-2</option><option>semester-3</option><option>semester-4</option><option>semester-5</option><option>semester-6</option><option>semester-7</option><option>semester-8</option></select></div></div>
+                                        </div>
+                                        <div className="form-group"><label>Course Title</label><input type="text" className="custom-input" name="course" value={formData.course} onChange={handleChange} placeholder="e.g. CS351- Data Structures" /></div>
+                                        <div className="form-group"><label>Room</label><input type="text" className="custom-input" name="room" value={formData.room} onChange={handleChange} placeholder="e.g. CR-202" /></div>
+                                        <div className="form-group"><label>Expiration (Mins)</label><input type="number" name="expiration" value={formData.expiration} onChange={handleChange} className="custom-input" min="1" /></div>
+                                        <div className="form-group">
+                                            <label>Accurate Location</label>
+                                            <div style={{ position: 'relative' }} onClick={() => setIsMapModalOpen(true)}>
+                                                <i className="fa-solid fa-map-location-dot" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary-red)' }}></i>
+                                                <input type="text" readOnly value={formData.latitude ? `${formData.latitude.toFixed(5)}, ${formData.longitude.toFixed(5)}` : 'Click to fetch GPS'} className="custom-input" style={{ cursor: 'pointer', paddingLeft: '44px' }} />
+                                            </div>
+                                        </div>
+                                        <button className={`btn-generate ${isGenerating ? 'btn-disabled' : ''}`} onClick={handleGenerateCode} disabled={isGenerating}>
+                                            {isGenerating ? "Generating..." : "Generate Code"}
+                                        </button>
+                                    </div>
+
+                                    <div className="qr-preview-container">
+                                        <div className="qr-card-inner">
+                                            {!qrUrl ? (
+                                                <div style={{ padding: '40px 10px', color: 'var(--text-muted)' }}>
+                                                    <i className="fa-solid fa-qrcode" style={{ fontSize: '4.5rem', opacity: '0.15', marginBottom: '24px' }}></i>
+                                                    <h4>No Code Generated</h4>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <img src={qrUrl} alt="QR" className="qr-image" />
+                                                    <h4 className="qr-course-title">{formData.course}</h4>
+                                                    <p className="qr-meta-text">{formData.room} &bull; Valid for {formData.expiration} mins</p>
+                                                    <div className="qr-actions">
+                                                        <button className="btn-action btn-download" onClick={() => executeDownload(formData, highResQrUrl, setIsDownloading)}><i className="fa-solid fa-file-pdf"></i> Download</button>
+                                                        <button className="btn-action btn-print" onClick={() => executePrint(formData, highResQrUrl, setIsPrinting)}><i className="fa-solid fa-print"></i> Print</button>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="history-card">
+                                        <h3 className="history-title"><i className="fa-solid fa-clock-rotate-left"></i> Previous Codes</h3>
+                                        {qrHistory.length === 0 ? <p style={{ textAlign: 'center', color: '#94a3b8', marginTop: '20px' }}>No codes generated.</p> : qrHistory.map(item => (
+                                            <div key={item.id} className="history-item" style={{ position: 'relative' }}>
+                                                <button onClick={() => handleRemoveHistoryItem(item.id)} style={{ position: 'absolute', top: '12px', right: '12px', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><i className="fa-solid fa-trash-can"></i></button>
+                                                <div style={{ paddingRight: '20px' }}>
+                                                    <h4 className="hist-course">{item.course}</h4><p className="hist-dept">{item.department}</p><p className="hist-date"><i className="fa-regular fa-clock"></i> {item.timestamp}</p>
+                                                </div>
+                                                <div className="hist-actions">
+                                                    <button className="btn-hist-action" onClick={() => executeDownload(item, item.highResQrUrl, null)}><i className="fa-solid fa-download"></i></button>
+                                                    <button className="btn-hist-action" onClick={() => executePrint(item, item.highResQrUrl, null)}><i className="fa-solid fa-print"></i></button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* COHORT SELECTION VIEW */}
+                        {activeView === 'cohort_selection' && (
+                            <div className="page-content">
+                                <div className="page-header">
+                                    <div>
+                                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', marginBottom: '8px', letterSpacing: '0.5px' }}>Academics &gt; Attendance & Records &gt; Cohort Selection</p>
+                                        <h2 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                            Cohort Selection Form
+                                            <span style={{ fontSize: '0.75rem', background: '#ffeef0', color: 'var(--primary-red)', padding: '4px 10px', borderRadius: '12px', border: '1px solid #fecaca' }}>&bull; Spring 2026 Active</span>
+                                        </h2>
+                                        <p className="page-subtitle">Specify the student department, academic year, and semester to filter roster attendance.</p>
+                                    </div>
+                                </div>
+
+                                <div className="cohort-grid">
+                                    <div className="cohort-form-card">
+                                        <h3 className="form-section-title" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: 'none' }}>
+                                            <span><i className="fa-solid fa-sliders" style={{ color: 'var(--primary-red)' }}></i> Student Cohort Parameters</span>
+                                            <span style={{ fontSize: '0.75rem', color: 'var(--primary-red)', background: '#fff1f2', padding: '4px 8px', borderRadius: '4px' }}>REQUIRED FIELDS (3)</span>
+                                        </h3>
+
+                                        <div className="form-group" style={{ marginTop: '24px', marginBottom: '24px' }}>
+                                            <label style={{ color: 'var(--text-dark)', fontSize: '0.9rem' }}><i className="fa-regular fa-building" style={{ color: 'var(--primary-red)', marginRight: '8px' }}></i> 1. Department Selection</label>
+                                            <input type="text" className="custom-input" value={activeDeptContext?.title || ''} disabled style={{ backgroundColor: '#f8fafc', color: 'var(--text-main)', marginTop: '8px', fontWeight: '600' }} />
+                                        </div>
+
+                                        <div className="input-row" style={{ marginBottom: '40px' }}>
+                                            <div className="form-group">
+                                                <label style={{ color: 'var(--text-dark)', fontSize: '0.9rem' }}><i className="fa-solid fa-graduation-cap" style={{ color: 'var(--primary-red)', marginRight: '8px' }}></i> 2. Academic Year</label>
+                                                <div className="select-wrapper" style={{ marginTop: '8px' }}>
+                                                    <select name="year" value={cohortFilter.year} onChange={handleCohortChange} className="custom-input">
+                                                        <option>1st Year (Freshman)</option>
+                                                        <option>2nd Year (Sophomore)</option>
+                                                        <option>3rd Year (Junior)</option>
+                                                        <option>4th Year (Senior)</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div className="form-group">
+                                                <label style={{ color: 'var(--text-dark)', fontSize: '0.9rem' }}><i className="fa-regular fa-calendar" style={{ color: 'var(--primary-red)', marginRight: '8px' }}></i> 3. Semester</label>
+                                                <div className="select-wrapper" style={{ marginTop: '8px' }}>
+                                                    <select name="semester" value={cohortFilter.semester} onChange={handleCohortChange} className="custom-input">
+                                                        <option>Semester 1</option><option>Semester 2</option><option>Semester 3</option><option>Semester 4</option><option>Semester 5</option><option>Semester 6</option><option>Semester 7</option><option>Semester 8</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-light)', paddingTop: '24px' }}>
+                                            <button className="btn-cancel" onClick={() => setCohortFilter({ year: '1st Year (Freshman)', semester: 'Semester 1', section: 'All Sections' })}><i className="fa-solid fa-rotate-left"></i> Reset Form</button>
+                                            <button className={`btn-save ${isFetchingRoster ? 'btn-disabled' : ''}`} onClick={fetchStudentRoster} disabled={isFetchingRoster} style={{ padding: '12px 24px', fontSize: '1rem' }}>
+                                                {isFetchingRoster ? <i className="fa-solid fa-spinner fa-spin"></i> : "Proceed to Attendance Roster"}
+                                                {!isFetchingRoster && <i className="fa-solid fa-arrow-right"></i>}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                                        <div className="cohort-preview-card">
+                                            <h3 style={{ fontSize: '1rem', color: 'var(--text-dark)', display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                                                <span><i className="fa-regular fa-eye" style={{ color: 'var(--primary-red)' }}></i> Cohort Live Preview</span>
+                                                <span style={{ fontSize: '0.75rem', color: 'var(--primary-red)', background: '#ffeef0', padding: '2px 8px', borderRadius: '12px' }}>Ready to Fetch</span>
+                                            </h3>
+                                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>TARGET SCOPE</p>
+                                            <h2 style={{ fontSize: '1.4rem', color: 'var(--primary-red)', margin: '8px 0', lineHeight: '1.3' }}>
+                                                {activeDeptContext?.code} &bull; {cohortFilter.year.split(' ')[0]} &bull; {cohortFilter.semester.replace('emester ', 'em ')}
+                                            </h2>
+
+                                            <div style={{ display: 'flex', gap: '24px', marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #cbd5e1' }}>
+                                                <div>
+                                                    <p style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--text-dark)', marginBottom: '4px' }}><i className="fa-solid fa-spinner fa-spin" style={{ fontSize: '1rem', color: '#cbd5e1' }}></i></p>
+                                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Enrolled<br />Students</p>
+                                                </div>
+                                                <div>
+                                                    <p style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--text-dark)', marginBottom: '4px' }}>--%</p>
+                                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Expected<br />Ratio</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* STUDENT ROSTER DIRECTORY VIEW */}
+                        {activeView === 'student_report' && (
+                            <div className="page-content">
+                                <div className="page-header" style={{ marginBottom: '24px' }}>
+                                    <div>
+                                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', marginBottom: '8px', letterSpacing: '0.5px' }}>
+                                            <a href="#" onClick={(e) => { e.preventDefault(); setActiveView('cohort_selection') }} style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>&lt; Back to Selection</a> &bull; STUDENT ROSTER
+                                        </p>
+                                        <h2 className="page-title">Department Student Attendance Directory</h2>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '12px' }}>
+                                            <span style={{ fontSize: '0.85rem', color: 'var(--text-main)', fontWeight: '600' }}><i className="fa-regular fa-building" style={{ color: 'var(--primary-red)' }}></i> {activeDeptContext?.title}</span>
+                                            <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>&bull; {cohortFilter.semester} Cohort</span>
+                                        </div>
+                                    </div>
+                                    <button className="btn-save" style={{ padding: '12px 24px' }}>
+                                        <i className="fa-solid fa-file-export"></i> Export Roster (CSV)
+                                    </button>
+                                </div>
+
+                                <div className="report-stats-grid">
+                                    <div className="report-stat-card">
+                                        <h5>Total Enrolled <i className="fa-regular fa-id-badge" style={{float: 'right', fontSize: '1rem', color: '#cbd5e1'}}></i></h5>
+                                        <div className="stat-main">{rosterData.length} <span className="stat-sub">Students</span></div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 'auto', paddingTop: '12px' }}>All Sections</div>
+                                    </div>
+                                    <div className="report-stat-card">
+                                        <h5>Average Attendance <i className="fa-solid fa-chart-line" style={{ float: 'right', fontSize: '1rem', color: '#cbd5e1' }}></i></h5>
+                                        <div className="stat-main">
+                                            {rosterData.length > 0 ? (rosterData.reduce((acc, curr) => acc + curr.percentage, 0) / rosterData.length).toFixed(1) : '0.0'}%
+                                            <span style={{ fontSize: '0.8rem', color: '#10b981' }}><i className="fa-solid fa-arrow-up"></i></span>
+                                        </div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 'auto', paddingTop: '12px' }}>Cohort Average</div>
+                                    </div>
+                                    <div className="report-stat-card">
+                                        <h5>Present Today <i className="fa-regular fa-circle-check" style={{ float: 'right', fontSize: '1rem', color: '#cbd5e1' }}></i></h5>
+                                        <div className="stat-main">{Math.floor(rosterData.length * 0.9)} <span className="stat-sub" style={{ fontSize: '1rem' }}>/ {rosterData.length}</span></div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 'auto', paddingTop: '12px' }}>Active Today</div>
+                                    </div>
+                                    <div className="report-stat-card" style={{ borderLeft: '4px solid var(--primary-red)' }}>
+                                        <h5 style={{ color: 'var(--primary-red)' }}>Attendance Deficit (&lt;75%) <i className="fa-solid fa-triangle-exclamation" style={{ float: 'right', fontSize: '1rem' }}></i></h5>
+                                        <div className="stat-main" style={{ color: 'var(--primary-red)' }}>
+                                            {rosterData.filter(s => s.percentage < 75).length} <span className="badge-danger" style={{ marginLeft: 'auto' }}>Action Notice</span>
+                                        </div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--primary-red)', marginTop: 'auto', paddingTop: '12px' }}>Flagged At-Risk</div>
+                                    </div>
+                                </div>
+
+                                <div className="roster-wrapper">
+                                    <table className="roster-table">
+                                        <thead>
+                                            <tr>
+                                                <th style={{ width: '120px' }}>Roll No.</th>
+                                                <th>Student Name</th>
+                                                <th style={{ width: '120px' }}>Classes Held</th>
+                                                <th style={{ width: '120px' }}>Attended</th>
+                                                <th style={{ width: '250px' }}>Overall Attendance</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {rosterData.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                                                        No student accounts found registered to this department in the database.
+                                                    </td>
+                                                </tr>
+                                            ) : (
+                                                rosterData.map((student, i) => (
+                                                    <tr key={i}>
+                                                        <td style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-main)' }}>
+                                                            {student.rollNo}
+                                                        </td>
+                                                        <td>
+                                                            <div className="student-name-cell">
+                                                                <div className="student-avatar" style={{ background: student.percentage < 75 ? '#fff1f2' : '#f1f5f9', color: student.percentage < 75 ? 'var(--primary-red)' : 'var(--text-dark)' }}>
+                                                                    {student.initials}
+                                                                </div>
+                                                                <div>
+                                                                    <div style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-dark)' }}>{student.name}</div>
+                                                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{student.email}</div>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td style={{ fontSize: '0.9rem', fontWeight: '500', color: 'var(--text-dark)', textAlign: 'center' }}>{student.total}</td>
+                                                        <td style={{ fontSize: '0.9rem', fontWeight: '600', color: student.percentage < 75 ? 'var(--primary-red)' : 'var(--text-dark)', textAlign: 'center' }}>{student.attended}</td>
+                                                        <td>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                                                <span style={{ fontSize: '0.85rem', fontWeight: '700', color: student.percentage < 75 ? 'var(--primary-red)' : 'var(--text-dark)' }}>{student.percentage}%</span>
+                                                                {student.percentage < 75 ? <span className="badge-danger">Shortage</span> : <span className="badge-safe">Safe</span>}
+                                                            </div>
+                                                            <div className="progress-bar-bg">
+                                                                <div className="progress-bar-fill" style={{ width: `${student.percentage}%`, background: student.percentage < 75 ? 'var(--primary-red)' : '#0f172a' }}></div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* NEW: ATTENDANCE SHEET VIEW */}
+                        {activeView === 'attendance_sheet' && (
+                            <div className="page-content">
+                                <div className="page-header" style={{ marginBottom: '24px' }}>
+                                    <div>
+                                        <h2 className="page-title">Period-Wise Monthly Attendance Sheet</h2>
+                                        <p className="page-subtitle" style={{ maxWidth: '800px' }}>Detailed day-by-day, subject and period-wise attended and absent tracking across the monthly academic term in Roll Number sequence.</p>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginTop: '16px' }}>
+                                        <div className="active-dept-badge">
+                                            <span></span> {activeDeptContext?.title || 'Workspace'} 
+                                        </div>
+                                        <button className="btn-cancel" style={{ background: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <i className="fa-solid fa-download"></i> Export Excel
+                                        </button>
+                                        <button 
+                                            className="btn-save" 
+                                            onClick={hasUnsavedChanges ? handleSaveAttendanceChanges : () => {}}
+                                            style={{ padding: '10px 20px', background: hasUnsavedChanges ? '#f59e0b' : 'var(--primary-red)', transition: 'background 0.3s' }}
+                                        >
+                                            <i className={`fa-solid ${hasUnsavedChanges ? 'fa-cloud-arrow-up' : 'fa-lock'}`}></i> 
+                                            {hasUnsavedChanges ? 'Save & Change' : 'Save & Lock Register'}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="timetable-grid">
+                                    
+                                    {/* Column 1: Context Panel */}
+                                    <div className="context-panel" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                        <h3 className="panel-title" style={{ marginBottom: '8px' }}><i className="fa-solid fa-sliders" style={{ color: 'var(--primary-red)' }}></i> Context</h3>
+                                        
+                                        <div className="form-group">
+                                            <label>Program / Course</label>
+                                            <input type="text" className="custom-input" value={activeDeptContext?.title || ''} disabled style={{ backgroundColor: '#e2e8f0', color: '#64748b' }} />
+                                        </div>
+                                        
+                                        <div className="input-row">
+                                            <div className="form-group">
+                                                <label>Year</label>
+                                                <div className="select-wrapper">
+                                                    <select name="year" className="custom-input" value={sheetFilters.year} onChange={handleSheetFilterChange}>
+                                                        <option value="1st year">1st year</option>
+                                                        <option value="2nd year">2nd year</option>
+                                                        <option value="3rd year">3rd year</option>
+                                                        <option value="4th year">4th year</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Semester</label>
+                                                <div className="select-wrapper">
+                                                    <select name="semester" className="custom-input" value={sheetFilters.semester} onChange={handleSheetFilterChange}>
+                                                        <option value="semester-1">semester-1</option>
+                                                        <option value="semester-2">semester-2</option>
+                                                        <option value="semester-3">semester-3</option>
+                                                        <option value="semester-4">semester-4</option>
+                                                        <option value="semester-5">semester-5</option>
+                                                        <option value="semester-6">semester-6</option>
+                                                        <option value="semester-7">semester-7</option>
+                                                        <option value="semester-8">semester-8</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label>Section / Batch</label>
+                                            <div className="select-wrapper">
+                                                <select name="batch" className="custom-input" value={sheetFilters.batch} onChange={handleSheetFilterChange}>
+                                                    <option value="2023-2027">2023-2027</option>
+                                                    <option value="2024-2028">2024-2028</option>
+                                                    <option value="2025-2029">2025-2029</option>
+                                                    <option value="2026-2030">2026-2030</option>
+                                                    <option value="2027-2031">2027-2031</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label>Academic Date</label>
+                                            <input type="date" name="academicDate" className="custom-input" value={sheetFilters.academicDate} onChange={handleSheetFilterChange} />
+                                        </div>
+
+                                        <div className="form-group" style={{ marginBottom: '16px' }}>
+                                            <label>Viewing Scope</label>
+                                            <div className="select-wrapper">
+                                                <select className="custom-input"><option>All Periods Matrix</option></select>
+                                            </div>
+                                        </div>
+
+                                        <button 
+                                            className={`btn-save ${isFetchingSheet ? 'btn-disabled' : ''}`} 
+                                            style={{ width: '100%', justifyContent: 'center', padding: '12px', marginTop: '8px' }} 
+                                            onClick={fetchSheetData} 
+                                            disabled={isFetchingSheet}
+                                        >
+                                            {isFetchingSheet ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-rotate"></i>}
+                                            {isFetchingSheet ? ' Compiling Records...' : ' Fetch Attendance Data'}
+                                        </button>
+
+                                        <div style={{ marginTop: 'auto' }}>
+                                            <div className="info-metric">
+                                                <span>Target Minimum</span>
+                                                <div>75.0% Quorum</div>
+                                            </div>
+                                            <div className="info-metric">
+                                                <span>Daily Load</span>
+                                                {/* Dynamically counts the scheduled timetable classes for the day */}
+                                                <div>{sheetCourses.length} Periods / Day</div>
+                                            </div>
+                                            <div className="info-metric" style={{ background: '#ecfdf5', borderColor: '#a7f3d0', color: '#059669' }}>
+                                                <span style={{ color: '#059669' }}>Total Cohort</span>
+                                                {/* Dynamically counts the enrolled students matching the filter */}
+                                                <div>{sheetData.length} Enrolled</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Column 2: Period-Wise Entry Matrix */}
+                                    <div className="schedule-entry-card" style={{ display: 'flex', flexDirection: 'column' }}>
+                                        <div className="schedule-entry-header" style={{ marginBottom: '16px', paddingBottom: '12px' }}>
+                                            <i className="fa-regular fa-calendar-check" style={{ fontSize: '1.5rem', color: 'var(--primary-red)' }}></i>
+                                            <div style={{ marginRight: 'auto' }}>
+                                                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-dark)' }}>Period-Wise Attendance Entry</h3>
+                                                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>Day & Subject Matrix</p>
+                                            </div>
+                                            <div className="day-tabs">
+                                                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
+                                                    <div key={day} className={`day-tab ${day === sheetActiveDay ? 'active' : ''}`}>{day}</div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className="att-legend">
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span className="att-badge att-p">P</span> = Present</div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span className="att-badge att-a">A</span> = Absent</div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span className="att-badge att-od">OD</span> = On Duty</div>
+                                            <div style={{ marginLeft: 'auto', fontSize: '0.75rem', fontWeight: 500 }}>Academic Day: {sheetFilters.academicDate.split('-').reverse().join('/')}</div>
+                                        </div>
+
+                                        <div className="att-table-wrapper" style={{ flex: 1 }}>
+                                            <table className="att-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Roll No</th>
+                                                        <th>Student Name</th>
+                                                        {sheetCourses.length === 0 && <th style={{color: '#ef4444', letterSpacing: '0.5px'}}>NO SCHEDULED CLASSES FOR THIS DAY</th>}
+                                                        {sheetCourses.map((course, idx) => (
+                                                            <th key={idx}>
+                                                                P{idx+1}<br/>
+                                                                <span style={{fontSize:'10px', color:'#94a3b8'}}>{(course.subject || 'Unknown').substring(0, 10)}...</span>
+                                                            </th>
+                                                        ))}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {(() => {
+                                                        // Pagination Math
+                                                        const totalStudents = sheetData.length;
+                                                        const indexOfLast = currentPage * studentsPerPage;
+                                                        const indexOfFirst = indexOfLast - studentsPerPage;
+                                                        const currentStudents = sheetData.slice(indexOfFirst, indexOfLast);
+                                                        
+                                                        if (totalStudents === 0) {
+                                                            return (
+                                                                <tr>
+                                                                    <td colSpan={sheetCourses.length + 2} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
+                                                                        {isFetchingSheet ? 'Fetching Data...' : 'No student records found for this cohort.'}
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        }
+
+                                                        // Map only the students belonging to the active page
+                                                        return currentStudents.map((student, idx) => (
+                                                            <tr key={idx}>
+                                                                <td>{student.rollNo}</td>
+                                                                <td>
+                                                                    <span style={{ color: 'inherit', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                        {student.name}
+                                                                    </span>
+                                                                </td>
+                                                                {sheetCourses.length === 0 && <td>-</td>}
+                                                                {student.attendance.map((status, sIdx) => (
+                                                                    <td key={sIdx} className="att-cell">
+                                                                        <div className={`att-badge ${status === 'P' ? 'att-p' : status === 'OD' ? 'att-od' : 'att-a'}`}>
+                                                                            {status}
+                                                                        </div>
+                                                                        
+                                                                        {/* Admin Hover Edit Button */}
+                                                                        <button 
+                                                                            className="att-edit-btn" 
+                                                                            onClick={() => handleStatusEdit(sheetData.findIndex(s => s.rollNo === student.rollNo), sIdx)} 
+                                                                            title="Modify to OD"
+                                                                        >
+                                                                            <i className="fa-solid fa-pen"></i>
+                                                                        </button>
+                                                                    </td>
+                                                                ))}
+                                                            </tr>
+                                                        ));
+                                                    })()}
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        {/* Dynamic Pagination UI */}
+                                        {sheetData.length > 0 && (() => {
+                                            const totalStudents = sheetData.length;
+                                            const totalPages = Math.ceil(totalStudents / studentsPerPage) || 1;
+                                            const startCount = ((currentPage - 1) * studentsPerPage) + 1;
+                                            const endCount = Math.min(currentPage * studentsPerPage, totalStudents);
+                                            
+                                            return (
+                                                <div className="pagination" style={{ marginTop: '16px' }}>
+                                                    <span>Showing {startCount} to {endCount} of {totalStudents} enrolled students</span>
+                                                    <div className="page-dots">
+                                                        <div 
+                                                            className="page-dot" 
+                                                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                                                            style={{ opacity: currentPage === 1 ? 0.5 : 1, cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
+                                                        >
+                                                            <i className="fa-solid fa-chevron-left" style={{fontSize: '10px'}}></i>
+                                                        </div>
+                                                        
+                                                        {/* Generate clickable page numbers dynamically based on database size */}
+                                                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(num => (
+                                                            <div 
+                                                                key={num} 
+                                                                className={`page-dot ${currentPage === num ? 'active' : ''}`}
+                                                                onClick={() => setCurrentPage(num)}
+                                                            >
+                                                                {num}
+                                                            </div>
+                                                        ))}
+
+                                                        <div 
+                                                            className="page-dot" 
+                                                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                                                            style={{ opacity: currentPage === totalPages ? 0.5 : 1, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
+                                                        >
+                                                            <i className="fa-solid fa-chevron-right" style={{fontSize: '10px'}}></i>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
+                                    </div>
+
+                                    {/* Column 3: Saved Cohorts & Insights */}
+                                    <div className="history-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                        <h3 className="history-title"><i className="fa-solid fa-crosshairs"></i> Active Target Cohort</h3>
+                                        
+                                        <div className="history-item" style={{ cursor: 'default', background: 'var(--white)', border: '1px solid var(--border-light)', padding: '16px', borderRadius: '12px', position: 'relative' }}>
+                                            <h4 className="hist-course" style={{ fontSize: '1rem', marginBottom: '6px' }}>{activeDeptContext?.title || 'Computer Science'}</h4>
+                                            <p className="hist-dept" style={{ color: 'var(--text-main)', fontWeight: 500, marginBottom: '8px' }}>{sheetFilters.year} &bull; {sheetFilters.semester}</p>
+                                            <p className="hist-date" style={{ color: '#94a3b8' }}><i className="fa-solid fa-users"></i> {sheetFilters.batch}</p>
+                                        </div>
+
+                                        {(() => {
+                                            const totalStudents = sheetData.length;
+                                            
+                                            // 1. Calculate Period-by-Period Quorum Analytics
+                                            const quorumData = sheetCourses.map((course, idx) => {
+                                                const presentCount = sheetData.filter(s => s.attendance[idx] === 'P').length;
+                                                const percentage = totalStudents > 0 ? ((presentCount / totalStudents) * 100).toFixed(1) : 0;
+                                                return { 
+                                                    subject: course.subject || 'Class', 
+                                                    faculty: course.faculty || 'Staff',
+                                                    presentCount, 
+                                                    percentage: parseFloat(percentage),
+                                                    isWarn: percentage < 75.0
+                                                };
+                                            });
+                                            
+                                            const isOverallHealthy = quorumData.length > 0 && !quorumData.some(q => q.isWarn);
+                                            
+                                            // 2. Identify Defaulters (Students with < 75% attendance specifically for this day)
+                                            const defaulters = sheetCourses.length > 0 ? sheetData.filter(s => {
+                                                const pCount = s.attendance.filter(a => a === 'P').length;
+                                                return (pCount / sheetCourses.length) < 0.75;
+                                            }) : [];
+
+                                            return (
+                                                <React.Fragment>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
+                                                        <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-dark)' }}>Today's Subject Quorum</h4>
+                                                        {sheetCourses.length > 0 ? (
+                                                            <span style={{ fontSize: '0.75rem', color: isOverallHealthy ? '#059669' : '#d97706', fontWeight: 700 }}>
+                                                                {isOverallHealthy ? 'Healthy' : 'Needs Attention'}
+                                                            </span>
+                                                        ) : (
+                                                            <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700 }}>Awaiting Data</span>
+                                                        )}
+                                                    </div>
+
+                                                    <div>
+                                                        {sheetCourses.length === 0 ? (
+                                                            <div style={{ padding: '24px 0', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
+                                                                <i className="fa-solid fa-chart-pie" style={{ fontSize: '2rem', marginBottom: '12px', opacity: 0.3 }}></i>
+                                                                <p>No analytics available.<br/>Click Fetch to load data.</p>
+                                                            </div>
+                                                        ) : (
+                                                            quorumData.map((q, idx) => (
+                                                                <div key={idx} className="quorum-bar-container">
+                                                                    <div className="quorum-header">
+                                                                        <span>P{idx+1}: {q.subject.substring(0,8)} ({q.faculty.substring(0,4)})</span>
+                                                                        <span style={{ color: q.isWarn ? '#d97706' : 'inherit' }}>{q.presentCount}/{totalStudents} ({q.percentage}%)</span>
+                                                                    </div>
+                                                                    <div className="quorum-track">
+                                                                        <div className={`quorum-fill ${q.isWarn ? 'warn' : ''}`} style={{ width: `${q.percentage}%` }}></div>
+                                                                    </div>
+                                                                </div>
+                                                            ))
+                                                        )}
+                                                    </div>
+
+                                                    {defaulters.length > 0 && (
+                                                        <div className="warning-box">
+                                                            <i className="fa-solid fa-triangle-exclamation"></i>
+                                                            <div>
+                                                                <strong style={{ display: 'block', marginBottom: '4px', color: '#92400e' }}>Cohort Warning</strong>
+                                                                <p>{defaulters.length} student{defaulters.length > 1 ? 's' : ''} {defaulters.length === 1 ? `(${defaulters[0].name.split(' ')[0]})` : ''} dropped below 75% today. Defaulter report ready.</p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </React.Fragment>
+                                            );
+                                        })()}
+
+                                        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                            <button className={`btn-cancel ${sheetData.length === 0 ? 'btn-disabled' : ''}`} disabled={sheetData.length === 0} style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
+                                                <i className="fa-regular fa-file-pdf"></i> Generate Period Report PDF
+                                            </button>
+                                            <button 
+                                                className={`btn-save ${sheetData.length === 0 ? 'btn-disabled' : ''}`} 
+                                                disabled={sheetData.length === 0} 
+                                                onClick={() => setActiveView('absent_alerts')}
+                                                style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#fff1f2', color: 'var(--primary-red)', border: '1px solid #fecaca' }}
+                                            >
+                                                <i className="fa-brands fa-whatsapp"></i> Notifying Absent Student On Our Parent
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* NEW: PARENT CONTACTS VIEW */}
+                        {activeView === 'parent_contacts' && (
+                            <div className="page-content">
+                                <div className="page-header" style={{ marginBottom: '24px' }}>
+                                    <div>
+                                        <h2 className="page-title">Parent Contact Directory</h2>
+                                        <p className="page-subtitle" style={{ maxWidth: '800px' }}>Manage and securely store parent/guardian mobile numbers for emergency alerts and attendance SMS notifications.</p>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginTop: '16px' }}>
+                                        <div className="active-dept-badge">
+                                            <span></span> {activeDeptContext?.title || 'Workspace'} 
+                                        </div>
+                                        <button className={`btn-save ${isSavingContacts ? 'btn-disabled' : ''}`} onClick={handleSaveContacts} disabled={isSavingContacts} style={{ padding: '10px 20px' }}>
+                                            {isSavingContacts ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-cloud-arrow-up"></i>} Save Directory
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="timetable-grid">
+                                    
+                                    {/* Column 1: Context Filters */}
+                                    <div className="context-panel" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                        <h3 className="panel-title" style={{ marginBottom: '8px' }}><i className="fa-solid fa-sliders" style={{ color: 'var(--primary-red)' }}></i> Roster Context</h3>
+                                        
+                                        <div className="form-group">
+                                            <label>Program / Course</label>
+                                            <input type="text" className="custom-input" value={activeDeptContext?.title || ''} disabled style={{ backgroundColor: '#e2e8f0', color: '#64748b' }} />
+                                        </div>
+                                        
+                                        <div className="input-row">
+                                            <div className="form-group">
+                                                <label>Year</label>
+                                                <div className="select-wrapper">
+                                                    <select name="year" className="custom-input" value={contactFilters.year} onChange={handleContactFilterChange}>
+                                                        <option value="1st year">1st year</option>
+                                                        <option value="2nd year">2nd year</option>
+                                                        <option value="3rd year">3rd year</option>
+                                                        <option value="4th year">4th year</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Semester</label>
+                                                <div className="select-wrapper">
+                                                    <select name="semester" className="custom-input" value={contactFilters.semester} onChange={handleContactFilterChange}>
+                                                        <option value="semester-1">semester-1</option>
+                                                        <option value="semester-2">semester-2</option>
+                                                        <option value="semester-3">semester-3</option>
+                                                        <option value="semester-4">semester-4</option>
+                                                        <option value="semester-5">semester-5</option>
+                                                        <option value="semester-6">semester-6</option>
+                                                        <option value="semester-7">semester-7</option>
+                                                        <option value="semester-8">semester-8</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label>Section / Batch</label>
+                                            <div className="select-wrapper">
+                                                <select name="batch" className="custom-input" value={contactFilters.batch} onChange={handleContactFilterChange}>
+                                                    <option value="2023-2027">2023-2027</option>
+                                                    <option value="2024-2028">2024-2028</option>
+                                                    <option value="2025-2029">2025-2029</option>
+                                                    <option value="2026-2030">2026-2030</option>
+                                                    <option value="2027-2031">2027-2031</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <button className={`btn-save ${isFetchingContacts ? 'btn-disabled' : ''}`} style={{ width: '100%', justifyContent: 'center', padding: '12px', marginTop: '8px', background: '#0f172a' }} onClick={fetchStudentsForContacts} disabled={isFetchingContacts}>
+                                            {isFetchingContacts ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-users"></i>}
+                                            {isFetchingContacts ? ' Loading Students...' : ' Fetch Student Roster'}
+                                        </button>
+                                        
+                                        <div style={{ marginTop: 'auto' }}>
+                                            <div className="info-metric" style={{ background: '#ecfdf5', borderColor: '#a7f3d0', color: '#059669' }}>
+                                                <span style={{ color: '#059669' }}>Fetched Cohort</span>
+                                                <div>{contactStudents.length} Enrolled</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Column 2: Data Entry Table */}
+                                    <div className="schedule-entry-card" style={{ display: 'flex', flexDirection: 'column' }}>
+                                        <div className="schedule-entry-header" style={{ marginBottom: '16px', paddingBottom: '12px' }}>
+                                            <i className="fa-solid fa-address-book" style={{ fontSize: '1.5rem', color: 'var(--primary-red)' }}></i>
+                                            <div>
+                                                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-dark)' }}>Student & Parent Directory</h3>
+                                                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>Enter and verify mobile numbers</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="att-table-wrapper" style={{ flex: 1, maxHeight: '550px', overflowY: 'auto' }}>
+                                            <table className="att-table" style={{ minWidth: '100%' }}>
+                                                <thead style={{ position: 'sticky', top: 0, background: 'var(--white)', zIndex: 10 }}>
+                                                    <tr>
+                                                        <th style={{ width: '130px' }}>Roll No</th>
+                                                        <th>Student Name</th>
+                                                        <th style={{ width: '220px' }}>Parent Mobile Number</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {contactStudents.length === 0 ? (
+                                                        <tr>
+                                                            <td colSpan="3" style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
+                                                                {isFetchingContacts ? 'Fetching Data...' : 'Click "Fetch Student Roster" to load students.'}
+                                                            </td>
+                                                        </tr>
+                                                    ) : (
+                                                        contactStudents.map((student, idx) => (
+                                                            <tr key={idx}>
+                                                                <td>{student.rollNo}</td>
+                                                                <td><span style={{ fontWeight: 600, color: 'var(--text-dark)' }}>{student.name}</span></td>
+                                                                <td>
+                                                                    <div className="verify-input-wrapper" style={{ position: 'relative' }}>
+                                                                        <i className="fa-solid fa-mobile-screen-button" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}></i>
+                                                                        <input 
+                                                                            type="tel" 
+                                                                            placeholder="+91 XXXXX XXXXX" 
+                                                                            value={student.parentMobile} 
+                                                                            onChange={(e) => handleMobileChange(idx, e.target.value)}
+                                                                            style={{ width: '100%', padding: '10px 12px 10px 36px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.9rem', outline: 'none', transition: 'border-color 0.2s' }}
+                                                                            onFocus={(e) => e.target.style.borderColor = 'var(--primary-red)'}
+                                                                            onBlur={(e) => e.target.style.borderColor = '#cbd5e1'}
+                                                                        />
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        ))
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    {/* Column 3: Saved Directories */}
+                                    <div className="history-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                        <h3 className="history-title"><i className="fa-solid fa-cloud-arrow-down"></i> Saved Directories</h3>
+                                        
+                                        {savedContactCohorts.length === 0 ? (
+                                            <p style={{ textAlign: 'center', color: '#94a3b8', fontSize: '0.9rem', marginTop: '20px' }}>No saved directories yet.</p>
+                                        ) : (
+                                            savedContactCohorts.map(cohort => (
+                                                <div 
+                                                    key={cohort.id} 
+                                                    className="history-item" 
+                                                    onClick={() => handleLoadSavedCohort(cohort)} 
+                                                    style={{ cursor: 'pointer', background: 'var(--white)', border: '1px solid var(--border-light)', padding: '16px', borderRadius: '12px' }}
+                                                >
+                                                    <h4 className="hist-course" style={{ fontSize: '1rem', marginBottom: '6px', color: 'var(--text-dark)' }}>{cohort.department}</h4>
+                                                    <p className="hist-dept" style={{ color: 'var(--text-main)', fontWeight: 500, marginBottom: '8px' }}>{cohort.year} &bull; {cohort.semester}</p>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <span className="hist-date" style={{ color: '#94a3b8' }}><i className="fa-solid fa-users"></i> {cohort.batch}</span>
+                                                        <span style={{ fontSize: '0.75rem', color: '#059669', background: '#ecfdf5', padding: '2px 8px', borderRadius: '12px', fontWeight: 600 }}>{cohort.students.length} Records</span>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+
+                                </div>
+                            </div>
+                        )}
+
+                        {/* NEW: ABSENTEE ALERTS VIEW */}
+                        {activeView === 'absent_alerts' && (
+                            <div className="page-content">
+                                <div className="page-header" style={{ marginBottom: '24px' }}>
+                                    <div>
+                                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', marginBottom: '8px', letterSpacing: '0.5px' }}>
+                                            <a href="#" onClick={(e) => { e.preventDefault(); setActiveView('attendance_sheet') }} style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>&lt; Back to Attendance Sheet</a> &bull; PARENT NOTIFICATIONS
+                                        </p>
+                                        <h2 className="page-title">Absentee Alert Dashboard</h2>
+                                        <p className="page-subtitle" style={{ maxWidth: '800px' }}>Review today's absentees and send standardized, bilingual absence alerts directly to registered parent WhatsApp numbers.</p>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginTop: '16px' }}>
+                                        <div className="active-dept-badge">
+                                            <span></span> {activeDeptContext?.title || 'Workspace'} 
+                                        </div>
+                                        <div style={{ background: '#fef2f2', color: 'var(--primary-red)', padding: '8px 16px', borderRadius: '8px', fontWeight: 600, border: '1px solid #fecaca', fontSize: '0.9rem' }}>
+                                            <i className="fa-solid fa-triangle-exclamation"></i> {absenteeList.length} Absentees Detected Today
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="schedule-entry-card" style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <div className="schedule-entry-header" style={{ marginBottom: '16px', paddingBottom: '12px' }}>
+                                        <i className="fa-brands fa-whatsapp" style={{ fontSize: '1.5rem', color: '#25D366' }}></i>
+                                        <div>
+                                            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-dark)' }}>Dispatch Notifications</h3>
+                                            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>Target Context: {sheetFilters.year} &bull; {sheetFilters.semester} &bull; {sheetFilters.academicDate.split('-').reverse().join('/')}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="att-table-wrapper" style={{ flex: 1, maxHeight: '600px', overflowY: 'auto' }}>
+                                        <table className="att-table" style={{ minWidth: '100%' }}>
+                                            <thead style={{ position: 'sticky', top: 0, background: 'var(--white)', zIndex: 10 }}>
+                                                <tr>
+                                                    <th style={{ width: '130px' }}>Roll No</th>
+                                                    <th>Student Name</th>
+                                                    <th>Missed Subjects</th>
+                                                    <th style={{ width: '160px' }}>Parent Mobile</th>
+                                                    <th style={{ width: '220px', textAlign: 'center' }}>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {isFetchingAbsentees ? (
+                                                    <tr>
+                                                        <td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
+                                                            <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: '2rem', marginBottom: '16px' }}></i><br/>Analyzing Attendance Records...
+                                                        </td>
+                                                    </tr>
+                                                ) : absenteeList.length === 0 ? (
+                                                    <tr>
+                                                        <td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#10b981', fontWeight: 600 }}>
+                                                            <i className="fa-regular fa-face-smile" style={{ fontSize: '2rem', marginBottom: '16px', color: '#10b981' }}></i><br/>Excellent! No absentees detected for this cohort today.
+                                                        </td>
+                                                    </tr>
+                                                ) : (
+                                                    absenteeList.map((student, idx) => (
+                                                        <tr key={idx}>
+                                                            <td>{student.rollNo}</td>
+                                                            <td><span style={{ fontWeight: 600, color: 'var(--text-dark)' }}>{student.name}</span></td>
+                                                            <td>
+                                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                                                    {student.absentSubjects.map((sub, sIdx) => (
+                                                                        <span key={sIdx} style={{ background: '#fff1f2', color: 'var(--primary-red)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, border: '1px solid #fecaca' }}>
+                                                                            {sub}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                {student.parentMobile ? (
+                                                                    <span style={{ color: 'var(--text-main)', fontWeight: 500 }}><i className="fa-solid fa-phone" style={{ fontSize: '0.8rem', color: '#94a3b8', marginRight: '6px' }}></i> {student.parentMobile}</span>
+                                                                ) : (
+                                                                    <span style={{ color: '#f59e0b', fontSize: '0.8rem', fontWeight: 600 }}><i className="fa-solid fa-circle-exclamation"></i> Not Registered</span>
+                                                                )}
+                                                            </td>
+                                                            <td style={{ textAlign: 'center' }}>
+                                                                <button 
+                                                                    onClick={() => handleSendWhatsApp(student)}
+                                                                    style={{ background: student.parentMobile ? '#25D366' : '#e2e8f0', color: student.parentMobile ? 'white' : '#94a3b8', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: 600, cursor: student.parentMobile ? 'pointer' : 'not-allowed', display: 'inline-flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s', boxShadow: student.parentMobile ? '0 4px 10px rgba(37, 211, 102, 0.2)' : 'none' }}
+                                                                >
+                                                                    <i className="fa-brands fa-whatsapp" style={{ fontSize: '1.1rem' }}></i> Send WhatsApp
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Map Modal */}
+                        {isMapModalOpen && (
+                            <div className="map-modal-overlay">
+                                <div className="map-modal">
+                                    <h3>Set Class Coordinates</h3><p>Allow location access to plot the classroom.</p>
+                                    {mapError && <div className="map-error-msg">{mapError}</div>}
+                                    <div id="leaflet-map-container"></div>
+                                    <div className="map-modal-actions">
+                                        <button className="btn-action btn-download" onClick={() => setIsMapModalOpen(false)}>Cancel</button>
+                                        <button className="btn-action btn-download" onClick={handleDetectLocation}>Recalibrate</button>
+                                        <button className="btn-action btn-print" onClick={() => setIsMapModalOpen(false)}>Confirm</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </main>
+                </>
+            );
+        }
+        const root = ReactDOM.createRoot(document.getElementById('react-workspace-root'));
+        root.render(<DepartmentWorkspace />);
+    </script>
+</body>
+
+</html>

@@ -172,10 +172,12 @@
         @media (max-width: 1024px) {
             .timetable-grid { grid-template-columns: minmax(0, 1fr); }
             .history-card { grid-column: span 1; }
+            .dept-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
         @media (max-width: 900px) {
             .grid-layout { grid-template-columns: minmax(0, 1fr); }
             .history-card { grid-column: span 1; }
+            .dept-grid { grid-template-columns: minmax(0, 1fr); }
         }
         @media (max-width: 768px) {
             .sidebar { transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--shadow-lg); }
@@ -194,6 +196,9 @@
             /* --- STRICT MOBILE UI FIXES --- */
             .page-title { font-size: 1.6rem; text-align: left; }
             .page-subtitle { text-align: left; font-size: 0.9rem; }
+            
+            /* NEW: Force Select Department Grid to Stack on Mobile */
+            .dept-grid { grid-template-columns: minmax(0, 1fr) !important; gap: 16px !important; }
             
             /* Force dual inputs to stack vertically */
             .input-row { display: flex !important; flex-direction: column !important; gap: 16px !important; } 
@@ -238,6 +243,104 @@
         
         @keyframes fadeIn { to { opacity: 1; } }
         @keyframes scaleUp { to { transform: scale(1); } }
+
+        /* NEW: Select Department View Styles */
+        .dept-header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+        .dept-search-bar { display: flex; gap: 16px; align-items: center; flex: 1; max-width: 600px; }
+        .dept-search-input { flex: 1; padding: 12px 16px; border: 1px solid var(--border-light); border-radius: 8px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; font-family: inherit; }
+        .dept-search-input:focus { border-color: var(--primary-red); }
+        .dept-select { padding: 12px 16px; border: 1px solid var(--border-light); border-radius: 8px; font-size: 0.95rem; outline: none; background: var(--white); font-family: inherit; cursor: pointer; }
+        .btn-add-dept { background: transparent; color: var(--primary-red); border: none; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: opacity 0.2s; }
+        .btn-add-dept:hover { opacity: 0.8; }
+        
+        /* Force grid to span the absolute full width with 3 equal columns */
+        .dept-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; margin-bottom: 80px; width: 100%; }
+        
+        .dept-card { background: var(--white); border: 2px solid transparent; border-radius: 16px; padding: 24px; cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm); position: relative; }
+        .dept-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+        .dept-card.selected { border-color: var(--primary-red); box-shadow: 0 4px 20px rgba(187, 15, 28, 0.08); }
+        .dept-badge { position: absolute; top: 24px; right: 24px; width: 24px; height: 24px; background: var(--primary-red); color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 0.8rem; opacity: 0; transform: scale(0.8); transition: all 0.2s; }
+        .dept-card.selected .dept-badge { opacity: 1; transform: scale(1); }
+        .dept-tag { font-size: 0.75rem; font-weight: 700; padding: 6px 10px; border-radius: 6px; background: #f1f5f9; color: var(--text-muted); display: inline-block; margin-bottom: 16px; }
+        .dept-card.selected .dept-tag { background: #ffeef0; color: var(--primary-red); }
+        .dept-title { font-size: 1.3rem; font-weight: 800; color: var(--text-dark); margin-bottom: 24px; display: flex; align-items: center; gap: 16px; }
+        .dept-icon { background: #f8fafc; width: 48px; height: 48px; border-radius: 12px; display: flex; justify-content: center; align-items: center; color: var(--text-main); font-size: 1.4rem; flex-shrink: 0; transition: all 0.2s; }
+        .dept-card.selected .dept-icon { background: #ffeef0; color: var(--primary-red); }
+        .dept-hod { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--border-light); }
+        .hod-avatar { width: 42px; height: 42px; border-radius: 50%; background: #e2e8f0; display: flex; justify-content: center; align-items: center; color: var(--text-muted); font-size: 1rem; }
+        .hod-info h5 { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px; }
+        .hod-info p { font-size: 0.95rem; color: var(--text-dark); font-weight: 500; }
+        .dept-stats { display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; margin-bottom: 24px; }
+        .stat-val { font-size: 1.4rem; font-weight: 800; color: var(--text-dark); margin-bottom: 6px; }
+        .stat-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .dept-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); transition: color 0.2s; }
+        .dept-card.selected .dept-footer { color: var(--primary-red); }
+        
+        .bottom-confirm-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--white); border-top: 1px solid var(--border-light); padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); z-index: 1000; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateY(100%); }
+        .bottom-confirm-bar.show { transform: translateY(0); }
+        .confirm-details { display: flex; align-items: center; gap: 16px; }
+        .confirm-icon { width: 40px; height: 40px; background: #ffeef0; color: var(--primary-red); border-radius: 10px; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; }
+        .confirm-text p { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.5px; }
+        .confirm-text h4 { font-size: 1rem; color: var(--text-dark); font-weight: 700; }
+        .confirm-actions { display: flex; gap: 16px; align-items: center; }
+        .btn-confirm-enter { background: var(--primary-red); color: var(--white); border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.2s; box-shadow: 0 4px 12px rgba(187, 15, 28, 0.2); }
+        .btn-confirm-enter:hover { background: var(--primary-red-hover); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(187, 15, 28, 0.3); }
+
+        @media (max-width: 768px) {
+            .dept-header-top { flex-direction: column; align-items: stretch; }
+            .dept-search-bar { flex-direction: column; max-width: 100%; }
+            .dept-search-input, .dept-select { width: 100%; }
+            .bottom-confirm-bar { padding: 16px; flex-direction: column; gap: 16px; align-items: stretch; text-align: center; }
+            .confirm-actions { flex-direction: column; width: 100%; }
+            .confirm-actions button { width: 100%; justify-content: center; }
+        }
+
+        /* NEW: Verification Modal Styles */
+        .verify-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(4px); opacity: 0; animation: fadeIn 0.2s forwards; }
+        .verify-modal { background: var(--white); border-radius: 16px; padding: 0; width: 90%; max-width: 480px; box-shadow: var(--shadow-lg); transform: scale(0.95); animation: scaleUp 0.2s forwards; display: flex; flex-direction: column; overflow: hidden; }
+        .verify-modal-inner { padding: 32px; }
+        .verify-header { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 24px; position: relative; }
+        .verify-icon-box { background: #ffeef0; color: var(--primary-red); width: 48px; height: 48px; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 1.4rem; flex-shrink: 0; }
+        .verify-header-text h3 { font-size: 1.15rem; font-weight: 700; color: var(--text-dark); margin-bottom: 4px; }
+        .verify-header-text p { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
+        .btn-verify-close { position: absolute; top: 0; right: 0; background: none; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer; transition: color 0.2s; }
+        .btn-verify-close:hover { color: var(--primary-red); }
+        
+        .verify-context-box { background: #f8fafc; border: 1px solid var(--border-light); border-radius: 8px; padding: 16px; display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+        .verify-context-icon { background: #e2e8f0; color: var(--text-main); width: 36px; height: 36px; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 1rem; }
+        .verify-context-text p { font-size: 0.75rem; color: var(--primary-red); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
+        .verify-context-text h4 { font-size: 0.95rem; color: var(--text-dark); font-weight: 600; }
+        
+        .verify-form-desc { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 24px; }
+        
+        .verify-input-group { margin-bottom: 20px; }
+        .verify-input-group label { display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .verify-input-wrapper { position: relative; display: flex; align-items: center; }
+        .verify-input-wrapper i.fa-key { position: absolute; left: 14px; color: var(--text-muted); font-size: 1rem; }
+        .verify-input-wrapper input { width: 100%; padding: 12px 40px 12px 42px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 0.95rem; color: var(--text-dark); background: #f8fafc; transition: all 0.2s; outline: none; }
+        .verify-input-wrapper input:focus { border-color: var(--primary-red); background: var(--white); box-shadow: 0 0 0 3px rgba(187, 15, 28, 0.1); }
+        .verify-input-wrapper i.fa-eye, .verify-input-wrapper i.fa-eye-slash { position: absolute; right: 14px; color: var(--text-muted); cursor: pointer; transition: color 0.2s; }
+        .verify-input-wrapper i.fa-eye:hover, .verify-input-wrapper i.fa-eye-slash:hover { color: var(--primary-red); }
+        
+        .verify-options { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; font-size: 0.85rem; }
+        .verify-remember { display: flex; align-items: center; gap: 8px; color: var(--text-main); font-weight: 500; cursor: pointer; }
+        .verify-remember input { cursor: pointer; accent-color: var(--primary-red); }
+        .verify-forgot { color: var(--primary-red); font-weight: 600; text-decoration: none; transition: opacity 0.2s; }
+        .verify-forgot:hover { opacity: 0.8; }
+        
+        .verify-actions { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 16px 32px; border-top: 1px solid var(--border-light); }
+        .btn-verify-back { background: transparent; border: none; color: var(--text-main); font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: color 0.2s; }
+        .btn-verify-back:hover { color: var(--text-dark); }
+        .btn-verify-submit { background: var(--primary-red); color: var(--white); border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(187, 15, 28, 0.2); }
+        .btn-verify-submit:hover { background: var(--primary-red-hover); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(187, 15, 28, 0.3); }
+
+        /* NEW: Add Department Modal Styles */
+        .dept-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(4px); opacity: 0; animation: fadeIn 0.2s forwards; }
+        .dept-modal { background: var(--white); border-radius: 16px; padding: 32px; width: 90%; max-width: 550px; box-shadow: var(--shadow-lg); transform: scale(0.95); animation: scaleUp 0.2s forwards; display: flex; flex-direction: column; max-height: 90vh; overflow-y: auto; }
+        .dept-modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-light); padding-bottom: 16px; margin-bottom: 24px; }
+        .dept-modal-header h3 { font-size: 1.25rem; font-weight: 700; color: var(--text-dark); margin: 0; }
+        .btn-close-modal { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted); transition: color 0.2s; }
+        .btn-close-modal:hover { color: var(--primary-red); }
 
         /* NEW: Class Management / Timetable Styles */
         .timetable-header-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; flex-wrap: wrap; gap: 16px; }
@@ -297,8 +400,147 @@
 
     <script type="text/babel">
         function AdminDashboard() {
-            // Navigation State (SPA Routing)
-            const [activeView, setActiveView] = React.useState('qr_generator');
+            // Navigation State (SPA Routing) - Starts on 'select_department'
+            const [activeView, setActiveView] = React.useState('select_department');
+
+            // NEW: Dynamic Department & Student Count States
+            const [selectedDept, setSelectedDept] = React.useState(null);
+            const [dbDepartments, setDbDepartments] = React.useState([]);
+            const [studentCounts, setStudentCounts] = React.useState({});
+            
+            // NEW: Add Department Form State
+            const [isAddDeptModalOpen, setIsAddDeptModalOpen] = React.useState(false);
+            const [isSavingDept, setIsSavingDept] = React.useState(false);
+            const [newDeptForm, setNewDeptForm] = React.useState({
+                departmentName: '', shortForm: '', hod: '', faculty: '', courses: '', password: ''
+            });
+
+            // NEW: Verification Modal State
+            const [isVerifyModalOpen, setIsVerifyModalOpen] = React.useState(false);
+            const [verifyPassword, setVerifyPassword] = React.useState('');
+            const [isVerifying, setIsVerifying] = React.useState(false);
+            const [verifyError, setVerifyError] = React.useState('');
+            const [showVerifyPassword, setShowVerifyPassword] = React.useState(false);
+
+            const handleVerifySubmit = (e) => {
+                e.preventDefault();
+                if (!verifyPassword) {
+                    setVerifyError("Please enter the access key.");
+                    return;
+                }
+                setIsVerifying(true);
+                setVerifyError('');
+
+                // Simulate brief loading for UX, then verify against Database password
+                setTimeout(() => {
+                    // Securely decrypt the stored password for verification
+                    let decryptedStoredPassword = '';
+                    try {
+                        decryptedStoredPassword = selectedDept.password ? decodeURIComponent(atob(selectedDept.password)) : '';
+                    } catch (e) {
+                        console.error("Decryption error", e);
+                    }
+                    
+                    if (selectedDept && verifyPassword === decryptedStoredPassword) {
+                        // Store the selected department so department.html knows the context
+                        localStorage.setItem('active_department', JSON.stringify(selectedDept));
+                        // Redirect to workspace
+                        window.location.href = 'department.html';
+                    } else {
+                        setVerifyError("Incorrect department access key.");
+                    }
+                    setIsVerifying(false);
+                }, 800);
+            };
+
+            // Fetch Real Departments & Calculate Student Counts from Firebase
+            React.useEffect(() => {
+                if (activeView === 'select_department' && window.firebaseAuth && window.firebaseAuth.db) {
+                    const fetchData = async () => {
+                        try {
+                            if (window.firebaseAuth.collection && window.firebaseAuth.getDocs) {
+                                // 1. Fetch Departments
+                                const deptRef = window.firebaseAuth.collection(window.firebaseAuth.db, "departments");
+                                const deptSnap = await window.firebaseAuth.getDocs(deptRef);
+                                const fetchedDepts = [];
+                                deptSnap.forEach(doc => fetchedDepts.push({ id: doc.id, ...doc.data() }));
+                                // Sort alphabetically
+                                fetchedDepts.sort((a, b) => a.title.localeCompare(b.title));
+                                setDbDepartments(fetchedDepts);
+
+                                // 2. Fetch Users & Tally Student Counts matching Department Names
+                                const usersRef = window.firebaseAuth.collection(window.firebaseAuth.db, "users");
+                                const usersSnap = await window.firebaseAuth.getDocs(usersRef);
+                                const counts = {};
+                                usersSnap.forEach(doc => {
+                                    const dept = doc.data().department;
+                                    if (dept) {
+                                        counts[dept] = (counts[dept] || 0) + 1;
+                                    }
+                                });
+                                setStudentCounts(counts);
+                            }
+                        } catch (err) {
+                            console.error("Error fetching department dashboard data:", err);
+                        }
+                    };
+                    fetchData();
+                }
+            }, [activeView]);
+
+            const handleDeptFormChange = (e) => {
+                setNewDeptForm({ ...newDeptForm, [e.target.name]: e.target.value });
+            };
+
+            const handleAddDepartmentSubmit = async (e) => {
+                e.preventDefault();
+                if (!newDeptForm.password) { alert("Authorization password required."); return; }
+                
+                setIsSavingDept(true);
+                try {
+                    const docId = newDeptForm.shortForm.toUpperCase().replace(/\s+/g, '') || Date.now().toString();
+                    
+                    // Automatically assign professional FontAwesome icon based on selection
+                    let mappedIcon = 'fa-building';
+                    if (newDeptForm.departmentName.includes('Computer')) mappedIcon = 'fa-laptop-code';
+                    if (newDeptForm.departmentName.includes('Artificial')) mappedIcon = 'fa-network-wired';
+                    if (newDeptForm.departmentName.includes('Biomedical')) mappedIcon = 'fa-heart-pulse';
+                    if (newDeptForm.departmentName.includes('Mechanical')) mappedIcon = 'fa-cogs';
+                    if (newDeptForm.departmentName.includes('Electrical')) mappedIcon = 'fa-bolt';
+
+                    // Securely Encrypt the password before storing in Database
+                    const encryptedPassword = btoa(encodeURIComponent(newDeptForm.password));
+
+                    const newDeptPayload = {
+                        title: newDeptForm.departmentName,
+                        code: newDeptForm.shortForm.toUpperCase(),
+                        hod: newDeptForm.hod,
+                        faculty: parseInt(newDeptForm.faculty) || 0,
+                        courses: parseInt(newDeptForm.courses) || 0,
+                        icon: mappedIcon,
+                        password: encryptedPassword, // Stored securely as an encrypted string
+                        createdAt: new Date().toISOString()
+                    };
+
+                    await window.firebaseAuth.setDoc(
+                        window.firebaseAuth.doc(window.firebaseAuth.db, "departments", docId),
+                        newDeptPayload
+                    );
+
+                    // Update UI immediately without reload
+                    setDbDepartments(prev => [...prev, { id: docId, ...newDeptPayload }].sort((a, b) => a.title.localeCompare(b.title)));
+                    
+                    // Reset and close modal
+                    setIsAddDeptModalOpen(false);
+                    setNewDeptForm({ departmentName: '', shortForm: '', hod: '', faculty: '', courses: '', password: '' });
+                    alert(`Successfully added ${newDeptPayload.title} to database!`);
+                } catch (err) {
+                    console.error("Save error:", err);
+                    alert("Failed to save department. Ensure admin permissions are active.");
+                } finally {
+                    setIsSavingDept(false);
+                }
+            };
 
             // Security State for Admin Access
             const [isAuthorized, setIsAuthorized] = React.useState(false);
@@ -445,10 +687,41 @@
                 }));
             };
 
+            // TIME FORMAT HELPERS (12hr <-> 24hr Translation)
+            const convertTo12Hour = (time24) => {
+                if (!time24) return '';
+                const [h, m] = time24.split(':');
+                const hours = parseInt(h, 10);
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                const hours12 = hours % 12 || 12;
+                return `${hours12.toString().padStart(2, '0')}:${m} ${ampm}`;
+            };
+
+            const convertTo24Hour = (time12) => {
+                if (!time12) return '';
+                const parts = time12.split(' ');
+                if (parts.length < 2) return time12; // Already 24h fallback
+                let [hours, minutes] = parts[0].split(':');
+                if (hours === '12') hours = '00';
+                if (parts[1] === 'PM') hours = (parseInt(hours, 10) + 12).toString();
+                return `${hours.padStart(2, '0')}:${minutes}`;
+            };
+
             // NEW: Instantly load Firebase data into the Form UI
             const handleLoadTimetable = (item) => {
                 setTimetableContext(item.context);
-                setScheduleData(item.schedule);
+                
+                // Convert fetched 12-hour DB format back to 24-hour for the HTML5 Inputs
+                const loadedSchedule = { Monday: [], Tuesday: [], Wednesday: [], Thursday: [], Friday: [], Saturday: [], ...item.schedule };
+                Object.keys(loadedSchedule).forEach(day => {
+                    loadedSchedule[day] = loadedSchedule[day].map(row => ({
+                        ...row,
+                        startTime: convertTo24Hour(row.startTime),
+                        endTime: convertTo24Hour(row.endTime)
+                    }));
+                });
+                
+                setScheduleData(loadedSchedule);
                 setActiveDay('Monday'); // Reset to Monday view on load
             };
 
@@ -502,9 +775,19 @@
                     // Create a unique document ID based on Context details
                     const docId = `${timetableContext.program}_${timetableContext.year}_${timetableContext.semester}_${timetableContext.batch}`.replace(/[^a-zA-Z0-9]/g, '_');
                     
+                    // Convert HTML5 24-hour state strictly to 12-hour format before saving to database
+                    const formattedSchedule = {};
+                    Object.keys(scheduleData).forEach(day => {
+                        formattedSchedule[day] = scheduleData[day].map(row => ({
+                            ...row,
+                            startTime: convertTo12Hour(row.startTime),
+                            endTime: convertTo12Hour(row.endTime)
+                        }));
+                    });
+
                     const newTimetable = {
                         context: timetableContext,
-                        schedule: scheduleData,
+                        schedule: formattedSchedule,
                         updatedAt: new Date().toISOString(),
                         createdBy: adminProfile.email
                     };
@@ -715,6 +998,14 @@
                     if (window.firebaseAuth && window.firebaseAuth.onAuthStateChanged) {
                         unsubscribe = window.firebaseAuth.onAuthStateChanged(window.firebaseAuth.auth, (user) => {
                             if (user && user.email === 'kskcet774@gmail.com') {
+                                
+                                // NEW: Persistent Login Check
+                                // If admin previously authenticated a department, auto-redirect to the workspace!
+                                if (localStorage.getItem('active_department')) {
+                                    window.location.href = 'department.html';
+                                    return;
+                                }
+
                                 setIsAuthorized(true); // Email matches, render the page
                                 
                                 // Fetch Admin Profile Data
@@ -776,7 +1067,7 @@
                     ></div>
 
                     {/* Sidebar */}
-                    <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
+                    <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`} style={{ display: activeView === 'select_department' ? 'none' : 'flex' }}>
                         <div className="sidebar-header">
                             <h1>KSK College Admin</h1>
                             <p>Professor Portal</p>
@@ -817,28 +1108,35 @@
                     </aside>
 
                     {/* Main Content Area */}
-                    <main className="main-content">
+                    <main className="main-content" style={{ marginLeft: activeView === 'select_department' ? '0' : undefined }}>
                         
                         {/* Top Header */}
                         <header className="top-header">
-                            <div className="header-left">
+                            <div className="header-left" style={{ display: 'flex', alignItems: 'center' }}>
+                                
+                                {/* Hide hamburger menu when on Select Department landing page */}
                                 <button 
                                     className="menu-toggle-btn" 
                                     onClick={() => setIsSidebarOpen(true)}
                                     title="Open Menu"
+                                    style={{ display: activeView === 'select_department' ? 'none' : undefined }}
                                 >
                                     <i className="fa-solid fa-bars"></i>
                                 </button>
-                                <div className="header-links">
-                                    <a href="#">Term Overview</a>
-                                    <a href="#">Schedule</a>
-                                    <a href="#">Reports</a>
+                                
+                                {/* NEW: Top Left Logo and Title */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <img 
+                                        src="img/ksk logo.jpeg" 
+                                        alt="KSK Logo" 
+                                        style={{ height: '42px', width: '42px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--white)', boxShadow: 'var(--shadow-sm)' }} 
+                                    />
+                                    <h2 style={{ fontSize: '1.3rem', fontWeight: '800', color: 'var(--text-dark)', margin: 0, letterSpacing: '-0.5px' }}>
+                                        KSK College Of E&T
+                                    </h2>
                                 </div>
                             </div>
                             <div className="header-actions">
-                                <i className="fa-regular fa-bell header-icon"></i>
-                                <i className="fa-regular fa-circle-question header-icon"></i>
-                                <button className="btn-new-session">New Session</button>
                                 
                                 {/* Dynamic Profile Dropdown */}
                                 <div className="profile-dropdown">
@@ -863,466 +1161,240 @@
                         </header>
 
                         {/* Page Content */}
-                        {activeView === 'qr_generator' && (
-                            <div className="page-content">
-                                
-                                <div className="page-header">
-                                    <h2 className="page-title">QR Generator</h2>
-                                    <p className="page-subtitle">Configure and generate attendance tracking codes.</p>
+                        
+                        {/* NEW: Select Department Landing View */}
+                        {activeView === 'select_department' && (
+                            <div className="page-content" style={{ paddingTop: '20px', width: '100%', maxWidth: 'none', margin: '0' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px', flexWrap: 'wrap', gap: '16px', width: '100%' }}>
+                                    <div>
+                                        <p style={{ fontSize: '0.85rem', color: 'var(--primary-red)', fontWeight: '600', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.5px' }}>Class Management &gt; Select Department</p>
+                                        <h2 className="page-title">Select Department</h2>
+                                        <p className="page-subtitle">Choose an academic department to manage curriculum, assign faculty, view student enrollments, and configure timetables.</p>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#ecfdf5', color: '#059669', padding: '8px 16px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '600', border: '1px solid #a7f3d0' }}>
+                                        <span style={{ width: '8px', height: '8px', background: '#10b981', borderRadius: '50%', display: 'inline-block' }}></span> Fall Term 2025 &bull; Active
+                                    </div>
                                 </div>
 
-                            <div className="grid-layout">
-                                
-                                {/* Form Card (Left) */}
-                                <div className="form-card">
-                                    <h3 className="form-section-title">Session Details</h3>
-                                    
-                                    <div className="form-group">
-                                        <label>Department</label>
-                                        <div className="select-wrapper">
-                                            <select name="department" value={formData.department} onChange={handleChange} className="custom-input">
-                                                <option>Computer Science</option>
-                                                <option>Artificial Intelligence & Data Science</option>
-                                                <option>Biomedical Engineering</option>
-                                                <option>Mechanical Engineering</option>
-                                                <option>Electrical Engineering</option>
-                                            </select>
-                                        </div>
+                                <div className="dept-header-top">
+                                    <div className="dept-search-bar">
+                                        <input type="text" className="dept-search-input" placeholder="Search departments by name or code..." />
+                                        <select className="dept-select">
+                                            <option>All Academic Wings</option>
+                                            <option>Wing A</option>
+                                            <option>Wing B</option>
+                                            <option>Wing C</option>
+                                            <option>Wing D</option>
+                                        </select>
                                     </div>
-
-                                    <div className="input-row">
-                                        <div className="form-group">
-                                            <label>Year</label>
-                                            <div className="select-wrapper">
-                                                <select name="year" value={formData.year} onChange={handleChange} className="custom-input">
-                                                    <option>1-year</option>
-                                                    <option>2-year</option>
-                                                    <option>3-year</option>
-                                                    <option>4-year</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div className="form-group">
-                                            <label>Semester</label>
-                                            <div className="select-wrapper">
-                                                <select name="semester" value={formData.semester} onChange={handleChange} className="custom-input">
-                                                    <option>sem-1</option>
-                                                    <option>sem-2</option>
-                                                    <option>sem-3</option>
-                                                    <option>sem-4</option>
-                                                    <option>sem-5</option>
-                                                    <option>sem-6</option>
-                                                    <option>sem-7</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label>Subject / Course</label>
-                                        <div className="select-wrapper">
-                                            <select name="course" value={formData.course} onChange={handleChange} className="custom-input">
-                                                <option>GE3791- Human Values And Ethics</option>
-                                                <option>CME365- Renewable Energy Technologies</option>
-                                                <option>GE3751- Principles of Management</option>
-                                                <option>OHS352- Project Report Writing</option>
-                                                <option>NM112- TN-skill</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label>Room / Location</label>
-                                        <div className="select-wrapper">
-                                            <select name="room" value={formData.room} onChange={handleChange} className="custom-input">
-                                                <option>CR-200</option>
-                                                <option>CR-201</option>
-                                                <option>CR-202</option>
-                                                <option>CR-203</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label>Expiration Time (Minutes)</label>
-                                        <input 
-                                            type="number" 
-                                            name="expiration" 
-                                            value={formData.expiration} 
-                                            onChange={handleChange} 
-                                            className="custom-input" 
-                                            min="1" 
-                                        />
-                                    </div>
-
-                                    {/* NEW: Accurate GPS Location Input */}
-                                    <div className="form-group">
-                                        <label>Accurate Class Location</label>
-                                        <div style={{ position: 'relative' }} onClick={() => setIsMapModalOpen(true)}>
-                                            <i className="fa-solid fa-map-location-dot" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary-red)', zIndex: 10, fontSize: '1.1rem' }}></i>
-                                            <input 
-                                                type="text" 
-                                                readOnly 
-                                                value={formData.latitude ? `${formData.latitude.toFixed(5)}, ${formData.longitude.toFixed(5)}` : 'Click to allow & fetch location'} 
-                                                className="custom-input" 
-                                                style={{ cursor: 'pointer', paddingLeft: '44px', color: formData.latitude ? 'var(--text-dark)' : 'var(--primary-red)', fontWeight: formData.latitude ? '600' : '500' }}
-                                                placeholder="Fetch GPS Coordinates"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <button className={`btn-generate ${isGenerating ? 'btn-disabled' : ''}`} onClick={handleGenerateCode} disabled={isGenerating}>
-                                        {isGenerating ? <><i className="fa-solid fa-spinner fa-spin"></i> Generating...</> : "Generate Code"}
+                                    <button className="btn-add-dept" onClick={() => setIsAddDeptModalOpen(true)}>
+                                        <i className="fa-solid fa-plus"></i> Add Department
                                     </button>
                                 </div>
 
-                                {/* QR Preview Card (Middle) */}
-                                <div className="qr-preview-container">
-                                    <div className="qr-card-inner">
-                                        
-                                        {!qrUrl ? (
-                                            // Empty State UI
-                                            <div style={{ padding: '40px 10px', color: 'var(--text-muted)' }}>
-                                                <i className="fa-solid fa-qrcode" style={{ fontSize: '4.5rem', opacity: '0.15', marginBottom: '24px' }}></i>
-                                                <h4 style={{ fontSize: '1.15rem', fontWeight: '700', color: 'var(--text-dark)', marginBottom: '8px' }}>No Code Generated</h4>
-                                                <p style={{ fontSize: '0.9rem', lineHeight: '1.5' }}>Fill in the session details on the left and click generate to create a new attendance QR code.</p>
-                                            </div>
-                                        ) : (
-                                            // Active QR Code UI
-                                            <>
-                                                {/* Generated QR Code Image */}
-                                                <img src={qrUrl} alt="QR Code" className="qr-image" />
-                                                
-                                                {/* Dynamic Text reflecting Form State */}
-                                                <h4 className="qr-course-title">{formData.course}</h4>
-                                                <p className="qr-meta-text">{formData.room} &bull; Valid for {formData.expiration} mins</p>
-                                                
-                                                <div className="qr-actions">
-                                                    <button className={`btn-action btn-download ${isDownloading ? 'btn-disabled' : ''}`} onClick={handleDownload} disabled={isDownloading}>
-                                                        {isDownloading ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-file-pdf"></i>} 
-                                                        {isDownloading ? "Downloading..." : "Download PDF"}
-                                                    </button>
-                                                    <button className={`btn-action btn-print ${isPrinting ? 'btn-disabled' : ''}`} onClick={handlePrint} disabled={isPrinting}>
-                                                        {isPrinting ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-print"></i>} 
-                                                        {isPrinting ? "Printing..." : "Print PDF"}
-                                                    </button>
-                                                </div>
-                                            </>
-                                        )}
-                                        
-                                    </div>
-                                </div>
-
-                                {/* NEW: Generated QR Code History List (Right Column) */}
-                                <div className="history-card">
-                                    <h3 className="history-title"><i className="fa-solid fa-clock-rotate-left"></i> Previous Codes</h3>
-                                    
-                                    {qrHistory.length === 0 ? (
-                                        <p style={{color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center', marginTop: '30px'}}>
-                                            No codes generated yet.
-                                        </p>
+                                <div className="dept-grid">
+                                    {dbDepartments.length === 0 ? (
+                                        <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '80px 20px', color: 'var(--text-muted)' }}>
+                                            <i className="fa-solid fa-server" style={{ fontSize: '3rem', marginBottom: '16px', opacity: 0.3 }}></i>
+                                            <h4 style={{ fontSize: '1.2rem', color: 'var(--text-dark)', marginBottom: '8px' }}>No Departments Found</h4>
+                                            <p>Click "Add Department" to securely configure database records.</p>
+                                        </div>
                                     ) : (
-                                        qrHistory.map(item => (
-                                            <div key={item.id} className="history-item" style={{ position: 'relative' }}>
-                                                {/* NEW: Remove Icon Button */}
-                                                <button 
-                                                    onClick={() => handleRemoveHistoryItem(item.id)} 
-                                                    title="Remove from history"
-                                                    style={{ position: 'absolute', top: '12px', right: '12px', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '0.9rem', transition: 'color 0.2s' }}
-                                                    onMouseOver={(e) => e.target.style.color = 'var(--primary-red)'}
-                                                    onMouseOut={(e) => e.target.style.color = '#94a3b8'}
-                                                >
-                                                    <i className="fa-solid fa-trash-can"></i>
-                                                </button>
-
-                                                <div style={{ paddingRight: '20px' }}>
-                                                    <h4 className="hist-course">{item.course}</h4>
-                                                    <p className="hist-dept">{item.department}</p>
-                                                    <p className="hist-date"><i className="fa-regular fa-clock"></i> {item.timestamp} &bull; {item.expiration} mins</p>
+                                        dbDepartments.map(dept => (
+                                            <div key={dept.id} className={`dept-card ${selectedDept?.id === dept.id ? 'selected' : ''}`} onClick={() => setSelectedDept(dept)}>
+                                                <div className="dept-badge"><i className="fa-solid fa-check"></i></div>
+                                                {/* Dynamic short form. Wing removed. */}
+                                                <span className="dept-tag">{dept.code}</span>
+                                                <div className="dept-title">
+                                                    <div className="dept-icon"><i className={`fa-solid ${dept.icon}`}></i></div>
+                                                    {dept.title}
                                                 </div>
-                                                <div className="hist-actions">
-                                                    <button className="btn-hist-action" onClick={() => handleHistoryDownload(item)} title="Download PDF">
-                                                        <i className="fa-solid fa-download"></i> Download
-                                                    </button>
-                                                    <button className="btn-hist-action" onClick={() => handleHistoryPrint(item)} title="Print PDF">
-                                                        <i className="fa-solid fa-print"></i> Print
-                                                    </button>
+                                                <div className="dept-hod">
+                                                    <div className="hod-avatar"><i className="fa-regular fa-user"></i></div>
+                                                    <div className="hod-info">
+                                                        <h5>Head of Department</h5>
+                                                        <p>{dept.hod}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="dept-stats">
+                                                    <div>
+                                                        {/* Live Student Count from Database! */}
+                                                        <div className="stat-val">{studentCounts[dept.title] || 0}</div>
+                                                        <div className="stat-label">Students</div>
+                                                    </div>
+                                                    <div>
+                                                        <div className="stat-val">{dept.faculty}</div>
+                                                        <div className="stat-label">Faculty</div>
+                                                    </div>
+                                                    <div>
+                                                        <div className="stat-val">{dept.courses}</div>
+                                                        <div className="stat-label">Courses</div>
+                                                    </div>
+                                                </div>
+                                                <div className="dept-footer">
+                                                    <span>
+                                                        <i className="fa-solid fa-circle" style={{fontSize: '8px', marginRight: '6px', color: selectedDept?.id === dept.id ? 'var(--primary-red)' : '#cbd5e1'}}></i> 
+                                                        {selectedDept?.id === dept.id ? 'Selected' : 'Select'}
+                                                    </span>
+                                                    <i className="fa-solid fa-chevron-right" style={{ color: selectedDept?.id === dept.id ? 'var(--primary-red)' : '#cbd5e1' }}></i>
                                                 </div>
                                             </div>
                                         ))
                                     )}
                                 </div>
 
-                            </div>
-                        </div>
-                        )}
-
-                        {/* NEW: Class Management View (Add Timetable) */}
-                        {activeView === 'class_management' && (
-                            <div className="page-content">
-                                <div className="timetable-header-row">
-                                    <div className="page-header" style={{ marginBottom: 0 }}>
-                                        <h2 className="page-title">Add Timetable</h2>
-                                        <p className="page-subtitle">Configure class schedules for a new academic term.</p>
+                                {/* Bottom Sticky Confirmation Bar */}
+                                <div className={`bottom-confirm-bar ${selectedDept ? 'show' : ''}`}>
+                                    <div className="confirm-details">
+                                        <div className="confirm-icon"><i className="fa-regular fa-building"></i></div>
+                                        <div className="confirm-text">
+                                            <p>CURRENT SELECTION</p>
+                                            <h4>Selected Department: {selectedDept?.title} ({selectedDept?.students} Students)</h4>
+                                        </div>
                                     </div>
-                                    <div className="timetable-actions">
-                                        <button className="btn-cancel" onClick={() => setActiveView('qr_generator')}>Cancel</button>
-                                        <button className={`btn-save ${isSavingTimetable ? 'btn-disabled' : ''}`} onClick={handleSaveTimetable} disabled={isSavingTimetable}>
-                                            {isSavingTimetable ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-regular fa-floppy-disk"></i>}
-                                            {isSavingTimetable ? "Saving..." : "Save Timetable"}
+                                    <div className="confirm-actions">
+                                        <button className="btn-cancel" style={{ border: 'none', background: 'transparent' }} onClick={() => setSelectedDept(null)}>Cancel</button>
+                                        <button className="btn-confirm-enter" onClick={() => {
+                                            setIsVerifyModalOpen(true);
+                                            setVerifyPassword('');
+                                            setVerifyError('');
+                                        }}>
+                                            Confirm & Enter Department <i className="fa-solid fa-arrow-right"></i>
                                         </button>
                                     </div>
                                 </div>
 
-                                <div className="timetable-grid">
-                                    {/* Left Column: Context Panel */}
-                                    <div className="context-panel">
-                                        <h3 className="panel-title">
-                                            <i className="fa-solid fa-sliders" style={{ color: 'var(--primary-red)' }}></i> Context
-                                        </h3>
-                                        
-                                        <div className="form-group" style={{ marginBottom: '16px' }}>
-                                            <label>Program / Course</label>
-                                            <div className="select-wrapper">
-                                                <select name="program" value={timetableContext.program} onChange={handleTimetableChange} className="custom-input">
-                                                    <option value="">Select Program...</option>
-                                                    <option value="Computer Science">Computer Science</option>
-                                                    <option value="Artificial Intelligence & Data Science">Artificial Intelligence & Data Science</option>
-                                                    <option value="Biomedical Engineering">Biomedical Engineering</option>
-                                                    <option value="Mechanical Engineering">Mechanical Engineering</option>
-                                                    <option value="Electrical Engineering">Electrical Engineering</option>
-                                                </select>
+                                {/* NEW: Add Department Modal Overlay */}
+                                {isAddDeptModalOpen && (
+                                    <div className="dept-modal-overlay">
+                                        <div className="dept-modal">
+                                            <div className="dept-modal-header">
+                                                <h3><i className="fa-solid fa-server" style={{color: 'var(--primary-red)', marginRight: '8px'}}></i> Configure Department</h3>
+                                                <button className="btn-close-modal" onClick={() => setIsAddDeptModalOpen(false)}>
+                                                    <i className="fa-solid fa-xmark"></i>
+                                                </button>
                                             </div>
-                                        </div>
-
-                                        <div className="input-row" style={{ marginBottom: '16px' }}>
-                                            <div className="form-group">
-                                                <label>Year</label>
-                                                <div className="select-wrapper">
-                                                    <select name="year" value={timetableContext.year} onChange={handleTimetableChange} className="custom-input">
-                                                        <option value="">Select Year...</option>
-                                                        <option value="1-year">1-year</option>
-                                                        <option value="2-year">2-year</option>
-                                                        <option value="3-year">3-year</option>
-                                                        <option value="4-year">4-year</option>
-                                                    </select>
+                                            
+                                            <form onSubmit={handleAddDepartmentSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                                <div className="form-group">
+                                                    <label>Department Name</label>
+                                                    <div className="select-wrapper">
+                                                        <select className="custom-input" name="departmentName" value={newDeptForm.departmentName} onChange={handleDeptFormChange} required>
+                                                            <option value="" disabled>Select Core Program...</option>
+                                                            <option value="Computer Science">💻 Computer Science</option>
+                                                            <option value="Artificial Intelligence & Data Science">🤖 Artificial Intelligence & Data Science</option>
+                                                            <option value="Biomedical Engineering">🧬 Biomedical Engineering</option>
+                                                            <option value="Mechanical Engineering">⚙️ Mechanical Engineering</option>
+                                                            <option value="Electrical Engineering">⚡ Electrical Engineering</option>
+                                                        </select>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="form-group">
-                                                <label>Semester</label>
-                                                <div className="select-wrapper">
-                                                    <select name="semester" value={timetableContext.semester} onChange={handleTimetableChange} className="custom-input">
-                                                        <option value="">Select Sem...</option>
-                                                        <option value="sem-1">sem-1</option>
-                                                        <option value="sem-2">sem-2</option>
-                                                        <option value="sem-3">sem-3</option>
-                                                        <option value="sem-4">sem-4</option>
-                                                        <option value="sem-5">sem-5</option>
-                                                        <option value="sem-6">sem-6</option>
-                                                        <option value="sem-7">sem-7</option>
-                                                    </select>
+                                                
+                                                <div className="input-row">
+                                                    <div className="form-group">
+                                                        <label>Short Form (Code)</label>
+                                                        <input type="text" className="custom-input" name="shortForm" placeholder="e.g. CSE" value={newDeptForm.shortForm} onChange={handleDeptFormChange} required />
+                                                    </div>
+                                                    <div className="form-group">
+                                                        <label>HOD Name</label>
+                                                        <input type="text" className="custom-input" name="hod" placeholder="e.g. Dr. Turing" value={newDeptForm.hod} onChange={handleDeptFormChange} required />
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
+                                                
+                                                <div className="input-row">
+                                                    <div className="form-group">
+                                                        <label>Total Faculty</label>
+                                                        <input type="number" className="custom-input" name="faculty" min="0" value={newDeptForm.faculty} onChange={handleDeptFormChange} required />
+                                                    </div>
+                                                    <div className="form-group">
+                                                        <label>Total Courses</label>
+                                                        <input type="number" className="custom-input" name="courses" min="0" value={newDeptForm.courses} onChange={handleDeptFormChange} required />
+                                                    </div>
+                                                </div>
 
-                                        <div className="form-group" style={{ marginBottom: '16px' }}>
-                                            <label>Section / Batch</label>
-                                            <div className="select-wrapper">
-                                                <select name="batch" value={timetableContext.batch} onChange={handleTimetableChange} className="custom-input">
-                                                    <option value="">Select Batch...</option>
-                                                    <option value="2023-2027">2023-2027</option>
-                                                </select>
-                                            </div>
-                                        </div>
+                                                <div className="form-group" style={{ marginTop: '8px' }}>
+                                                    <label>Authorization Password</label>
+                                                    <input type="password" className="custom-input" name="password" placeholder="Enter admin password to save" value={newDeptForm.password} onChange={handleDeptFormChange} required />
+                                                </div>
 
-                                        <div className="form-group" style={{ marginBottom: '16px' }}>
-                                            <label>Time-Table Start Date</label>
-                                            <input type="date" name="startDate" value={timetableContext.startDate} onChange={handleTimetableChange} className="custom-input" />
-                                        </div>
-                                        
-                                        <div className="form-group" style={{ marginBottom: '24px' }}>
-                                            <label>Time-Table End Date</label>
-                                            <input type="date" name="endDate" value={timetableContext.endDate} onChange={handleTimetableChange} className="custom-input" />
-                                        </div>
-
-                                        <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>TEMPLATES</label>
-                                        <div className="template-cards">
-                                            <div className="template-card">
-                                                <i className="fa-regular fa-copy"></i>
-                                                <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Copy Previous</div>
-                                            </div>
-                                            <div className="template-card">
-                                                <i className="fa-solid fa-wand-magic-sparkles"></i>
-                                                <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Auto-Fill</div>
-                                            </div>
+                                                <button type="submit" className={`btn-save ${isSavingDept ? 'btn-disabled' : ''}`} style={{ marginTop: '16px', justifyContent: 'center', width: '100%', padding: '14px' }} disabled={isSavingDept}>
+                                                    {isSavingDept ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-cloud-arrow-up"></i>}
+                                                    {isSavingDept ? " Syncing to Database..." : " Save Department"}
+                                                </button>
+                                            </form>
                                         </div>
                                     </div>
+                                )}
 
-                                    {/* Right Column: Schedule Entry & Preview */}
-                                    <div className="schedule-panel">
-                                        
-                                        <div className="schedule-entry-card">
-                                                    <div className="schedule-entry-header">
-                                                        <i className="fa-regular fa-calendar-days" style={{ fontSize: '1.5rem', color: 'var(--primary-red)' }}></i>
-                                                        <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-dark)' }}>Schedule Entry</h3>
-                                                        
-                                                        {/* Dynamic Day Tabs */}
-                                                        <div className="day-tabs">
-                                                            {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map(day => (
-                                                                <div 
-                                                                    key={day} 
-                                                                    className={`day-tab ${activeDay === day ? 'active' : ''}`}
-                                                                    onClick={() => setActiveDay(day)}
-                                                                >
-                                                                    {day}
-                                                                </div>
-                                                            ))}
+                                {/* NEW: Department Verification Security Modal */}
+                                {isVerifyModalOpen && selectedDept && (
+                                    <div className="verify-modal-overlay">
+                                        <div className="verify-modal">
+                                            <div className="verify-modal-inner">
+                                                <div className="verify-header">
+                                                    <div className="verify-icon-box"><i className="fa-solid fa-lock"></i></div>
+                                                    <div className="verify-header-text">
+                                                        <h3>Department Access Verification</h3>
+                                                        <p>Admin Security Authentication Required</p>
+                                                    </div>
+                                                    <button className="btn-verify-close" onClick={() => setIsVerifyModalOpen(false)}>
+                                                        <i className="fa-solid fa-xmark"></i>
+                                                    </button>
+                                                </div>
+
+                                                <div className="verify-context-box">
+                                                    <div className="verify-context-icon"><i className={`fa-solid ${selectedDept.icon || 'fa-building'}`}></i></div>
+                                                    <div className="verify-context-text">
+                                                        <p>{selectedDept.code} &bull; {studentCounts[selectedDept.title] || 0} Students</p>
+                                                        <h4>{selectedDept.title}</h4>
+                                                    </div>
+                                                </div>
+
+                                                <p className="verify-form-desc">
+                                                    Please enter your department security key or administrative credentials to proceed to the course management console.
+                                                </p>
+
+                                                {verifyError && <div className="map-error-msg" style={{marginBottom: '16px'}}><i className="fa-solid fa-triangle-exclamation"></i> {verifyError}</div>}
+
+                                                <form onSubmit={handleVerifySubmit}>
+                                                    <div className="verify-input-group">
+                                                        <label>Department Access Key</label>
+                                                        <div className="verify-input-wrapper">
+                                                            <i className="fa-solid fa-key"></i>
+                                                            <input 
+                                                                type={showVerifyPassword ? "text" : "password"} 
+                                                                value={verifyPassword}
+                                                                onChange={(e) => setVerifyPassword(e.target.value)}
+                                                                placeholder="••••••••••••" 
+                                                                required 
+                                                            />
+                                                            <i 
+                                                                className={`fa-regular ${showVerifyPassword ? "fa-eye-slash" : "fa-eye"}`} 
+                                                                onClick={() => setShowVerifyPassword(!showVerifyPassword)}
+                                                            ></i>
                                                         </div>
                                                     </div>
 
-                                                    <div className="table-responsive-wrapper">
-                                                        <table className="schedule-table">
-                                                            <thead>
-                                                                <tr>
-                                                                    <th style={{ width: '110px' }}>Start Time</th>
-                                                                    <th style={{ width: '110px' }}>End Time</th>
-                                                                    <th>Subject</th>
-                                                                    <th>Faculty</th>
-                                                                    <th style={{ width: '110px' }}>Room</th>
-                                                                    <th style={{ width: '60px', textAlign: 'center' }}>Action</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {/* Dynamic Row Rendering based on Active Day */}
-                                                                {scheduleData[activeDay].map((row, index) => (
-                                                                    <tr key={index}>
-                                                                        <td><input type="time" value={row.startTime} onChange={(e) => handleScheduleChange(index, 'startTime', e.target.value)} /></td>
-                                                                        <td><input type="time" value={row.endTime} onChange={(e) => handleScheduleChange(index, 'endTime', e.target.value)} /></td>
-                                                                        <td><input type="text" value={row.subject} onChange={(e) => handleScheduleChange(index, 'subject', e.target.value)} placeholder="Subject" /></td>
-                                                                        <td><input type="text" value={row.faculty} onChange={(e) => handleScheduleChange(index, 'faculty', e.target.value)} placeholder="Faculty" /></td>
-                                                                        <td><input type="text" value={row.room} onChange={(e) => handleScheduleChange(index, 'room', e.target.value)} placeholder="Room" /></td>
-                                                                        <td style={{ textAlign: 'center' }}>
-                                                                            <button className="btn-delete-row" onClick={() => handleRemoveRow(index)}><i className="fa-regular fa-trash-can"></i></button>
-                                                                        </td>
-                                                                    </tr>
-                                                                ))}
-                                                                {/* Add New Row Button */}
-                                                                <tr>
-                                                                    <td colSpan="6" style={{ textAlign: 'center', padding: '16px' }}>
-                                                                        <button className="btn-add-row" onClick={handleAddRow}><i className="fa-solid fa-plus"></i></button>
-                                                                    </td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
+                                                    <div className="verify-options">
+                                                        <label className="verify-remember">
+                                                            <input type="checkbox" defaultChecked /> Remember access for this session
+                                                        </label>
+                                                        <a href="#" className="verify-forgot" onClick={(e) => e.preventDefault()}>Forgot password?</a>
                                                     </div>
-                                                </div>
-
-                                                {/* Dynamic Timeline Preview */}
-                                                <div className="timeline-preview-card">
-                                                    <h4 className="timeline-title">Timeline Preview - {activeDay}</h4>
-                                                    <div className="timeline-track" style={{ overflowX: 'auto' }}>
-                                                        {scheduleData[activeDay].length === 0 ? (
-                                                            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#cbd5e1', fontSize: '0.9rem' }}>
-                                                                No classes scheduled for {activeDay}. Add a row above.
-                                                            </div>
-                                                        ) : (
-                                                            <>
-                                                                {scheduleData[activeDay].map((row, i) => (
-                                                                    <div key={i} className={`timeline-block filled-${(i % 2) + 1}`} style={{ flex: 1, minWidth: '150px' }}>
-                                                                        <h5>{row.subject || 'Empty Subject'}</h5>
-                                                                        <p>{row.startTime || '--:--'} - {row.endTime || '--:--'}</p>
-                                                                    </div>
-                                                                ))}
-                                                                <div className="timeline-block" style={{ flex: 0.5, alignItems: 'center', color: '#cbd5e1', fontSize: '1.2rem', minWidth: '60px' }}>
-                                                                    <i className="fa-solid fa-clock"></i>
-                                                                </div>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                    </div>
-
-                                    {/* NEW: Timetable History List (Right Column) */}
-                                    <div className="history-card">
-                                        <h3 className="history-title"><i className="fa-solid fa-cloud-arrow-down"></i> Saved Schedules</h3>
-                                        
-                                        {isLoadingTimetables ? (
-                                            <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>
-                                                <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: '2rem', marginBottom: '10px' }}></i>
-                                                <p>Loading Firebase Data...</p>
+                                                </form>
                                             </div>
-                                        ) : fetchError === 'missing_exports' ? (
-                                            <div style={{ textAlign: 'center', padding: '20px', color: 'var(--primary-red)', backgroundColor: '#fff1f2', borderRadius: '8px', border: '1px solid #fecaca' }}>
-                                                <i className="fa-solid fa-triangle-exclamation" style={{ fontSize: '1.5rem', marginBottom: '8px' }}></i>
-                                                <p style={{ fontSize: '0.85rem', fontWeight: '700', marginBottom: '4px' }}>Setup Required</p>
-                                                <p style={{ fontSize: '0.75rem', color: 'var(--text-main)' }}>To permanently fetch schedules, open your <b>firebaseconfig.js</b> file and ensure you add <code>collection</code> and <code>getDocs</code> to your exports.</p>
+
+                                            <div className="verify-actions">
+                                                <button className="btn-verify-back" onClick={() => setIsVerifyModalOpen(false)}>Back to Selection</button>
+                                                <button className={`btn-verify-submit ${isVerifying ? 'btn-disabled' : ''}`} onClick={handleVerifySubmit} disabled={isVerifying}>
+                                                    {isVerifying ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-lock"></i>}
+                                                    {isVerifying ? "Verifying..." : "Verify & Enter Department"}
+                                                </button>
                                             </div>
-                                        ) : fetchError === 'permission_error' ? (
-                                            <div style={{ textAlign: 'center', padding: '20px', color: 'var(--primary-red)' }}>
-                                                <p style={{ fontSize: '0.85rem', fontWeight: '600' }}>Failed to connect to Database.</p>
-                                            </div>
-                                        ) : timetableList.length === 0 ? (
-                                            <p style={{color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center', marginTop: '30px'}}>
-                                                No timetables saved yet.
-                                            </p>
-                                        ) : (
-                                            timetableList.map(item => (
-                                                <div key={item.id} className="history-item" onClick={() => handleLoadTimetable(item)} style={{ cursor: 'pointer', position: 'relative' }}>
-                                                    
-                                                    {/* NEW: Database Remove Icon Button */}
-                                                    <button 
-                                                        onClick={(e) => handleDeleteTimetable(e, item.id)} 
-                                                        title="Delete permanently from Database"
-                                                        style={{ position: 'absolute', top: '12px', right: '12px', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '0.9rem', transition: 'color 0.2s', zIndex: 10 }}
-                                                        onMouseOver={(e) => e.target.style.color = 'var(--primary-red)'}
-                                                        onMouseOut={(e) => e.target.style.color = '#94a3b8'}
-                                                    >
-                                                        <i className="fa-solid fa-trash-can"></i>
-                                                    </button>
-
-                                                    <div style={{ paddingRight: '24px' }}>
-                                                        <h4 className="hist-course">{item.context.program}</h4>
-                                                        <p className="hist-dept">{item.context.year} &bull; {item.context.semester}</p>
-                                                        <p className="hist-date" style={{ marginTop: '4px' }}><i className="fa-solid fa-users"></i> {item.context.batch}</p>
-                                                    </div>
-                                                    <div className="hist-actions">
-                                                        <button className="btn-hist-action" style={{ width: '100%', pointerEvents: 'none' }}>
-                                                            <i className="fa-solid fa-arrow-rotate-left"></i> Load Schedule
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))
-                                        )}
+                                        </div>
                                     </div>
+                                )}
 
-                                </div>
-                            </div>
-                        )}
-
-                        {/* NEW: Map UI Modal Overlay */}
-                        {isMapModalOpen && (
-                            <div className="map-modal-overlay">
-                                <div className="map-modal">
-                                    <h3>Set Class Coordinates</h3>
-                                    <p>Please allow location access to plot the exact classroom.</p>
-                                    
-                                    {mapError && <div className="map-error-msg"><i className="fa-solid fa-triangle-exclamation"></i> {mapError}</div>}
-                                    
-                                    <div id="leaflet-map-container"></div>
-                                    
-                                    <div className="map-modal-actions">
-                                        <button className="btn-action btn-download" onClick={() => setIsMapModalOpen(false)}>
-                                            Cancel
-                                        </button>
-                                        <button className="btn-action btn-download" onClick={handleDetectLocation}>
-                                            <i className="fa-solid fa-location-crosshairs"></i> Recalibrate
-                                        </button>
-                                        <button className="btn-action btn-print" onClick={() => setIsMapModalOpen(false)}>
-                                            <i className="fa-solid fa-check"></i> Confirm Location
-                                        </button>
-                                    </div>
-                                </div>
                             </div>
                         )}
 

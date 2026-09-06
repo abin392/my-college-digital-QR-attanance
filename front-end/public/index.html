@@ -34,9 +34,12 @@
         .input-group label { display: block; font-size: 0.85rem; font-weight: 500; color: var(--text-main); margin-bottom: 8px; }
         .input-with-icon { position: relative; display: flex; align-items: center; }
         .input-with-icon i { position: absolute; left: 14px; color: var(--text-muted); font-size: 1rem; }
-        .input-with-icon input { width: 100%; padding: 12px 16px 12px 42px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit; font-size: 0.95rem; color: var(--text-dark); transition: all 0.2s ease; background-color: var(--white); }
+        .input-with-icon input, .input-with-icon select { width: 100%; padding: 12px 16px 12px 42px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit; font-size: 0.95rem; color: var(--text-dark); transition: all 0.2s ease; background-color: var(--white); appearance: none; }
         .input-with-icon input::placeholder { color: #94a3b8; }
-        .input-with-icon input:focus { outline: none; border-color: var(--primary-red); box-shadow: 0 0 0 3px rgba(187, 15, 28, 0.1); }
+        .input-with-icon input:focus, .input-with-icon select:focus { outline: none; border-color: var(--primary-red); box-shadow: 0 0 0 3px rgba(187, 15, 28, 0.1); }
+        
+        /* Custom Dropdown Arrow */
+        .select-icon-wrapper::after { content: '\f078'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; color: var(--text-muted); pointer-events: none; }
         
         /* NEW: Password Toggle Styles */
         .input-with-icon i.password-toggle-icon { left: auto; right: 14px; cursor: pointer; z-index: 10; font-size: 1.05rem; transition: color 0.2s; }
@@ -206,6 +209,28 @@
             .date-time { display: flex; gap: 10px; align-items: center; }
             .date-time p:first-child { margin-bottom: 0; }
         }
+    /* NEW: Network Status Indicator Styles */
+        .network-indicator {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 9990;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+        .network-strong { background: rgba(16, 185, 129, 0.9); color: white; border: 1px solid #059669; }
+        .network-slow { background: rgba(245, 158, 11, 0.9); color: white; border: 1px solid #d97706; }
+        .network-offline { background: rgba(239, 68, 68, 0.9); color: white; border: 1px solid #b91c1c; }
     </style>
 </head>
 <body>
@@ -288,28 +313,8 @@
         </div>
 
         <div class="bottom-row">
-            <div class="card classes-card">
-                <div class="card-header">
-                    <h2><i class="fa-regular fa-calendar"></i> Today's Classes</h2>
-                    <span class="badge-total">3 Total</span>
-                </div>
-                <div class="class-list">
-                    <div class="class-item present">
-                        <div class="class-info">
-                            <h3>Data Structures</h3>
-                            <p>09:00 AM - 10:30 AM &bull; Room 302</p>
-                        </div>
-                        <div class="status-badge status-present">Present</div>
-                    </div>
-                    <div class="class-item upcoming">
-                        <div class="class-info">
-                            <h3>Linear Algebra</h3>
-                            <p>01:00 PM - 02:30 PM &bull; Hall B</p>
-                        </div>
-                        <div class="status-text">Upcoming</div>
-                    </div>
-                </div>
-            </div>
+            <!-- NEW: React mount point for dynamic Today's Classes -->
+            <div class="card classes-card" id="react-today-classes-root"></div>
             <div class="card overview-card">
                 <div class="card-header">
                     <h2><i class="fa-solid fa-chart-simple"></i> Weekly Overview</h2>
@@ -333,13 +338,14 @@
     <script type="text/babel">
         function SignUpUI() {
             // Show UI by default
-            const [isVisible, setIsVisible] = React.useState(true);
+            const [isVisible, setIsVisible] = React.useState(false);
+            const [isAuthLoading, setIsAuthLoading] = React.useState(true);
             
             // New state to toggle between Login and Sign Up
             const [isLogin, setIsLogin] = React.useState(false);
             
             // New state to hold form data and errors
-            const [formData, setFormData] = React.useState({ name: '', rollNo: '', email: '', password: '' });
+            const [formData, setFormData] = React.useState({ name: '', rollNo: '', department: '', batch: '', year: '', semester: '', email: '', password: '' });
             const [error, setError] = React.useState('');
             // State to toggle forgot password view
             const [isForgotPassword, setIsForgotPassword] = React.useState(false);
@@ -347,6 +353,47 @@
             const [isRateLimited, setIsRateLimited] = React.useState(false);
             // State to toggle password visibility
             const [showPassword, setShowPassword] = React.useState(false);
+
+            // NEW: Network Status State
+            const [networkStatus, setNetworkStatus] = React.useState('strong'); // strong, slow, offline
+
+            // Live Internet Speed Detection
+            React.useEffect(() => {
+                const updateNetworkStatus = () => {
+                    if (!navigator.onLine) {
+                        setNetworkStatus('offline');
+                        return;
+                    }
+                    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                    if (conn) {
+                        // Detects weak 2G or 3G connections
+                        if (conn.effectiveType === 'slow-2g' || conn.effectiveType === '2g' || conn.effectiveType === '3g') {
+                            setNetworkStatus('slow');
+                        } else {
+                            setNetworkStatus('strong');
+                        }
+                    } else {
+                        setNetworkStatus('strong'); // Fallback to strong if browser doesn't support connection API
+                    }
+                };
+
+                window.addEventListener('online', updateNetworkStatus);
+                window.addEventListener('offline', updateNetworkStatus);
+                
+                const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                if (conn) conn.addEventListener('change', updateNetworkStatus);
+
+                updateNetworkStatus();
+
+                return () => {
+                    window.removeEventListener('online', updateNetworkStatus);
+                    window.removeEventListener('offline', updateNetworkStatus);
+                    if (conn) conn.removeEventListener('change', updateNetworkStatus);
+                };
+            }, []);
+            
+            // NEW: Roll Number Live Validation State
+            const [rollStatus, setRollStatus] = React.useState('idle'); // idle, invalid, checking, available, taken
 
             React.useEffect(() => {
                 const handleOpen = () => setIsVisible(true);
@@ -366,6 +413,7 @@
 
                             // User is logged in: Hide Auth UI overlay, setup Dashboard UI
                             setIsVisible(false); 
+                            setIsAuthLoading(false);
                             
                             document.getElementById('default-avatar-icon').style.display = 'none';
                             document.getElementById('logged-in-avatar').style.display = 'block';
@@ -389,6 +437,9 @@
                                     if (userData.name) {
                                         displayName = userData.name; // Override default with DB name
                                     }
+                                    
+                                    // NEW: Dispatch event to trigger the dynamic timetable fetch
+                                    window.dispatchEvent(new CustomEvent('user-profile-loaded', { detail: userData }));
                                 }
                             } catch (dbError) {
                                 console.error("Error fetching user data from Firestore:", dbError);
@@ -408,6 +459,7 @@
                         } else {
                             // User is logged out: Show Auth UI, reset Dashboard UI
                             setIsVisible(true); 
+                            setIsAuthLoading(false);
                             
                             document.getElementById('default-avatar-icon').style.display = 'block';
                             document.getElementById('logged-in-avatar').style.display = 'none';
@@ -442,8 +494,64 @@
                 };
             }, []);
 
+            // NEW: Live Database Validation for Roll Number
+            React.useEffect(() => {
+                if (isLogin || formData.rollNo === '') {
+                    setRollStatus('idle');
+                    return;
+                }
+                
+                // First Step: Check if exactly 12 digits
+                const isTwelveDigits = /^\d{12}$/.test(formData.rollNo);
+                if (!isTwelveDigits) {
+                    setRollStatus('invalid');
+                    return;
+                }
+
+                // Second Step: Check Database (Debounced)
+                setRollStatus('checking');
+                const timeoutId = setTimeout(async () => {
+                    try {
+                        let exists = false;
+                        
+                        // Safe fetching from Firebase
+                        if (window.firebaseAuth.getDocs && window.firebaseAuth.collection) {
+                            const usersRef = window.firebaseAuth.collection(window.firebaseAuth.db, "users");
+                            const snap = await window.firebaseAuth.getDocs(usersRef);
+                            snap.forEach(doc => { if (doc.data().rollNo === formData.rollNo) exists = true; });
+                        } else if (window.firebaseAuth.db.collection) {
+                            const snap = await window.firebaseAuth.db.collection("users").get();
+                            snap.forEach(doc => { if (doc.data().rollNo === formData.rollNo) exists = true; });
+                        }
+                        
+                        setRollStatus(exists ? 'taken' : 'available');
+                    } catch (err) {
+                        console.warn("Could not verify Roll No due to DB Rules:", err);
+                        // Fallback gracefully if database denies read access to unauthenticated users
+                        setRollStatus('available'); 
+                    }
+                }, 600); // 600ms debounce to prevent database spamming
+
+                return () => clearTimeout(timeoutId);
+            }, [formData.rollNo, isLogin]);
+
             const handleChange = (e) => {
-                setFormData({ ...formData, [e.target.name]: e.target.value });
+                const { name, value } = e.target;
+                let updatedData = { ...formData, [name]: value };
+
+                // NEW: Auto-detect and select Batch from Roll Number (Indices 4 & 5)
+                if (name === 'rollNo' && value.length >= 6) {
+                    const yearCode = value.substring(4, 6); // Extracts the 5th and 6th digits
+                    
+                    if (yearCode === '22') updatedData.batch = '2022-2026';
+                    else if (yearCode === '23') updatedData.batch = '2023-2027';
+                    else if (yearCode === '24') updatedData.batch = '2024-2028';
+                    else if (yearCode === '25') updatedData.batch = '2025-2029';
+                    else if (yearCode === '26') updatedData.batch = '2026-2030';
+                    else if (yearCode === '27') updatedData.batch = '2027-2031';
+                }
+
+                setFormData(updatedData);
             };
 
             const handleResetPassword = async (e) => {
@@ -531,12 +639,16 @@
                         
                         const user = userCredential.user;
 
-                        // Save extra student details (Name & Roll No) to Firestore Database
+                        // Save extra student details to Firestore Database
                         await window.firebaseAuth.setDoc(
                             window.firebaseAuth.doc(window.firebaseAuth.db, "users", user.uid), 
                             {
                                 name: formData.name,
                                 rollNo: formData.rollNo,
+                                department: formData.department,
+                                batch: formData.batch,
+                                year: formData.year,
+                                semester: formData.semester,
                                 email: formData.email
                             }
                         );
@@ -549,10 +661,29 @@
                 }
             };
 
-            if (!isVisible) return null;
+            if (isAuthLoading) {
+                return (
+                    <div className="react-overlay-wrapper" style={{ background: 'var(--bg-color)' }}>
+                        <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: '3rem', color: 'var(--primary-red)' }}></i>
+                    </div>
+                );
+            }
+
+            // NEW: Network Indicator Component
+            const networkIndicatorUI = (
+                <div className={`network-indicator network-${networkStatus}`}>
+                    {networkStatus === 'strong' && <><i className="fa-solid fa-wifi"></i> Your internet strong</>}
+                    {networkStatus === 'slow' && <><i className="fa-solid fa-satellite-dish"></i> Your internet slow</>}
+                    {networkStatus === 'offline' && <><i className="fa-solid fa-plane-slash"></i> You're offline</>}
+                </div>
+            );
+
+            // If user is logged in (Dashboard View), keep the Network Indicator visible over the HTML!
+            if (!isVisible) return networkIndicatorUI;
 
             return (
                 <div className="react-overlay-wrapper">
+                    {networkIndicatorUI}
                     <div className="auth-brand-header">
                         <h1 className="auth-logo">AttendancePro</h1>
                         <p>Join the platform. Manage your presence.</p>
@@ -592,14 +723,100 @@
                                                 <label>Student Name</label>
                                                 <div className="input-with-icon">
                                                     <i className="fa-regular fa-user"></i>
-                                                    <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Your Correct Name With Initials" required={!isLogin} />
+                                                    <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Attendance Name eg. Abin.A" required={!isLogin} />
                                                 </div>
                                             </div>
                                             <div className="input-group">
                                                 <label>Roll No</label>
-                                                <div className="input-with-icon">
+                                                <div className="input-with-icon" style={{ position: 'relative' }}>
                                                     <i className="fa-regular fa-id-badge"></i>
-                                                    <input type="text" name="rollNo" value={formData.rollNo} onChange={handleChange} placeholder="8210xxxxxxxx" required={!isLogin} />
+                                                    <input 
+                                                        type="text" 
+                                                        name="rollNo" 
+                                                        value={formData.rollNo} 
+                                                        onChange={handleChange} 
+                                                        placeholder="Enter exactly 12 digits" 
+                                                        required={!isLogin} 
+                                                        maxLength="12"
+                                                        style={{ 
+                                                            borderColor: rollStatus === 'available' ? '#10b981' : (rollStatus === 'taken' ? '#ef4444' : ''),
+                                                            paddingRight: '40px' 
+                                                        }}
+                                                    />
+                                                    
+                                                    {/* NEW: Live Validation Icons */}
+                                                    {rollStatus === 'checking' && <i className="fa-solid fa-spinner fa-spin" style={{ position: 'absolute', right: '14px', left: 'auto', color: '#94a3b8' }}></i>}
+                                                    {rollStatus === 'available' && <i className="fa-solid fa-circle-check" style={{ position: 'absolute', right: '14px', left: 'auto', color: '#10b981' }}></i>}
+                                                    {rollStatus === 'taken' && <i className="fa-solid fa-circle-xmark" style={{ position: 'absolute', right: '14px', left: 'auto', color: '#ef4444' }}></i>}
+                                                    {rollStatus === 'invalid' && formData.rollNo.length > 0 && <i className="fa-solid fa-circle-xmark" style={{ position: 'absolute', right: '14px', left: 'auto', color: '#ef4444' }}></i>}
+                                                </div>
+                                                
+                                                {/* NEW: Live DB Alert Text */}
+                                                {rollStatus === 'invalid' && formData.rollNo.length > 0 && <span style={{ fontSize: '0.75rem', color: '#ef4444', marginTop: '4px', fontWeight: '600' }}>Roll number must be exactly 12 digits.</span>}
+                                                {rollStatus === 'taken' && <span style={{ fontSize: '0.75rem', color: '#ef4444', marginTop: '4px', fontWeight: '600' }}>This Roll Number is already registered!</span>}
+                                                {rollStatus === 'available' && <span style={{ fontSize: '0.75rem', color: '#10b981', marginTop: '4px', fontWeight: '600' }}>Roll Number verified and available.</span>}
+                                            </div>
+                                            <div className="input-group">
+                                                <label>Department</label>
+                                                <div className="input-with-icon select-icon-wrapper">
+                                                    <i className="fa-regular fa-building"></i>
+                                                    <select name="department" value={formData.department} onChange={handleChange} required={!isLogin} style={{ color: formData.department === "" ? "#94a3b8" : "var(--text-dark)" }}>
+                                                        <option value="" disabled>Select your department...</option>
+                                                        <option value="Computer Science">Computer Science</option>
+                                                        <option value="Artificial Intelligence & Data Science">Artificial Intelligence & Data Science</option>
+                                                        <option value="Biomedical Engineering">Biomedical Engineering</option>
+                                                        <option value="Mechanical Engineering">Mechanical Engineering</option>
+                                                        <option value="Electrical Engineering">Electrical Engineering</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            {/* NEW: Batch Selection Dropdown */}
+                                            <div className="input-group">
+                                                <label>Batch</label>
+                                                <div className="input-with-icon select-icon-wrapper">
+                                                    <i className="fa-solid fa-users-rectangle"></i>
+                                                    <select name="batch" value={formData.batch} onChange={handleChange} required={!isLogin} style={{ color: formData.batch === "" ? "#94a3b8" : "var(--text-dark)" }}>
+                                                        <option value="" disabled>Select Batch...</option>
+                                                        <option value="2023-2027">2023-2027</option>
+                                                        <option value="2024-2028">2024-2028</option>
+                                                        <option value="2025-2029">2025-2029</option>
+                                                        <option value="2026-2030">2026-2030</option>
+                                                        <option value="2027-2031">2027-2031</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div style={{ display: 'flex', gap: '16px' }}>
+                                                <div className="input-group" style={{ flex: 1 }}>
+                                                    <label>Current Year</label>
+                                                    <div className="input-with-icon select-icon-wrapper">
+                                                        <i className="fa-solid fa-graduation-cap"></i>
+                                                        <select name="year" value={formData.year} onChange={handleChange} required={!isLogin} style={{ color: formData.year === "" ? "#94a3b8" : "var(--text-dark)" }}>
+                                                            <option value="" disabled>Year...</option>
+                                                            <option value="1st year">1st year</option>
+                                                            <option value="2nd year">2nd year</option>
+                                                            <option value="3rd year">3rd year</option>
+                                                            <option value="4th year">4th year</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div className="input-group" style={{ flex: 1 }}>
+                                                    <label>Semester</label>
+                                                    <div className="input-with-icon select-icon-wrapper">
+                                                        <i className="fa-regular fa-calendar-days"></i>
+                                                        <select name="semester" value={formData.semester} onChange={handleChange} required={!isLogin} style={{ color: formData.semester === "" ? "#94a3b8" : "var(--text-dark)" }}>
+                                                            <option value="" disabled>Semester...</option>
+                                                            <option value="semester-1">semester-1</option>
+                                                            <option value="semester-2">semester-2</option>
+                                                            <option value="semester-3">semester-3</option>
+                                                            <option value="semester-4">semester-4</option>
+                                                            <option value="semester-5">semester-5</option>
+                                                            <option value="semester-6">semester-6</option>
+                                                            <option value="semester-7">semester-7</option>
+                                                            <option value="semester-8">semester-8</option>
+                                                        </select>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </>
@@ -846,6 +1063,229 @@
 
         const historyRoot = ReactDOM.createRoot(document.getElementById('react-history-root'));
         historyRoot.render(<HistoryUI />);
+
+        // NEW: Dynamic Today's Classes Component with Live Scan Status
+        function TodayClassesUI() {
+            const [todayClasses, setTodayClasses] = React.useState([]);
+            const [isLoading, setIsLoading] = React.useState(true);
+
+            // Helper to parse DB 12h format into 24h strictly for mathematical sorting
+            const to24h = (time12) => {
+                if (!time12) return "00:00";
+                const parts = time12.split(' ');
+                if (parts.length < 2) return time12;
+                let [hours, minutes] = parts[0].split(':');
+                if (hours === '12') hours = '00';
+                if (parts[1] === 'PM') hours = (parseInt(hours, 10) + 12).toString();
+                return `${hours.padStart(2, '0')}:${minutes}`;
+            };
+            
+            // Helper to convert any 12-hour time string into absolute mathematical minutes (0 - 1440)
+            const timeToMinutes = (timeStr) => {
+                if (!timeStr) return -1; 
+                const match12 = timeStr.match(/(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)/i);
+                if (match12) {
+                    let hours = parseInt(match12[1], 10);
+                    const mins = parseInt(match12[2], 10);
+                    const ampm = match12[3].toUpperCase();
+                    if (hours === 12 && ampm === 'AM') hours = 0; 
+                    if (hours < 12 && ampm === 'PM') hours += 12; 
+                    return (hours * 60) + mins;
+                }
+                const match24 = timeStr.match(/(\d{1,2}):(\d{2})/);
+                if (match24) return (parseInt(match24[1], 10) * 60) + parseInt(match24[2], 10);
+                return -1;
+            };
+
+            React.useEffect(() => {
+                const fetchTimetable = async (e) => {
+                    const userData = e.detail;
+                    if (!userData.department || !userData.year || !userData.semester) {
+                        setIsLoading(false);
+                        return;
+                    }
+
+                    try {
+                        // 1. Fetch Timetable
+                        const collRef = window.firebaseAuth.collection(window.firebaseAuth.db, "timetables");
+                        const snapshot = await window.firebaseAuth.getDocs(collRef);
+                        
+                        let matchedTimetable = null;
+                        const normalizeNum = (str) => {
+                            if (!str) return "";
+                            const match = String(str).match(/\d+/);
+                            return match ? match[0] : String(str).toLowerCase().trim();
+                        };
+
+                        snapshot.forEach(doc => {
+                            const data = doc.data();
+                            if (!data.context) return;
+                            
+                            const dbDept = (data.context.program || "").toLowerCase().trim();
+                            const userDept = (userData.department || "").toLowerCase().trim();
+                            const dbBatch = (data.context.batch || "").toLowerCase().trim();
+                            const userBatch = (userData.batch || "").toLowerCase().trim();
+                            const dbYear = normalizeNum(data.context.year);
+                            const userYear = normalizeNum(userData.year);
+                            const dbSem = normalizeNum(data.context.semester);
+                            const userSem = normalizeNum(userData.semester);
+
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0); 
+                            let isWithinDateRange = true; 
+                            if (data.context.startDate && data.context.endDate) {
+                                const startDate = new Date(data.context.startDate);
+                                const endDate = new Date(data.context.endDate);
+                                startDate.setHours(0, 0, 0, 0);
+                                endDate.setHours(0, 0, 0, 0);
+                                isWithinDateRange = (today >= startDate) && (today <= endDate);
+                            }
+
+                            if (dbDept === userDept && dbBatch === userBatch && dbYear === userYear && dbSem === userSem && isWithinDateRange) {
+                                matchedTimetable = data;
+                            }
+                        });
+
+                        // 2. Fetch Today's QR Scans to mark Present/Absent Live!
+                        const logsRef = window.firebaseAuth.collection(window.firebaseAuth.db, "qr_attendance_records");
+                        const logsSnap = await window.firebaseAuth.getDocs(logsRef);
+                        const studentLogs = [];
+                        
+                        // Strict format to prevent timezone bugs
+                        const todayLocalStr = new Date().toLocaleDateString('en-US');
+                        
+                        logsSnap.forEach(doc => {
+                            const data = doc.data();
+                            if (data.studentId === userData.rollNo || data.studentEmail === userData.email) {
+                                const logDate = data.scanVerifiedLocalTime ? data.scanVerifiedLocalTime.split(',')[0].trim() : "";
+                                const dateObj = new Date(logDate);
+                                if (!isNaN(dateObj) && dateObj.toLocaleDateString('en-US') === todayLocalStr) {
+                                    studentLogs.push(data);
+                                } else if (data.scanVerifiedTimestamp && new Date(data.scanVerifiedTimestamp).toLocaleDateString('en-US') === todayLocalStr) {
+                                    studentLogs.push(data);
+                                }
+                            }
+                        });
+
+                        if (matchedTimetable && matchedTimetable.schedule) {
+                            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                            const currentDay = days[new Date().getDay()];
+                            
+                            let todaysSchedule = [...(matchedTimetable.schedule[currentDay] || [])];
+                            
+                            // Map the mathematical time-bounds and 20-min deadline rules onto the UI
+                            todaysSchedule = todaysSchedule.map(cls => {
+                                const startMins = timeToMinutes(cls.startTime);
+                                
+                                const validLog = studentLogs.find(log => {
+                                    const scanMins = timeToMinutes(log.scanVerifiedLocalTime || log.scanVerifiedTimestamp);
+                                    if (scanMins === -1 || startMins === -1) return false;
+                                    // ONLY Present if scanned between -15 mins and +20 mins of start time
+                                    return scanMins >= (startMins - 15) && scanMins <= (startMins + 20);
+                                });
+                                
+                                const lateLog = !validLog && studentLogs.find(log => {
+                                    const scanMins = timeToMinutes(log.scanVerifiedLocalTime || log.scanVerifiedTimestamp);
+                                    if (scanMins === -1 || startMins === -1) return false;
+                                    // Marked Absent if scanned MORE than 20 mins after start time
+                                    return scanMins > (startMins + 20);
+                                });
+
+                                return {
+                                    ...cls,
+                                    attStatus: validLog ? (validLog.status === 'OD' ? 'OD' : 'Present') : (lateLog ? 'Absent' : 'Pending')
+                                };
+                            });
+
+                            todaysSchedule.sort((a, b) => to24h(a.startTime).localeCompare(to24h(b.startTime)));
+                            setTodayClasses(todaysSchedule);
+                        }
+                    } catch (err) {
+                        console.error("Error fetching timetable:", err);
+                    } finally {
+                        setIsLoading(false);
+                    }
+                };
+
+                window.addEventListener('user-profile-loaded', fetchTimetable);
+                window.addEventListener('logout-user', () => { setTodayClasses([]); setIsLoading(true); });
+
+                return () => {
+                    window.removeEventListener('user-profile-loaded', fetchTimetable);
+                };
+            }, []);
+
+            // UI Status Generator (Prioritizes Present/Absent status first, then falls back to Ongoing/Upcoming live time clock)
+            const getStatus = (cls) => {
+                const now = new Date();
+                const currentMins = now.getHours() * 60 + now.getMinutes();
+                const startMins = timeToMinutes(cls.startTime);
+                const endMins = timeToMinutes(cls.endTime);
+                
+                // 1. Database Scan Statuses (Takes absolute priority so Present/Absent UI is never overridden)
+                if (cls.attStatus === 'Present') return { text: 'Present', wrapperClass: 'present', badge: 'badge badge-present', icon: 'fa-solid fa-check' };
+                if (cls.attStatus === 'OD') return { text: 'On Duty', wrapperClass: 'present', badge: 'badge badge-present', icon: 'fa-solid fa-clipboard-check' };
+                if (cls.attStatus === 'Absent') return { text: 'Absent', wrapperClass: 'upcoming', badge: 'badge badge-absent', icon: 'fa-solid fa-xmark' };
+                
+                // 2. Live Time-Based Statuses (Shown only when the student hasn't scanned yet)
+                if (currentMins < startMins) {
+                    return { text: 'Upcoming', wrapperClass: 'upcoming', badge: null };
+                }
+                
+                if (currentMins >= startMins && currentMins <= endMins) {
+                    // If the class has started, but it's past the 20-min attendance window and they haven't scanned
+                    if (currentMins > startMins + 20) {
+                        return { text: 'Absent', wrapperClass: 'upcoming', badge: 'badge badge-absent', icon: 'fa-solid fa-xmark' };
+                    }
+                    // Otherwise, the class is currently active within the scan window
+                    return { text: 'Ongoing', wrapperClass: 'present', badge: null };
+                }
+                
+                // If class time has passed entirely and no scan was recorded
+                return { text: 'Absent', wrapperClass: 'upcoming', badge: 'badge badge-absent', icon: 'fa-solid fa-xmark' };
+            };
+
+            return (
+                <React.Fragment>
+                    <div className="card-header">
+                        <h2><i className="fa-regular fa-calendar"></i> Today's Classes</h2>
+                        <span className="badge-total">{isLoading ? 'Loading...' : `${todayClasses.length} Total`}</span>
+                    </div>
+                    
+                    {!isLoading && (
+                        <div className="class-list">
+                            {todayClasses.length === 0 ? (
+                                <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.95rem' }}>
+                                    No classes scheduled for today. Enjoy your day!
+                                </div>
+                            ) : (
+                                todayClasses.map((cls, idx) => {
+                                    const status = getStatus(cls);
+                                    return (
+                                        <div key={idx} className={`class-item ${status.wrapperClass}`}>
+                                            <div className="class-info">
+                                                <h3>{cls.subject || 'Class Session'}</h3>
+                                                <p>{cls.startTime} - {cls.endTime} &bull; {cls.room || 'TBA'} {cls.faculty ? `(${cls.faculty})` : ''}</p>
+                                            </div>
+                                            {status.badge ? (
+                                                <div className={status.badge} style={{ width: 'auto', padding: '6px 14px' }}>
+                                                    <i className={status.icon}></i> {status.text}
+                                                </div>
+                                            ) : (
+                                                <div className="status-text">{status.text}</div>
+                                            )}
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    )}
+                </React.Fragment>
+            );
+        }
+
+        const todayClassesRoot = ReactDOM.createRoot(document.getElementById('react-today-classes-root'));
+        todayClassesRoot.render(<TodayClassesUI />);
 
         </script>
 
