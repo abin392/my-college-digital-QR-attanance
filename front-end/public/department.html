@@ -1173,6 +1173,11 @@
             .history-card {
                 grid-column: span 2;
             }
+            
+            /* Break the 4-column stats into 2 columns on mid-sized screens */
+            .report-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
         @media (max-width: 1024px) {
@@ -1193,23 +1198,64 @@
             .history-card {
                 grid-column: span 1;
             }
+            
+            /* Stack the Cohort grid vertically on small screens */
+            .cohort-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                box-shadow: var(--shadow-lg);
+        @media (max-width: 600px) {
+            /* Fully stack the report stats vertically on mobile phones */
+            .report-stats-grid {
+                grid-template-columns: 1fr;
             }
+        }
 
-            .sidebar.open {
-                transform: translateX(0);
+        /* NEW: Bottom Mobile Nav Styles */
+        .bottom-mobile-nav { display: none; }
+
+        @media (max-width: 768px) {
+            .bottom-mobile-nav { 
+                display: flex; 
+                position: fixed; 
+                bottom: 0; 
+                left: 0; 
+                width: 100%; 
+                background-color: var(--white); 
+                box-shadow: 0 -4px 15px rgba(0,0,0,0.06); 
+                justify-content: space-around; 
+                align-items: center; 
+                height: 65px; 
+                z-index: 9990; 
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            .bottom-mobile-nav a { 
+                display: flex; 
+                flex-direction: column; 
+                align-items: center; 
+                justify-content: center; 
+                text-decoration: none; 
+                color: var(--text-muted); 
+                font-size: 0.70rem; 
+                font-weight: 600; 
+                gap: 5px; 
+                flex: 1; 
+                height: 100%;
+                transition: color 0.2s ease;
+            }
+            .bottom-mobile-nav a.active { color: var(--primary-red); }
+            .bottom-mobile-nav a i { font-size: 1.1rem; }
+
+            .sidebar {
+                display: none !important; /* Replaced by Bottom Nav */
             }
 
             .main-content {
                 margin-left: 0;
                 width: 100vw;
                 overflow-x: hidden;
+                padding-bottom: 75px !important; /* Prevent hiding behind nav */
             }
 
             .top-header {
@@ -1224,18 +1270,7 @@
             }
 
             .menu-toggle-btn {
-                display: block;
-                margin-right: 12px;
-                background: transparent;
-                border: none;
-                font-size: 1.4rem;
-                color: var(--text-dark);
-                cursor: pointer;
-                transition: color 0.2s;
-            }
-
-            .menu-toggle-btn:hover {
-                color: var(--primary-red);
+                display: none !important; /* Hide hamburger, using bottom nav */
             }
 
             .page-title {
@@ -1335,6 +1370,30 @@
         .page-dot { width: 32px; height: 32px; display: flex; justify-content: center; align-items: center; border-radius: 6px; background: var(--white); border: 1px solid var(--border-light); cursor: pointer; color: var(--text-main); font-weight: 600; transition: all 0.2s; }
         .page-dot.active { background: var(--primary-red); color: white; border-color: var(--primary-red); }
         .page-dot:hover:not(.active) { background: #f1f5f9; }
+
+        /* NEW: Campus Message Broadcast UI */
+        .msg-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.7); z-index: 10000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        /* FIX: Added max-height: 90vh and overflow-y: auto to create a scrollable inner frame! */
+        .msg-modal { background: var(--white); border-radius: 16px; width: 90%; max-width: 600px; padding: 32px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 24px; position: relative; max-height: 90vh; overflow-y: auto; }
+        .msg-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-light); padding-bottom: 16px; position: sticky; top: -32px; background: var(--white); z-index: 10; margin-top: -32px; padding-top: 32px; }
+        .msg-title { font-size: 1.25rem; font-weight: 800; color: var(--text-dark); display: flex; align-items: center; gap: 10px; }
+        .msg-step-indicator { display: flex; gap: 8px; margin-bottom: 16px; }
+        .msg-step-dot { flex: 1; height: 4px; background: #e2e8f0; border-radius: 2px; transition: background 0.3s; }
+        .msg-step-dot.active { background: var(--primary-red); }
+        .msg-img-upload { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s; background: #f8fafc; position: relative; overflow: hidden; }
+        .msg-img-upload:hover { border-color: var(--primary-red); background: #fff1f2; }
+        /* FIX: Swapped height restriction for max-height and used 'contain' to show the full image beautifully */
+        .msg-img-preview { width: 100%; max-height: 280px; object-fit: contain; border-radius: 8px; margin-top: 12px; }
+        
+        /* SVG Send Animation */
+        .send-svg-icon { width: 24px; height: 24px; fill: white; transition: transform 0.3s ease; }
+        .btn-sending .send-svg-icon { animation: flyAway 1.5s ease-in-out infinite; }
+        @keyframes flyAway {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            50% { transform: translate(30px, -30px) scale(0.8); opacity: 0; }
+            51% { transform: translate(-30px, 30px) scale(0.8); opacity: 0; }
+            100% { transform: translate(0, 0) scale(1); opacity: 1; }
+        }
     </style>
 </head>
 
@@ -1343,6 +1402,44 @@
     <div id="react-workspace-root"></div>
 
     <script type="text/babel">
+        // NEW: HTML5 Canvas Emoji Dominant Color Extractor
+        const getEmojiDominantColor = (emojiStr) => {
+            if (!emojiStr) return { bg: '#fffbeb', border: '#fde68a', text: '#92400e' };
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = 50; canvas.height = 50;
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, 50, 50);
+                ctx.font = '40px Arial';
+                ctx.fillText(emojiStr, 5, 40);
+                
+                const data = ctx.getImageData(0, 0, 50, 50).data;
+                let r = 0, g = 0, b = 0, count = 0;
+                
+                for (let i = 0; i < data.length; i += 4) {
+                    if (data[i] > 240 && data[i+1] > 240 && data[i+2] > 240) continue; // Ignore white bg
+                    if (data[i] < 30 && data[i+1] < 30 && data[i+2] < 30) continue; // Ignore dark outlines
+                    
+                    r += data[i]; g += data[i+1]; b += data[i+2];
+                    count++;
+                }
+                
+                if (count === 0) return { bg: '#fffbeb', border: '#fde68a', text: '#92400e' }; 
+                
+                r = Math.floor(r / count); g = Math.floor(g / count); b = Math.floor(b / count);
+                const darken = (val) => Math.floor(val * 0.45); // Safely darken the color for text readability
+                
+                return {
+                    bg: `rgba(${r}, ${g}, ${b}, 0.15)`,
+                    border: `rgba(${r}, ${g}, ${b}, 0.4)`,
+                    text: `rgb(${darken(r)}, ${darken(g)}, ${darken(b)})`
+                };
+            } catch (e) {
+                return { bg: '#fffbeb', border: '#fde68a', text: '#92400e' };
+            }
+        };
+
         function DepartmentWorkspace() {
             // Check context first: If no department was selected, kick back to admin.html
             const activeDeptContext = JSON.parse(localStorage.getItem('active_department'));
@@ -1352,6 +1449,58 @@
 
             // Navigation State (SPA Routing)
             const [activeView, setActiveView] = React.useState('class_management');
+
+            // NEW: Campus Message Broadcast States
+            const [isMsgModalOpen, setIsMsgModalOpen] = React.useState(false);
+            const [msgStep, setMsgStep] = React.useState(1);
+            const [msgFilters, setMsgFilters] = React.useState({ year: '', semester: '', batch: '' });
+            const [msgPayload, setMsgPayload] = React.useState({ title: '', body: '', imageBase64: '' });
+            const [isSendingMsg, setIsSendingMsg] = React.useState(false);
+
+            const handleImageUpload = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => setMsgPayload({ ...msgPayload, imageBase64: reader.result });
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            const handleSendBroadcast = async () => {
+                if (!msgPayload.title || !msgPayload.body) return alert("Title and Message are required!");
+                setIsSendingMsg(true);
+                try {
+                    const alertDoc = {
+                        department: activeDeptContext.title,
+                        year: msgFilters.year,
+                        semester: msgFilters.semester,
+                        batch: msgFilters.batch,
+                        title: msgPayload.title,
+                        body: msgPayload.body,
+                        image: msgPayload.imageBase64,
+                        timestamp: new Date().toISOString(),
+                        sender: adminProfile.name
+                    };
+                    
+                    // FIX: Replaced unsupported addDoc with setDoc + generated unique ID
+                    const docId = `alert_${Date.now()}`;
+                    await window.firebaseAuth.setDoc(
+                        window.firebaseAuth.doc(window.firebaseAuth.db, "campus_alerts", docId),
+                        alertDoc
+                    );
+                    
+                    setTimeout(() => {
+                        setIsSendingMsg(false);
+                        setIsMsgModalOpen(false);
+                        setMsgStep(1);
+                        setMsgPayload({ title: '', body: '', imageBase64: '' });
+                        alert("Message Broadcasted Successfully!");
+                    }, 1200); // Allow the SVG animation to play
+                } catch (err) {
+                    console.error("Broadcast failed:", err);
+                    setIsSendingMsg(false);
+                }
+            };
 
             // Security State for Admin Access
             const [isAuthorized, setIsAuthorized] = React.useState(false);
@@ -1372,6 +1521,7 @@
             });
 
             const [isMapModalOpen, setIsMapModalOpen] = React.useState(false);
+            const [isFetchingLocation, setIsFetchingLocation] = React.useState(false); // NEW: Location Loading State
             const [mapError, setMapError] = React.useState('');
             const mapRef = React.useRef(null);
             const markerRef = React.useRef(null);
@@ -1382,15 +1532,181 @@
             const [isPrinting, setIsPrinting] = React.useState(false);
             const [qrHistory, setQrHistory] = React.useState([]);
 
+            // NEW: Fetch QR History from Firebase Database instead of LocalStorage
             React.useEffect(() => {
-                const savedHistory = localStorage.getItem('kskcet_qr_history');
-                if (savedHistory) setQrHistory(JSON.parse(savedHistory));
-            }, []);
+                if (activeView === 'qr_generator' && activeDeptContext && window.firebaseAuth) {
+                    const fetchQrHistory = async () => {
+                        try {
+                            const qRef = window.firebaseAuth.collection(window.firebaseAuth.db, "qr_sessions");
+                            const snapshot = await window.firebaseAuth.getDocs(qRef);
+                            const history = [];
+                            
+                            snapshot.forEach(doc => {
+                                const data = doc.data();
+                                // Only pull codes generated for the currently active department
+                                if (data.department === activeDeptContext.title) {
+                                    history.push({ id: doc.id, ...data });
+                                }
+                            });
+                            
+                            // Sort chronologically (newest first) and keep the latest 50
+                            history.sort((a, b) => b.createdAt - a.createdAt);
+                            setQrHistory(history.slice(0, 50));
+                        } catch (err) {
+                            console.error("Error fetching QR history from database:", err);
+                        }
+                    };
+                    fetchQrHistory();
+                }
+            }, [activeView, activeDeptContext]);
 
             // --- STUDENT REPORT STATES & FIREBASE FETCH ---
-            const [cohortFilter, setCohortFilter] = React.useState({ year: '3rd Year (Junior)', semester: 'Semester 6', section: 'Section A' });
+            const [cohortFilter, setCohortFilter] = React.useState({ year: '4th year', semester: 'semester-7', batch: '2023-2027', startDate: '', endDate: '' });
             const [rosterData, setRosterData] = React.useState([]);
             const [isFetchingRoster, setIsFetchingRoster] = React.useState(false);
+            const [isExportingRoster, setIsExportingRoster] = React.useState(false); // NEW: Export Roster PDF state
+            const [liveStudentCount, setLiveStudentCount] = React.useState(0);
+            const [liveCohortAvg, setLiveCohortAvg] = React.useState(null); // NEW: State for cohort average
+            const [isCounting, setIsCounting] = React.useState(false);
+
+            // NEW: Live Preview Counter & Average Calculator (Zero-Refresh Polling)
+            React.useEffect(() => {
+                if (activeView === 'cohort_selection' && activeDeptContext && window.firebaseAuth) {
+                    const calculatePreview = async () => {
+                        setIsCounting(true);
+                        try {
+                            // 1. Fetch exact matching students
+                            const usersRef = window.firebaseAuth.collection(window.firebaseAuth.db, "users");
+                            const usersSnap = await window.firebaseAuth.getDocs(usersRef);
+                            let count = 0;
+                            const validStudents = [];
+                            usersSnap.forEach(doc => {
+                                const data = doc.data();
+                                if (data.department === activeDeptContext.title && 
+                                    data.year === cohortFilter.year && 
+                                    data.semester === cohortFilter.semester && 
+                                    data.batch === cohortFilter.batch) {
+                                    count++;
+                                    validStudents.push(data);
+                                }
+                            });
+                            setLiveStudentCount(count);
+
+                            // 2. If dates exist, calculate true average
+                            if (cohortFilter.startDate && cohortFilter.endDate && count > 0) {
+                                const [sY, sM, sD] = cohortFilter.startDate.split('-');
+                                const startD = new Date(sY, sM - 1, sD, 0, 0, 0);
+                                const [eY, eM, eD] = cohortFilter.endDate.split('-');
+                                const endD = new Date(eY, eM - 1, eD, 23, 59, 59);
+
+                                // Stop math if dates are invalid or future
+                                const todayObj = new Date();
+                                todayObj.setHours(23, 59, 59, 999);
+                                
+                                if (startD <= endD && endD <= todayObj) {
+                                    const docId = `${activeDeptContext.title}_${cohortFilter.year}_${cohortFilter.semester}_${cohortFilter.batch}`.replace(/[^a-zA-Z0-9]/g, '_');
+                                    let timetableData = {};
+                                    if (window.firebaseAuth.getDoc) {
+                                        const ttRef = window.firebaseAuth.doc(window.firebaseAuth.db, "timetables", docId);
+                                        const ttSnap = await window.firebaseAuth.getDoc(ttRef);
+                                        if (ttSnap.exists()) timetableData = ttSnap.data().schedule || {};
+                                    }
+
+                                    // NEW: Fetch declared holidays to exclude from the math denominator
+                                    const hRef = window.firebaseAuth.collection(window.firebaseAuth.db, "holidays");
+                                    const hSnap = await window.firebaseAuth.getDocs(hRef);
+                                    const cohortHolidays = new Set();
+                                    hSnap.forEach(doc => {
+                                        const hData = doc.data();
+                                        if (hData.department === activeDeptContext.title && hData.year === cohortFilter.year && hData.semester === cohortFilter.semester && hData.batch === cohortFilter.batch) {
+                                            cohortHolidays.add(hData.date);
+                                        }
+                                    });
+
+                                    let totalClassesHeld = 0;
+                                    let currDate = new Date(startD);
+                                    currDate.setHours(0,0,0,0);
+                                    const iterEndD = new Date(endD);
+                                    iterEndD.setHours(0,0,0,0);
+                                    const currentMins = todayObj.getHours() * 60 + todayObj.getMinutes();
+
+                                    while (currDate <= iterEndD) {
+                                        const isToday = currDate.toDateString() === todayObj.toDateString();
+                                        const dayName = currDate.toLocaleDateString('en-US', { weekday: 'long' });
+                                        const isoDate = `${currDate.getFullYear()}-${String(currDate.getMonth() + 1).padStart(2, '0')}-${String(currDate.getDate()).padStart(2, '0')}`;
+
+                                        if (dayName !== 'Saturday' && dayName !== 'Sunday' && !cohortHolidays.has(isoDate)) {
+                                            totalClassesHeld += (timetableData[dayName] || []).length;
+                                        }
+                                        currDate.setDate(currDate.getDate() + 1);
+                                    }
+
+                                    if (totalClassesHeld > 0) {
+                                        const logsRef = window.firebaseAuth.collection(window.firebaseAuth.db, "qr_attendance_records");
+                                        const logsSnap = await window.firebaseAuth.getDocs(logsRef);
+                                        const allLogs = [];
+                                        logsSnap.forEach(doc => {
+                                            if (doc.data().departmentName === activeDeptContext.title) {
+                                                allLogs.push(doc.data());
+                                            }
+                                        });
+
+                                        const sTime = startD.getTime();
+                                        const eTime = endD.getTime();
+                                        let totalPercentageSum = 0;
+
+                                        validStudents.forEach(student => {
+                                            let attendedCount = 0;
+                                            const studentLogs = allLogs.filter(log => log.studentId === student.rollNo || log.studentEmail === student.email);
+                                            const countedDatePeriods = new Set(); 
+
+                                            studentLogs.forEach(log => {
+                                                if (log.status === 'P' || log.status === 'OD' || log.status === 'Present') {
+                                                    const logLocalTimeStr = log.scanVerifiedLocalTime || "";
+                                                    const dbLocalDateOnly = logLocalTimeStr.split(',')[0].trim(); 
+                                                    
+                                                    if (dbLocalDateOnly) {
+                                                        const [m, d, y] = dbLocalDateOnly.split('/');
+                                                        const logDateObj = new Date(y, m - 1, d, 12, 0, 0); 
+                                                        const logTime = logDateObj.getTime();
+                                                        
+                                                        if (logTime >= sTime && logTime <= eTime) {
+                                                            const uniqueKey = `${dbLocalDateOnly}_${log.courseName}`;
+                                                            if (!countedDatePeriods.has(uniqueKey)) {
+                                                                countedDatePeriods.add(uniqueKey);
+                                                                attendedCount++;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                            const percentage = (attendedCount / totalClassesHeld) * 100;
+                                            totalPercentageSum += percentage;
+                                        });
+                                        
+                                        setLiveCohortAvg((totalPercentageSum / count).toFixed(1));
+                                    } else {
+                                        setLiveCohortAvg(0); 
+                                    }
+                                } else {
+                                    setLiveCohortAvg(null); 
+                                }
+                            } else {
+                                setLiveCohortAvg(null); 
+                            }
+                        } catch (err) {
+                            console.error("Error calculating preview:", err);
+                            setLiveCohortAvg(null);
+                        } finally {
+                            setIsCounting(false);
+                        }
+                    };
+                    
+                    // 500ms debounce prevents heavy database spamming when clicking dropdowns/dates rapidly
+                    const timer = setTimeout(calculatePreview, 500);
+                    return () => clearTimeout(timer);
+                }
+            }, [activeView, cohortFilter, activeDeptContext?.title]);
 
             // --- NEW: ATTENDANCE SHEET STATES & FETCH LOGIC ---
             const [sheetFilters, setSheetFilters] = React.useState({
@@ -1405,6 +1721,46 @@
             const [sheetActiveDay, setSheetActiveDay] = React.useState('');
             const [sheetCourses, setSheetCourses] = React.useState([]); // Used to dynamically generate Period columns
             const [isFetchingSheet, setIsFetchingSheet] = React.useState(false);
+            const [sheetHolidayData, setSheetHolidayData] = React.useState(null); // NEW: Holiday Check for Sheet
+
+            // NEW: Holiday States & Save Logic
+            const [isHolidayModalOpen, setIsHolidayModalOpen] = React.useState(false);
+            const [holidayReason, setHolidayReason] = React.useState('');
+            const [isSavingHoliday, setIsSavingHoliday] = React.useState(false);
+
+            const handleSaveHoliday = async (e) => {
+                e.preventDefault();
+                if (!holidayReason.trim()) return;
+                setIsSavingHoliday(true);
+                try {
+                    // NEW: Automatically prepend the umbrella emoji if the admin manually typed a reason without an emoji
+                    let formattedReason = holidayReason.trim();
+                    if (/^[a-zA-Z0-9]/.test(formattedReason)) {
+                        formattedReason = '🏖️ ' + formattedReason;
+                    }
+
+                    const docId = `hol_${activeDeptContext.title}_${sheetFilters.year}_${sheetFilters.semester}_${sheetFilters.batch}_${sheetFilters.academicDate}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+                    const payload = {
+                        department: activeDeptContext.title,
+                        year: sheetFilters.year,
+                        semester: sheetFilters.semester,
+                        batch: sheetFilters.batch,
+                        date: sheetFilters.academicDate, // YYYY-MM-DD
+                        reason: formattedReason,
+                        declaredBy: adminProfile.email,
+                        timestamp: new Date().toISOString()
+                    };
+                    await window.firebaseAuth.setDoc(window.firebaseAuth.doc(window.firebaseAuth.db, "holidays", docId), payload);
+                    alert(`Successfully marked ${sheetFilters.academicDate.split('-').reverse().join('/')} as a holiday for this cohort!`);
+                    setIsHolidayModalOpen(false);
+                    setHolidayReason('');
+                } catch (err) {
+                    console.error("Error saving holiday:", err);
+                    alert("Failed to declare holiday.");
+                } finally {
+                    setIsSavingHoliday(false);
+                }
+            };
 
             // NEW: Pagination State
             const [currentPage, setCurrentPage] = React.useState(1);
@@ -1416,14 +1772,50 @@
                 if (!activeDeptContext) return;
                 setIsFetchingSheet(true);
                 setCurrentPage(1); // Reset to first page whenever new data is fetched
+                setSheetHolidayData(null); // Clear previous holiday data
 
                 // NEW: Automatically determine the day of the week based on selected academic date
                 const [y, m, d] = sheetFilters.academicDate.split('-');
                 const localDateObj = new Date(y, m - 1, d);
                 const dayName = localDateObj.toLocaleDateString('en-US', { weekday: 'long' });
                 setSheetActiveDay(dayName);
+                
+                // NEW: Calculate current time context for future-period suppression
+                const todayObj = new Date();
+                const isToday = localDateObj.getDate() === todayObj.getDate() &&
+                                localDateObj.getMonth() === todayObj.getMonth() &&
+                                localDateObj.getFullYear() === todayObj.getFullYear();
+                const currentMins = todayObj.getHours() * 60 + todayObj.getMinutes();
 
                 try {
+                    // NEW: 0. Safely check if the selected academic date is a declared holiday!
+                    try {
+                        const hRef = window.firebaseAuth.collection(window.firebaseAuth.db, "holidays");
+                        const hSnap = await window.firebaseAuth.getDocs(hRef);
+                        let activeHoliday = null;
+                        
+                        hSnap.forEach(doc => {
+                            const data = doc.data();
+                            if (data.department === activeDeptContext.title && 
+                                data.year === sheetFilters.year && 
+                                data.semester === sheetFilters.semester && 
+                                data.batch === sheetFilters.batch &&
+                                data.date === sheetFilters.academicDate) {
+                                activeHoliday = data;
+                            }
+                        });
+
+                        if (activeHoliday) {
+                            setSheetHolidayData(activeHoliday);
+                            setSheetData([]);
+                            setSheetCourses([]);
+                            setIsFetchingSheet(false);
+                            return; // Stop processing the attendance sheet!
+                        }
+                    } catch (holErr) {
+                        console.warn("Holiday fetch skipped. Ensure Firebase rules allow access.", holErr);
+                    }
+
                     // 1. Fetch all Students registered to this Department, Year, and Semester
                     const usersRef = window.firebaseAuth.collection(window.firebaseAuth.db, "users");
                     const usersSnap = await window.firebaseAuth.getDocs(usersRef);
@@ -1505,7 +1897,7 @@
                         }
                     });
 
-                    // 4. Map the Scans against enrolled Students AND Timetable Columns (Strict Time-Bound Bypass)
+                    // 4. Map the Scans against enrolled Students AND Timetable Columns (Strict Multi-Layer Validation)
                     const tableData = students.map(student => {
                         const studentLogs = logs.filter(log => log.studentEmail === student.email || log.studentId === student.rollNo);
                         
@@ -1536,15 +1928,40 @@
                         const attendanceRecord = todaysClasses.map(course => {
                             const startMins = timeToMinutes(course.startTime);
                             const endMins = timeToMinutes(course.endTime);
+                            
+                            // Helper to safely extract base subject code for robust matching
+                            const extractCode = (str) => {
+                                const part = (str || "").split(/[-:\s]/)[0];
+                                return part ? part.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() : '';
+                            };
+                            const ttCode = extractCode(course.subject);
+                            const ttSubjectFull = (course.subject || "").toLowerCase();
 
-                            const validLog = studentLogs.find(log => {
+                            const matchingLogs = studentLogs.filter(log => {
                                 const rawTimeData = log.scanVerifiedLocalTime || log.scanVerifiedTimestamp || "";
                                 const scanMins = timeToMinutes(rawTimeData);
-                                if (scanMins === -1 || startMins === -1 || endMins === -1) return false;
-                                return scanMins >= (startMins - 15) && scanMins <= endMins;
+                                if (scanMins === -1 || startMins === -1) return false;
+                                
+                                // STRICT MATCH: Ensure the scanned QR code was actually for THIS subject!
+                                const logCode = extractCode(log.courseName);
+                                const logCourseFull = (log.courseName || "").toLowerCase();
+                                const isSubjectMatch = (logCode && ttCode && logCode === ttCode) || logCourseFull.includes(ttCode) || ttSubjectFull.includes(logCode);
+                                
+                                if (!isSubjectMatch) return false;
+
+                                // 20-MINUTE DEADLINE RULE: Only valid if scanned between -15 mins and +20 mins of start time
+                                return scanMins >= (startMins - 15) && scanMins <= (startMins + 20);
                             });
                             
-                            // If a log is found inside the time window, check if it's an OD override, otherwise standard Present
+                            // NEW: Prioritize admin manual overrides (OD) over standard scans (P)
+                            const validLog = matchingLogs.find(l => l.isManualOverride) || matchingLogs[0];
+                            
+                            // NEW: If period is in the future on the current day, show empty '-' instead of 'A'
+                            if (!validLog && isToday && startMins > currentMins) {
+                                return '-';
+                            }
+                            
+                            // If a log is found inside the strict window & subject, check if it's an OD override, otherwise Present
                             return validLog ? (validLog.status === 'OD' ? 'OD' : 'P') : 'A';
                         });
                         return { rollNo: student.rollNo || 'N/A', name: student.name || 'Unknown', email: student.email || '', attendance: attendanceRecord };
@@ -1558,6 +1975,314 @@
                     alert("Failed to fetch attendance data.");
                 } finally {
                     setIsFetchingSheet(false);
+                }
+            };
+
+            // NEW: Export PDF States & Auto-Download Engine (Day-by-Day Accurate UI Mimic)
+            const [isExportModalOpen, setIsExportModalOpen] = React.useState(false);
+            const [exportFilters, setExportFilters] = React.useState({ startDate: '', endDate: '' });
+            const [isExporting, setIsExporting] = React.useState(false);
+
+            const handleGenerateReport = async () => {
+                if(!exportFilters.startDate || !exportFilters.endDate) {
+                    alert("Please select both a Start Date and End Date.");
+                    return;
+                }
+                setIsExporting(true);
+                try {
+                    // 1. Fetch Students
+                    const usersRef = window.firebaseAuth.collection(window.firebaseAuth.db, "users");
+                    const usersSnap = await window.firebaseAuth.getDocs(usersRef);
+                    const students = [];
+                    usersSnap.forEach(doc => {
+                        const data = doc.data();
+                        if (data.department === activeDeptContext.title && data.year === sheetFilters.year && data.semester === sheetFilters.semester) {
+                            students.push(data);
+                        }
+                    });
+                    students.sort((a,b) => (a.rollNo||'').localeCompare(b.rollNo||''));
+
+                    // 2. Fetch Timetable to know the daily schedule
+                    const docId = `${activeDeptContext.title}_${sheetFilters.year}_${sheetFilters.semester}_${sheetFilters.batch}`.replace(/[^a-zA-Z0-9]/g, '_');
+                    let timetableData = {};
+                    if (window.firebaseAuth.getDoc) {
+                        const ttRef = window.firebaseAuth.doc(window.firebaseAuth.db, "timetables", docId);
+                        const ttSnap = await window.firebaseAuth.getDoc(ttRef);
+                        if (ttSnap.exists()) timetableData = ttSnap.data().schedule || {};
+                    }
+
+                    // 3. Fetch All Logs for the Department to filter locally
+                    const logsRef = window.firebaseAuth.collection(window.firebaseAuth.db, "qr_attendance_records");
+                    const logsSnap = await window.firebaseAuth.getDocs(logsRef);
+                    const logs = [];
+
+                    logsSnap.forEach(doc => {
+                        const data = doc.data();
+                        if (data.departmentName === activeDeptContext.title) {
+                            logs.push(data);
+                        }
+                    });
+
+                    // NEW: 3.5 Fetch Holidays for the PDF Matrix
+                    const hRef = window.firebaseAuth.collection(window.firebaseAuth.db, "holidays");
+                    const hSnap = await window.firebaseAuth.getDocs(hRef);
+                    const activeHolidays = {};
+                    hSnap.forEach(doc => {
+                        const data = doc.data();
+                        if (data.department === activeDeptContext.title && 
+                            data.year === sheetFilters.year && 
+                            data.semester === sheetFilters.semester && 
+                            data.batch === sheetFilters.batch) {
+                            activeHolidays[data.date] = data.reason;
+                        }
+                    });
+
+                    // Math Helpers for strict validation
+                    const to24hSort = (time12) => {
+                        if (!time12) return "00:00";
+                        const parts = time12.split(' ');
+                        if (parts.length < 2) return time12;
+                        let [hours, minutes] = parts[0].split(':');
+                        if (hours === '12') hours = '00';
+                        if (parts[1] === 'PM') hours = (parseInt(hours, 10) + 12).toString();
+                        return `${hours.padStart(2, '0')}:${minutes}`;
+                    };
+
+                    const timeToMinutes = (timeStr) => {
+                        if (!timeStr) return -1; 
+                        const match12 = timeStr.match(/(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)/i);
+                        if (match12) {
+                            let hours = parseInt(match12[1], 10);
+                            const mins = parseInt(match12[2], 10);
+                            const ampm = match12[3].toUpperCase();
+                            if (hours === 12 && ampm === 'AM') hours = 0; 
+                            if (hours < 12 && ampm === 'PM') hours += 12; 
+                            return (hours * 60) + mins;
+                        }
+                        const match24 = timeStr.match(/(\d{1,2}):(\d{2})/);
+                        if (match24) return (parseInt(match24[1], 10) * 60) + parseInt(match24[2], 10);
+                        return -1;
+                    };
+
+                    const extractCode = (str) => {
+                        const part = (str || "").split(/[-:\s]/)[0];
+                        return part ? part.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() : '';
+                    };
+
+                    // 4. Generate Professional HTML Wrapper for Background PDF Rendering
+                    let htmlContent = `
+                        <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #0f172a; font-size: 12px; padding: 30px; background: #ffffff; width: 1000px;">
+                            <style>
+                                .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; }
+                                .header h1 { color: #bb0f1c; margin: 0 0 8px 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+                                .header p { margin: 0; color: #64748b; font-size: 14px; font-weight: 600; }
+                                
+                                .date-section { margin-bottom: 40px; page-break-inside: avoid; }
+                                .date-header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 16px; }
+                                .date-header h2 { margin: 0; color: #0f172a; font-size: 18px; font-weight: 700; }
+                                .date-header span { color: #64748b; font-size: 13px; font-weight: 600; }
+                                
+                                table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+                                th { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10px; }
+                                td { padding: 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; color: #0f172a; font-weight: 600; }
+                                tr:nth-child(even) td { background: #fafafa; }
+                                
+                                .att-badge { display: inline-block; width: 28px; height: 28px; border-radius: 6px; font-size: 11px; font-weight: 700; text-align: center; line-height: 28px; }
+                                .att-p { background: #ecfdf5; color: #059669; }
+                                .att-a { background: #bb0f1c; color: #ffffff; }
+                                .att-od { background: #fef08a; color: #ca8a04; }
+                                
+                                .footer { margin-top: 30px; text-align: right; font-size: 10px; color: #94a3b8; font-style: italic; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+                            </style>
+                            <div class="header">
+                                <h1>KSK College of Engineering & Technology</h1>
+                                <p>Department of ${activeDeptContext.title} &bull; ${sheetFilters.year} &bull; ${sheetFilters.semester} &bull; Batch ${sheetFilters.batch}</p>
+                                <p style="margin-top:8px; color:#0f172a;">Day-by-Day Attendance Matrix: ${exportFilters.startDate} to ${exportFilters.endDate}</p>
+                            </div>`;
+
+                    // Iterate through the selected dates Day-by-Day
+                    const startD = new Date(exportFilters.startDate);
+                    const endD = new Date(exportFilters.endDate);
+                    let currDate = new Date(startD);
+                    let hasOutputData = false;
+
+                    const todayObjPdf = new Date();
+                    todayObjPdf.setHours(0, 0, 0, 0);
+
+                    while (currDate <= endD) {
+                        const dateStrLocal = `${currDate.getMonth() + 1}/${currDate.getDate()}/${currDate.getFullYear()}`;
+                        const dayName = currDate.toLocaleDateString('en-US', { weekday: 'long' });
+                        const displayDate = currDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }); // DD/MM/YYYY
+                        
+                        // Check if the current loop date is in the future
+                        const loopDateObj = new Date(currDate);
+                        loopDateObj.setHours(0, 0, 0, 0);
+                        const isFuturePdfDate = loopDateObj > todayObjPdf;
+
+                        // NEW: Check if the loop date is a declared Holiday
+                        const isoLoopDate = `${currDate.getFullYear()}-${String(currDate.getMonth() + 1).padStart(2, '0')}-${String(currDate.getDate()).padStart(2, '0')}`;
+                        const pdfHolidayReason = activeHolidays[isoLoopDate];
+
+                        let courses = [...(timetableData[dayName] || [])];
+                        
+                        // Only render the section if there are scheduled classes for this specific day
+                        if (courses.length > 0) {
+                            hasOutputData = true;
+                            courses.sort((a, b) => to24hSort(a.startTime).localeCompare(to24hSort(b.startTime)));
+
+                            htmlContent += `
+                            <div class="date-section">
+                                <div class="date-header">
+                                    <h2 style="font-size: 16px; color: #0f172a;">Academic Day: ${displayDate}</h2>
+                                </div>`;
+
+                            if (pdfHolidayReason) {
+                                let rawFirstWord = (pdfHolidayReason || '').split(' ')[0];
+                                // NEW: Force umbrella icon for PDF if reason was typed manually without an emoji
+                                const pdfEmoji = (!rawFirstWord || /[a-zA-Z0-9]/.test(rawFirstWord)) ? '🏖️' : rawFirstWord;
+                                const colors = getEmojiDominantColor(pdfEmoji);
+                                htmlContent += `
+                                <div style="text-align: center; padding: 30px 20px; color: ${colors.text}; background: ${colors.bg}; border-radius: 12px; border: 1px solid ${colors.border}; margin-top: 10px;">
+                                    <h4 style="font-size: 16px; color: ${colors.text}; margin: 0 0 6px 0;">${pdfEmoji} Holiday Declared</h4>
+                                    <p style="font-size: 12px; margin: 0; font-weight: 600;">Reason: ${pdfHolidayReason}</p>
+                                </div></div>`;
+                            } else if (isFuturePdfDate) {
+                                htmlContent += `
+                                <div style="text-align: center; padding: 30px 20px; color: #64748b; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1; margin-top: 10px;">
+                                    <h4 style="font-size: 16px; color: #d97706; margin: 0 0 6px 0;">Future Date Selected</h4>
+                                    <p style="font-size: 12px; margin: 0;">Attendance records for ${displayDate} are not yet available.</p>
+                                </div></div>`;
+                            } else {
+                                htmlContent += `
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 120px;">Roll No</th>
+                                            <th>Student Name</th>`;
+                                
+                                courses.forEach((c, idx) => {
+                                    htmlContent += `<th style="text-align: center;">P${idx + 1}<br/><span style="font-size: 9px; color: #94a3b8; font-weight: 500;">${(c.subject || '').substring(0, 15)}...</span></th>`;
+                                });
+
+                                htmlContent += `</tr></thead><tbody>`;
+
+                                students.forEach(student => {
+                                    const studentLogs = logs.filter(l => l.studentId === student.rollNo);
+                                    
+                                    let rowHtml = `<tr>
+                                        <td style="font-family: monospace; color: #64748b; font-size: 11px;">${student.rollNo}</td>
+                                        <td>${student.name}</td>`;
+
+                                    courses.forEach(course => {
+                                        const startMins = timeToMinutes(course.startTime);
+                                        const endMins = timeToMinutes(course.endTime);
+                                        const ttCode = extractCode(course.subject);
+                                        const ttSubjectFull = (course.subject || "").toLowerCase();
+
+                                        const matchingLogs = studentLogs.filter(log => {
+                                            // 1. Check Date match exactly
+                                            const logLocalTimeStr = log.scanVerifiedLocalTime || "";
+                                            const dbLocalDateOnly = logLocalTimeStr.split(',')[0].trim();
+                                            if (dbLocalDateOnly !== dateStrLocal) return false;
+
+                                            // 2. Check Subject Match
+                                            const logCode = extractCode(log.courseName);
+                                            const logCourseFull = (log.courseName || "").toLowerCase();
+                                            const isSubjectMatch = (logCode && ttCode && logCode === ttCode) || logCourseFull.includes(ttCode) || ttSubjectFull.includes(logCode);
+                                            if (!isSubjectMatch) return false;
+
+                                            // 3. Check Time constraints (-15m to +20m)
+                                            const scanMins = timeToMinutes(log.scanVerifiedLocalTime || log.scanVerifiedTimestamp);
+                                            if (scanMins === -1 || startMins === -1) return false;
+                                            return scanMins >= (startMins - 15) && scanMins <= (startMins + 20);
+                                        });
+
+                                        // NEW: Prioritize admin manual overrides (OD) over standard scans (P)
+                                        const validLog = matchingLogs.find(l => l.isManualOverride) || matchingLogs[0];
+
+                                        let stat = validLog ? (validLog.status === 'OD' ? 'OD' : 'P') : 'A';
+                                        
+                                        // NEW: Future period suppression in PDF
+                                        const isTodayPdf = loopDateObj.getTime() === todayObjPdf.getTime();
+                                        const currentMinsPdf = new Date().getHours() * 60 + new Date().getMinutes();
+                                        if (!validLog && isTodayPdf && startMins > currentMinsPdf) {
+                                            stat = '-';
+                                        }
+
+                                        let badgeClass = stat === 'P' ? 'att-p' : (stat === 'OD' ? 'att-od' : (stat === '-' ? '' : 'att-a'));
+                                        let inlineStyle = stat === '-' ? 'background: #f8fafc; color: #94a3b8; border: 1px dashed #cbd5e1;' : '';
+                                        
+                                        rowHtml += `<td style="text-align: center;"><div class="att-badge ${badgeClass}" style="${inlineStyle}">${stat}</div></td>`;
+                                    });
+
+                                    rowHtml += `</tr>`;
+                                    htmlContent += rowHtml;
+                                });
+
+                                htmlContent += `</tbody></table></div>`;
+                            }
+                        }
+                        
+                        // Increment Date to next day
+                        currDate.setDate(currDate.getDate() + 1);
+                    }
+
+                    if(!hasOutputData) {
+                         htmlContent += `
+                            <div style="text-align: center; padding: 80px 20px; color: #64748b; background: #f8fafc; border-radius: 16px; border: 2px dashed #e2e8f0; margin-top: 20px;">
+                                <div style="margin-bottom: 16px;">
+                                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                                        <line x1="10" y1="15" x2="14" y2="19"></line>
+                                        <line x1="14" y1="15" x2="10" y2="19"></line>
+                                    </svg>
+                                </div>
+                                <h2 style="font-size: 22px; color: #0f172a; margin: 0 0 8px 0; font-weight: 700;">No Classes Scheduled</h2>
+                                <p style="font-size: 14px; margin: 0;">There are no timetable periods assigned for the selected range<br/>(${exportFilters.startDate} to ${exportFilters.endDate}).</p>
+                            </div>
+                         `;
+                    }
+
+                    htmlContent += `
+                        <div class="footer">Report securely generated on ${new Date().toLocaleString()} by AttendancePro Cloud System</div>
+                    </div>`;
+
+                    // Trigger automatic background PDF rendering and download using html2pdf
+                    const element = document.createElement('div');
+                    element.innerHTML = htmlContent;
+
+                    const opt = {
+                        margin:       [10, 10, 10, 10],
+                        filename:     `KSK_Attendance_${activeDeptContext.title.replace(/\s+/g, '_')}_${exportFilters.startDate}.pdf`,
+                        image:        { type: 'jpeg', quality: 0.98 },
+                        html2canvas:  { scale: 2, logging: false },
+                        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+                    };
+
+                    const downloadPdf = () => {
+                        window.html2pdf().set(opt).from(element).save().then(() => {
+                            setIsExporting(false);
+                            setIsExportModalOpen(false);
+                        });
+                    };
+
+                    // Dynamically load html2pdf.js if not already present
+                    if (!window.html2pdf) {
+                        const script = document.createElement('script');
+                        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+                        script.onload = downloadPdf;
+                        document.head.appendChild(script);
+                    } else {
+                        downloadPdf();
+                    }
+
+                } catch (err) {
+                    console.error("Export Error:", err);
+                    alert("Failed to generate report. Please try again.");
+                    setIsExporting(false);
                 }
             };
 
@@ -1749,13 +2474,48 @@
                     // Small timeout ensures the UI renders the loader smoothly before instantly processing memory
                     setTimeout(() => {
                         try {
-                            // 1. Identify absentees safely
-                            const absentees = sheetData.filter(s => s.attendance && s.attendance.includes('A')).map(s => {
-                                const absentSubjects = s.attendance
-                                    .map((status, idx) => status === 'A' ? (sheetCourses[idx]?.subject || `Period ${idx+1}`) : null)
-                                    .filter(Boolean);
-                                return { ...s, absentSubjects, parentMobile: '' };
-                            });
+                            // 1. Identify absentees safely (Filtered strictly by past/current time periods)
+                            const today = new Date();
+                            const currentMins = today.getHours() * 60 + today.getMinutes();
+                            
+                            const selParts = sheetFilters.academicDate.split('-');
+                            const selDateObj = new Date(selParts[0], selParts[1] - 1, selParts[2]);
+                            const isToday = selDateObj.getDate() === today.getDate() && selDateObj.getMonth() === today.getMonth() && selDateObj.getFullYear() === today.getFullYear();
+                            
+                            const timeToMinutesLocal = (timeStr) => {
+                                if (!timeStr) return -1; 
+                                const match12 = timeStr.match(/(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)/i);
+                                if (match12) {
+                                    let hours = parseInt(match12[1], 10);
+                                    const mins = parseInt(match12[2], 10);
+                                    const ampm = match12[3].toUpperCase();
+                                    if (hours === 12 && ampm === 'AM') hours = 0; 
+                                    if (hours < 12 && ampm === 'PM') hours += 12; 
+                                    return (hours * 60) + mins;
+                                }
+                                const match24 = timeStr.match(/(\d{1,2}):(\d{2})/);
+                                if (match24) return (parseInt(match24[1], 10) * 60) + parseInt(match24[2], 10);
+                                return -1;
+                            };
+
+                            const absentees = sheetData
+                                .map(s => {
+                                    if (!s.attendance) return { ...s, absentSubjects: [], parentMobile: '' };
+                                    const absentSubjects = s.attendance.map((status, idx) => {
+                                        if (status !== 'A') return null;
+                                        const course = sheetCourses[idx];
+                                        if (course) {
+                                            const startMins = timeToMinutesLocal(course.startTime);
+                                            // Only report missed classes that have actually started if looking at today's sheet
+                                            if (isToday && startMins > currentMins) return null;
+                                            
+                                            return `${course.subject || `Period ${idx+1}`} (${course.startTime} - ${course.endTime})`;
+                                        }
+                                        return `Period ${idx+1}`;
+                                    }).filter(Boolean);
+                                    return { ...s, absentSubjects, parentMobile: '' };
+                                })
+                                .filter(s => s.absentSubjects.length > 0); // Discard students who have only "future" Absents
 
                             // 2. Map Parent Mobile numbers directly from globally loaded memory (REMOVED DB FETCH TO PREVENT LONG LOADS)
                             if (activeDeptContext && sheetFilters) {
@@ -1789,15 +2549,16 @@
                 }
                 
                 const formattedDate = sheetFilters.academicDate.split('-').reverse().join('/');
-                const subjectsStr = student.absentSubjects.join(', ');
+                // Format the missed subjects list sequentially with bullet points
+                const subjectsStr = student.absentSubjects.map(sub => `▪ ${sub}`).join('\n');
                 
                 // Professional Bilingual WhatsApp Message
                 const message = `*Attendance Alert / வருகை பதிவு தகவல்*\n\n` +
-                `Dear Parent,\nThis is to inform you that your ward *${student.name}* (${activeDeptContext.title}, ${sheetFilters.year}) is marked ABSENT for the following subject(s) today (${formattedDate}):\n` +
-                `*${subjectsStr}*\n` +
+                `Dear Parent,\nThis is to inform you that your ward *${student.name}* (${activeDeptContext.title}, ${sheetFilters.year}) is marked ABSENT for the following subject(s) today (${formattedDate}):\n\n` +
+                `${subjectsStr}\n\n` +
                 `Please ensure their regular attendance.\n\n` +
-                `அன்புள்ள பெற்றோர்,\n${formattedDate} அன்று உங்கள் மகன்/மகள் *${student.name}* (${activeDeptContext.title}, ${sheetFilters.year}) கீழ்க்கண்ட வகுப்புகளுக்கு வருகை தரவில்லை என்பதை தெரிவித்துக் கொள்கிறோம்:\n` +
-                `*${subjectsStr}*\n` +
+                `அன்புள்ள பெற்றோர்,\n${formattedDate} அன்று உங்கள் மகன்/மகள் *${student.name}* (${activeDeptContext.title}, ${sheetFilters.year}) கீழ்க்கண்ட வகுப்புகளுக்கு வருகை தரவில்லை என்பதை தெரிவித்துக் கொள்கிறோம்:\n\n` +
+                `${subjectsStr}\n\n` +
                 `தயவுசெய்து அவர்களின் தினசரி வருகையை உறுதிப்படுத்தவும்.\n\n` +
                 `- KSK College of Engineering & Technology`;
 
@@ -1813,19 +2574,128 @@
             const handleCohortChange = (e) => setCohortFilter({ ...cohortFilter, [e.target.name]: e.target.value });
 
             const fetchStudentRoster = async () => {
+                if (!cohortFilter.startDate || !cohortFilter.endDate) {
+                    alert("Please select both a Start Date and End Date to compute the attendance report.");
+                    return;
+                }
+
+                // Safely parse local dates to completely prevent Timezone Shifts
+                const [sY, sM, sD] = cohortFilter.startDate.split('-');
+                const startD = new Date(sY, sM - 1, sD, 0, 0, 0);
+                
+                const [eY, eM, eD] = cohortFilter.endDate.split('-');
+                const endD = new Date(eY, eM - 1, eD, 23, 59, 59);
+                
+                if (startD > endD) {
+                    alert("Start Date cannot be after End Date.");
+                    return;
+                }
+
+                // NEW: Future Date Check to prevent calculating un-occurred classes
+                const todayObj = new Date();
+                todayObj.setHours(23, 59, 59, 999); // Set to the absolute end of the current day
+                
+                if (endD > todayObj) {
+                    alert("Future Date Selected: Attendance reports cannot include future dates as those classes have not yet occurred. Please select an End Date of today or earlier.");
+                    return;
+                }
+
                 setIsFetchingRoster(true);
                 try {
+                    // 1. Fetch the exact Timetable Schedule for this cohort
+                    const docId = `${activeDeptContext.title}_${cohortFilter.year}_${cohortFilter.semester}_${cohortFilter.batch}`.replace(/[^a-zA-Z0-9]/g, '_');
+                    let timetableData = {};
+                    if (window.firebaseAuth.getDoc) {
+                        const ttRef = window.firebaseAuth.doc(window.firebaseAuth.db, "timetables", docId);
+                        const ttSnap = await window.firebaseAuth.getDoc(ttRef);
+                        if (ttSnap.exists()) timetableData = ttSnap.data().schedule || {};
+                    }
+
+                    // 3. Iterate calendar dates and EXPLICITLY filter out weekends
+                    // NEW: Fetch declared holidays to exclude from the expected sessions
+                    const hRef = window.firebaseAuth.collection(window.firebaseAuth.db, "holidays");
+                    const hSnap = await window.firebaseAuth.getDocs(hRef);
+                    const cohortHolidays = new Set();
+                    hSnap.forEach(doc => {
+                        const hData = doc.data();
+                        if (hData.department === activeDeptContext.title && hData.year === cohortFilter.year && hData.semester === cohortFilter.semester && hData.batch === cohortFilter.batch) {
+                            cohortHolidays.add(hData.date);
+                        }
+                    });
+
+                    let totalClassesHeld = 0;
+                    let currDate = new Date(startD);
+                    currDate.setHours(0,0,0,0);
+                    
+                    const iterEndD = new Date(endD);
+                    iterEndD.setHours(0,0,0,0);
+
+                    while (currDate <= iterEndD) {
+                        const dayName = currDate.toLocaleDateString('en-US', { weekday: 'long' });
+                        const isoDate = `${currDate.getFullYear()}-${String(currDate.getMonth() + 1).padStart(2, '0')}-${String(currDate.getDate()).padStart(2, '0')}`;
+                        
+                        // EXPLICIT: Only calculate for Monday-Friday, strictly ignoring Saturday, Sunday, AND Holidays
+                        if (dayName !== 'Saturday' && dayName !== 'Sunday' && !cohortHolidays.has(isoDate)) {
+                            const dailyPeriods = timetableData[dayName] || [];
+                            totalClassesHeld += dailyPeriods.length;
+                        }
+                        currDate.setDate(currDate.getDate() + 1);
+                    }
+
+                    // 4. Fetch all attendance logs (Scans + Manual ODs)
+                    const logsRef = window.firebaseAuth.collection(window.firebaseAuth.db, "qr_attendance_records");
+                    const logsSnap = await window.firebaseAuth.getDocs(logsRef);
+                    const allLogs = [];
+                    logsSnap.forEach(doc => {
+                        if (doc.data().departmentName === activeDeptContext.title) {
+                            allLogs.push(doc.data());
+                        }
+                    });
+
+                    const sTime = startD.getTime();
+                    const eTime = endD.getTime(); 
+
+                    // 5. Fetch Students and dynamically map attendance
                     const usersRef = window.firebaseAuth.collection(window.firebaseAuth.db, "users");
                     const snapshot = await window.firebaseAuth.getDocs(usersRef);
                     const students = [];
 
                     snapshot.forEach(doc => {
                         const data = doc.data();
-                        // Filter students who belong to this active department
-                        if (data.department === activeDeptContext.title) {
-                            // Generate simulated realistic attendance data for the UI based on real DB profiles
-                            const randAttended = Math.floor(Math.random() * (48 - 30 + 1) + 30); // Random between 30 and 48
-                            const percentage = ((randAttended / 48) * 100).toFixed(1);
+                        // Strict Cohort Filtering
+                        if (data.department === activeDeptContext.title && 
+                            data.year === cohortFilter.year && 
+                            data.semester === cohortFilter.semester && 
+                            data.batch === cohortFilter.batch) {
+                            
+                            let attendedCount = 0;
+                            const studentLogs = allLogs.filter(log => log.studentId === data.rollNo || log.studentEmail === data.email);
+                            const countedDatePeriods = new Set(); 
+
+                            studentLogs.forEach(log => {
+                                // Count standard P and manual OD overrides
+                                if (log.status === 'P' || log.status === 'OD' || log.status === 'Present') {
+                                    const logLocalTimeStr = log.scanVerifiedLocalTime || "";
+                                    const dbLocalDateOnly = logLocalTimeStr.split(',')[0].trim(); 
+                                    
+                                    if (dbLocalDateOnly) {
+                                        const [m, d, y] = dbLocalDateOnly.split('/');
+                                        const logDateObj = new Date(y, m - 1, d, 12, 0, 0); // Safely map to Midday
+                                        const logTime = logDateObj.getTime();
+                                        
+                                        // Must strictly fall between start and end dates
+                                        if (logTime >= sTime && logTime <= eTime) {
+                                            const uniqueKey = `${dbLocalDateOnly}_${log.courseName}`;
+                                            if (!countedDatePeriods.has(uniqueKey)) {
+                                                countedDatePeriods.add(uniqueKey);
+                                                attendedCount++;
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+
+                            const percentage = totalClassesHeld > 0 ? ((attendedCount / totalClassesHeld) * 100).toFixed(1) : 0;
 
                             students.push({
                                 id: doc.id,
@@ -1833,22 +2703,107 @@
                                 rollNo: data.rollNo || 'N/A',
                                 email: data.email,
                                 initials: (data.name || 'U S').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase(),
-                                attended: randAttended,
-                                total: 48,
+                                attended: attendedCount,
+                                total: totalClassesHeld,
                                 percentage: parseFloat(percentage)
                             });
                         }
                     });
 
-                    // Sort alphabetically by name
                     students.sort((a, b) => a.name.localeCompare(b.name));
                     setRosterData(students);
-                    setActiveView('student_report'); // Switch view once data is loaded
+                    setActiveView('student_report'); 
                 } catch (error) {
                     console.error("Error fetching roster:", error);
-                    alert("Failed to load student roster from database.");
+                    alert("Failed to calculate attendance report data.");
                 } finally {
                     setIsFetchingRoster(false);
+                }
+            };
+
+            // NEW: Export Student Roster to PDF Engine
+            const handleExportRosterPDF = () => {
+                if (rosterData.length === 0) {
+                    alert("No data to export. Please fetch a roster first.");
+                    return;
+                }
+                setIsExportingRoster(true);
+
+                // Build a pristine, print-ready HTML structure
+                let htmlContent = `
+                    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #0f172a; font-size: 12px; padding: 30px; background: #ffffff;">
+                        <style>
+                            .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; }
+                            .header h1 { color: #bb0f1c; margin: 0 0 8px 0; font-size: 24px; font-weight: 800; }
+                            .header p { margin: 0; color: #64748b; font-size: 14px; font-weight: 600; }
+                            table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
+                            th { padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0; color: #0f172a; font-weight: 700; background: #f8fafc; text-transform: uppercase; }
+                            td { padding: 12px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+                            .danger { color: #bb0f1c; font-weight: bold; }
+                            .safe { color: #10b981; font-weight: bold; }
+                        </style>
+                        <div class="header">
+                            <h1>KSK College of Engineering & Technology</h1>
+                            <p>Department of ${activeDeptContext.title} &bull; ${cohortFilter.year} &bull; ${cohortFilter.semester} &bull; Batch ${cohortFilter.batch}</p>
+                            <p style="margin-top:8px; color:#0f172a;">Student Attendance Roster: ${cohortFilter.startDate.split('-').reverse().join('/')} to ${cohortFilter.endDate.split('-').reverse().join('/')}</p>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 15%;">Roll No.</th>
+                                    <th style="width: 35%;">Student Name</th>
+                                    <th style="width: 15%; text-align: center;">Classes Held</th>
+                                    <th style="width: 15%; text-align: center;">Attended</th>
+                                    <th style="width: 20%; text-align: right;">Overall Attendance %</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+
+                rosterData.forEach(student => {
+                    const isDanger = student.percentage < 75;
+                    htmlContent += `
+                        <tr>
+                            <td style="font-family: monospace;">${student.rollNo}</td>
+                            <td style="font-weight: 600;">${student.name}</td>
+                            <td style="text-align: center;">${student.total}</td>
+                            <td style="text-align: center;">${student.attended}</td>
+                            <td style="text-align: right;" class="${isDanger ? 'danger' : 'safe'}">${student.percentage}%</td>
+                        </tr>`;
+                });
+
+                htmlContent += `
+                            </tbody>
+                        </table>
+                        <div style="margin-top: 30px; text-align: right; font-size: 10px; color: #94a3b8; font-style: italic; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+                            Report securely generated on ${new Date().toLocaleString()} by AttendancePro Cloud System
+                        </div>
+                    </div>`;
+
+                const element = document.createElement('div');
+                element.innerHTML = htmlContent;
+
+                const opt = {
+                    margin:       10,
+                    filename:     `KSK_Roster_${activeDeptContext.title.replace(/\s+/g, '_')}_${cohortFilter.startDate}.pdf`,
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2, logging: false },
+                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' } // Portrait layout for vertical list
+                };
+
+                const downloadPdf = () => {
+                    window.html2pdf().set(opt).from(element).save().then(() => {
+                        setIsExportingRoster(false);
+                    });
+                };
+
+                // Inject html2pdf dynamically if it hasn't loaded yet
+                if (!window.html2pdf) {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+                    script.onload = downloadPdf;
+                    document.head.appendChild(script);
+                } else {
+                    downloadPdf();
                 }
             };
 
@@ -1864,7 +2819,7 @@
 
             const [activeDay, setActiveDay] = React.useState('Monday');
             const [scheduleData, setScheduleData] = React.useState({
-                Monday: [], Tuesday: [], Wednesday: [], Thursday: [], Friday: [], Saturday: [], Sunday: []
+                Monday: [], Tuesday: [], Wednesday: [], Thursday: [], Friday: []
             });
             const [isSavingTimetable, setIsSavingTimetable] = React.useState(false);
             const [timetableList, setTimetableList] = React.useState([]);
@@ -1951,9 +2906,12 @@
                 setTimetableContext(item.context); 
                 
                 // Convert fetched 12-hour DB format back to 24-hour for the HTML5 Inputs
-                const loadedSchedule = { Monday: [], Tuesday: [], Wednesday: [], Thursday: [], Friday: [], Saturday: [], Sunday: [], ...item.schedule };
-                Object.keys(loadedSchedule).forEach(day => {
-                    loadedSchedule[day] = loadedSchedule[day].map(row => ({
+                // Specifically filter out Saturday and Sunday from legacy database records
+                const legacySchedule = item.schedule || {};
+                const loadedSchedule = {};
+                
+                ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].forEach(day => {
+                    loadedSchedule[day] = (legacySchedule[day] || []).map(row => ({
                         ...row,
                         startTime: convertTo24Hour(row.startTime),
                         endTime: convertTo24Hour(row.endTime)
@@ -2021,21 +2979,32 @@
             // QR & Map Handlers
             const handleDetectLocation = React.useCallback(() => {
                 setMapError('');
+                setIsFetchingLocation(true); // Trigger UI Loader
+                
                 if ("geolocation" in navigator) {
                     navigator.geolocation.getCurrentPosition(
                         (position) => {
-                            const lat = position.coords.latitude; const lng = position.coords.longitude;
+                            const lat = position.coords.latitude; 
+                            const lng = position.coords.longitude;
                             setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
                             if (mapRef.current) {
-                                mapRef.current.setView([lat, lng], 17);
+                                mapRef.current.setView([lat, lng], 18); // Zoomed in closer for precise visual verification
                                 if (markerRef.current) markerRef.current.setLatLng([lat, lng]);
                                 else markerRef.current = window.L.marker([lat, lng]).addTo(mapRef.current);
                             }
+                            setIsFetchingLocation(false); // Remove UI Loader
                         },
-                        (error) => setMapError("Location permission denied."),
-                        { enableHighAccuracy: true }
+                        (error) => {
+                            setMapError("Unable to acquire high-accuracy GPS. Please check device location settings.");
+                            setIsFetchingLocation(false);
+                        },
+                        // maximumAge: 0 forces the browser to discard cached cellular locations and fetch fresh GPS data!
+                        { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 } 
                     );
-                } else setMapError("Geolocation not supported.");
+                } else {
+                    setMapError("Geolocation not supported.");
+                    setIsFetchingLocation(false);
+                }
             }, []);
 
             React.useEffect(() => {
@@ -2113,27 +3082,67 @@
                 }, 600);
             };
 
-            const handleGenerateCode = () => {
+            const handleGenerateCode = async () => {
                 setIsGenerating(true);
-                setTimeout(() => {
-                    const qrPayload = JSON.stringify(formData);
-                    const encodedPayload = encodeURIComponent(qrPayload);
-                    const newQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodedPayload}`;
-                    const newHighResUrl = `https://api.qrserver.com/v1/create-qr-code/?size=1000x1000&data=${encodedPayload}`;
-                    setQrUrl(newQrUrl); setHighResQrUrl(newHighResUrl);
+                const qrPayload = JSON.stringify(formData);
+                const encodedPayload = encodeURIComponent(qrPayload);
+                const newQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodedPayload}`;
+                const newHighResUrl = `https://api.qrserver.com/v1/create-qr-code/?size=1000x1000&data=${encodedPayload}`;
+                
+                setQrUrl(newQrUrl); 
+                setHighResQrUrl(newHighResUrl);
 
-                    const newItem = { id: Date.now(), ...formData, highResQrUrl: newHighResUrl, timestamp: new Date().toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) };
-                    const updatedHistory = [newItem, ...qrHistory].slice(0, 50);
-                    setQrHistory(updatedHistory);
-                    localStorage.setItem('kskcet_qr_history', JSON.stringify(updatedHistory));
+                try {
+                    const docId = `qr_${Date.now()}`;
+                    const newItem = { 
+                        ...formData, 
+                        qrUrl: newQrUrl, 
+                        highResQrUrl: newHighResUrl, 
+                        timestamp: new Date().toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }),
+                        createdAt: Date.now()
+                    };
+                    
+                    // Save the QR session details securely to the database
+                    await window.firebaseAuth.setDoc(
+                        window.firebaseAuth.doc(window.firebaseAuth.db, "qr_sessions", docId), 
+                        newItem
+                    );
+
+                    // Update UI State instantly
+                    setQrHistory(prev => [{ id: docId, ...newItem }, ...prev].slice(0, 50));
+                } catch (err) {
+                    console.error("Error saving QR code to database:", err);
+                    alert("Failed to save QR session to database.");
+                } finally {
                     setIsGenerating(false);
-                }, 800);
+                }
             };
 
-            const handleRemoveHistoryItem = (id) => {
-                const updatedHistory = qrHistory.filter(item => item.id !== id);
-                setQrHistory(updatedHistory);
-                localStorage.setItem('kskcet_qr_history', JSON.stringify(updatedHistory));
+            const handleRemoveHistoryItem = async (e, id) => {
+                e.stopPropagation(); // Prevents the autofill click from triggering when deleting
+                try {
+                    await window.firebaseAuth.deleteDoc(window.firebaseAuth.doc(window.firebaseAuth.db, "qr_sessions", id));
+                    setQrHistory(prev => prev.filter(item => item.id !== id));
+                } catch (err) {
+                    console.error("Error deleting history:", err);
+                }
+            };
+
+            // NEW: Autofill Form from Database History
+            const handleLoadHistoryItem = (item) => {
+                setFormData({
+                    department: item.department || '',
+                    year: item.year || '2-year',
+                    semester: item.semester || 'sem-3',
+                    course: item.course || '',
+                    room: item.room || 'CR-200',
+                    expiration: item.expiration || '15',
+                    latitude: item.latitude || '',
+                    longitude: item.longitude || ''
+                });
+                // Display the generated QR Code preview UI instantly
+                setQrUrl(item.qrUrl || item.highResQrUrl);
+                setHighResQrUrl(item.highResQrUrl);
             };
 
             // Admin Auth Check
@@ -2209,8 +3218,11 @@
                         </nav>
 
                         <div className="sidebar-footer">
-                            <button className="btn-start-class">Start Class</button>
-                            <a href="#" onClick={handleLogout} className="footer-link" style={{ marginTop: '16px' }}>
+                            {/* Start Class button removed per update */}
+                            <a href="#" className="footer-link">
+                                <i className="fa-solid fa-gear"></i> Settings
+                            </a>
+                            <a href="#" onClick={handleLogout} className="footer-link">
                                 <i className="fa-solid fa-arrow-right-from-bracket"></i> Logout
                             </a>
                         </div>
@@ -2254,6 +3266,10 @@
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '24px' }}>
                                     <div className="timetable-actions">
+                                        {/* NEW: Broadcast Button */}
+                                        <button className="btn-cancel" style={{ borderColor: '#10b981', color: '#059669', display: 'flex', alignItems: 'center', gap: '8px', background: '#ecfdf5' }} onClick={() => setIsMsgModalOpen(true)}>
+                                            <i className="fa-solid fa-bullhorn"></i> Exam & Campus Message
+                                        </button>
                                         <button className="btn-cancel" onClick={() => setActiveView('qr_generator')}>Cancel</button>
                                         <button className={`btn-save ${isSavingTimetable ? 'btn-disabled' : ''}`} onClick={handleSaveTimetable} disabled={isSavingTimetable}>
                                             {isSavingTimetable ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-regular fa-floppy-disk"></i>} Save Timetable
@@ -2316,7 +3332,7 @@
                                                 <i className="fa-regular fa-calendar-days" style={{ fontSize: '1.5rem', color: 'var(--primary-red)' }}></i>
                                                 <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-dark)' }}>Schedule Entry</h3>
                                                 <div className="day-tabs">
-                                                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
+                                                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map(day => (
                                                         <div key={day} className={`day-tab ${activeDay === day ? 'active' : ''}`} onClick={() => setActiveDay(day)}>{day}</div>
                                                     ))}
                                                 </div>
@@ -2417,8 +3433,8 @@
                                         <div className="form-group">
                                             <label>Accurate Location</label>
                                             <div style={{ position: 'relative' }} onClick={() => setIsMapModalOpen(true)}>
-                                                <i className="fa-solid fa-map-location-dot" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary-red)' }}></i>
-                                                <input type="text" readOnly value={formData.latitude ? `${formData.latitude.toFixed(5)}, ${formData.longitude.toFixed(5)}` : 'Click to fetch GPS'} className="custom-input" style={{ cursor: 'pointer', paddingLeft: '44px' }} />
+                                                <i className={`fa-solid ${isFetchingLocation ? 'fa-spinner fa-spin' : 'fa-map-location-dot'}`} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary-red)' }}></i>
+                                                <input type="text" readOnly value={isFetchingLocation ? 'Acquiring GPS Signal...' : (formData.latitude ? `${formData.latitude.toFixed(5)}, ${formData.longitude.toFixed(5)}` : 'Click to fetch GPS')} className="custom-input" style={{ cursor: 'pointer', paddingLeft: '44px' }} />
                                             </div>
                                         </div>
                                         <button className={`btn-generate ${isGenerating ? 'btn-disabled' : ''}`} onClick={handleGenerateCode} disabled={isGenerating}>
@@ -2450,14 +3466,25 @@
                                     <div className="history-card">
                                         <h3 className="history-title"><i className="fa-solid fa-clock-rotate-left"></i> Previous Codes</h3>
                                         {qrHistory.length === 0 ? <p style={{ textAlign: 'center', color: '#94a3b8', marginTop: '20px' }}>No codes generated.</p> : qrHistory.map(item => (
-                                            <div key={item.id} className="history-item" style={{ position: 'relative' }}>
-                                                <button onClick={() => handleRemoveHistoryItem(item.id)} style={{ position: 'absolute', top: '12px', right: '12px', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><i className="fa-solid fa-trash-can"></i></button>
+                                            <div 
+                                                key={item.id} 
+                                                className="history-item" 
+                                                style={{ position: 'relative', cursor: 'pointer', borderLeft: '4px solid transparent', transition: 'all 0.2s' }}
+                                                onClick={() => handleLoadHistoryItem(item)}
+                                                onMouseEnter={(e) => e.currentTarget.style.borderLeftColor = 'var(--primary-red)'}
+                                                onMouseLeave={(e) => e.currentTarget.style.borderLeftColor = 'transparent'}
+                                            >
+                                                <button onClick={(e) => handleRemoveHistoryItem(e, item.id)} style={{ position: 'absolute', top: '12px', right: '12px', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', zIndex: 10 }}>
+                                                    <i className="fa-solid fa-trash-can"></i>
+                                                </button>
                                                 <div style={{ paddingRight: '20px' }}>
-                                                    <h4 className="hist-course">{item.course}</h4><p className="hist-dept">{item.department}</p><p className="hist-date"><i className="fa-regular fa-clock"></i> {item.timestamp}</p>
+                                                    <h4 className="hist-course">{item.course}</h4>
+                                                    <p className="hist-dept">{item.year} &bull; {item.semester}</p>
+                                                    <p className="hist-date"><i className="fa-regular fa-clock"></i> {item.timestamp}</p>
                                                 </div>
                                                 <div className="hist-actions">
-                                                    <button className="btn-hist-action" onClick={() => executeDownload(item, item.highResQrUrl, null)}><i className="fa-solid fa-download"></i></button>
-                                                    <button className="btn-hist-action" onClick={() => executePrint(item, item.highResQrUrl, null)}><i className="fa-solid fa-print"></i></button>
+                                                    <button className="btn-hist-action" onClick={(e) => { e.stopPropagation(); executeDownload(item, item.highResQrUrl, null); }}><i className="fa-solid fa-download"></i></button>
+                                                    <button className="btn-hist-action" onClick={(e) => { e.stopPropagation(); executePrint(item, item.highResQrUrl, null); }}><i className="fa-solid fa-print"></i></button>
                                                 </div>
                                             </div>
                                         ))}
@@ -2484,7 +3511,7 @@
                                     <div className="cohort-form-card">
                                         <h3 className="form-section-title" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: 'none' }}>
                                             <span><i className="fa-solid fa-sliders" style={{ color: 'var(--primary-red)' }}></i> Student Cohort Parameters</span>
-                                            <span style={{ fontSize: '0.75rem', color: 'var(--primary-red)', background: '#fff1f2', padding: '4px 8px', borderRadius: '4px' }}>REQUIRED FIELDS (3)</span>
+                                            <span style={{ fontSize: '0.75rem', color: 'var(--primary-red)', background: '#fff1f2', padding: '4px 8px', borderRadius: '4px' }}>REQUIRED FIELDS (5)</span>
                                         </h3>
 
                                         <div className="form-group" style={{ marginTop: '24px', marginBottom: '24px' }}>
@@ -2492,15 +3519,15 @@
                                             <input type="text" className="custom-input" value={activeDeptContext?.title || ''} disabled style={{ backgroundColor: '#f8fafc', color: 'var(--text-main)', marginTop: '8px', fontWeight: '600' }} />
                                         </div>
 
-                                        <div className="input-row" style={{ marginBottom: '40px' }}>
+                                        <div className="input-row" style={{ marginBottom: '16px' }}>
                                             <div className="form-group">
                                                 <label style={{ color: 'var(--text-dark)', fontSize: '0.9rem' }}><i className="fa-solid fa-graduation-cap" style={{ color: 'var(--primary-red)', marginRight: '8px' }}></i> 2. Academic Year</label>
                                                 <div className="select-wrapper" style={{ marginTop: '8px' }}>
                                                     <select name="year" value={cohortFilter.year} onChange={handleCohortChange} className="custom-input">
-                                                        <option>1st Year (Freshman)</option>
-                                                        <option>2nd Year (Sophomore)</option>
-                                                        <option>3rd Year (Junior)</option>
-                                                        <option>4th Year (Senior)</option>
+                                                        <option value="1st year">1st year</option>
+                                                        <option value="2nd year">2nd year</option>
+                                                        <option value="3rd year">3rd year</option>
+                                                        <option value="4th year">4th year</option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -2508,15 +3535,48 @@
                                                 <label style={{ color: 'var(--text-dark)', fontSize: '0.9rem' }}><i className="fa-regular fa-calendar" style={{ color: 'var(--primary-red)', marginRight: '8px' }}></i> 3. Semester</label>
                                                 <div className="select-wrapper" style={{ marginTop: '8px' }}>
                                                     <select name="semester" value={cohortFilter.semester} onChange={handleCohortChange} className="custom-input">
-                                                        <option>Semester 1</option><option>Semester 2</option><option>Semester 3</option><option>Semester 4</option><option>Semester 5</option><option>Semester 6</option><option>Semester 7</option><option>Semester 8</option>
+                                                        <option value="semester-1">semester-1</option>
+                                                        <option value="semester-2">semester-2</option>
+                                                        <option value="semester-3">semester-3</option>
+                                                        <option value="semester-4">semester-4</option>
+                                                        <option value="semester-5">semester-5</option>
+                                                        <option value="semester-6">semester-6</option>
+                                                        <option value="semester-7">semester-7</option>
+                                                        <option value="semester-8">semester-8</option>
                                                     </select>
                                                 </div>
                                             </div>
                                         </div>
 
+                                        <div className="input-row" style={{ marginBottom: '16px' }}>
+                                            <div className="form-group">
+                                                <label style={{ color: 'var(--text-dark)', fontSize: '0.9rem' }}><i className="fa-solid fa-users-rectangle" style={{ color: 'var(--primary-red)', marginRight: '8px' }}></i> 4. Section / Batch</label>
+                                                <div className="select-wrapper" style={{ marginTop: '8px' }}>
+                                                    <select name="batch" value={cohortFilter.batch} onChange={handleCohortChange} className="custom-input">
+                                                        <option value="2023-2027">2023-2027</option>
+                                                        <option value="2024-2028">2024-2028</option>
+                                                        <option value="2025-2029">2025-2029</option>
+                                                        <option value="2026-2030">2026-2030</option>
+                                                        <option value="2027-2031">2027-2031</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="input-row" style={{ marginBottom: '40px' }}>
+                                            <div className="form-group">
+                                                <label style={{ color: 'var(--text-dark)', fontSize: '0.9rem' }}><i className="fa-solid fa-hourglass-start" style={{ color: 'var(--primary-red)', marginRight: '8px' }}></i> 5. Start Date</label>
+                                                <input type="date" name="startDate" value={cohortFilter.startDate} onChange={handleCohortChange} className="custom-input" style={{ marginTop: '8px' }} />
+                                            </div>
+                                            <div className="form-group">
+                                                <label style={{ color: 'var(--text-dark)', fontSize: '0.9rem' }}><i className="fa-solid fa-hourglass-end" style={{ color: 'var(--primary-red)', marginRight: '8px' }}></i> 6. End Date</label>
+                                                <input type="date" name="endDate" value={cohortFilter.endDate} onChange={handleCohortChange} className="custom-input" style={{ marginTop: '8px' }} />
+                                            </div>
+                                        </div>
+
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-light)', paddingTop: '24px' }}>
-                                            <button className="btn-cancel" onClick={() => setCohortFilter({ year: '1st Year (Freshman)', semester: 'Semester 1', section: 'All Sections' })}><i className="fa-solid fa-rotate-left"></i> Reset Form</button>
-                                            <button className={`btn-save ${isFetchingRoster ? 'btn-disabled' : ''}`} onClick={fetchStudentRoster} disabled={isFetchingRoster} style={{ padding: '12px 24px', fontSize: '1rem' }}>
+                                            <button className="btn-cancel" onClick={() => setCohortFilter({ year: '4th year', semester: 'semester-7', batch: '2023-2027', startDate: '', endDate: '' })}><i className="fa-solid fa-rotate-left"></i> Reset Form</button>
+                                            <button className={`btn-save ${isFetchingRoster || isCounting || liveStudentCount === 0 ? 'btn-disabled' : ''}`} onClick={fetchStudentRoster} disabled={isFetchingRoster || isCounting || liveStudentCount === 0} style={{ padding: '12px 24px', fontSize: '1rem' }}>
                                                 {isFetchingRoster ? <i className="fa-solid fa-spinner fa-spin"></i> : "Proceed to Attendance Roster"}
                                                 {!isFetchingRoster && <i className="fa-solid fa-arrow-right"></i>}
                                             </button>
@@ -2524,24 +3584,34 @@
                                     </div>
 
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                                        <div className="cohort-preview-card">
+                                        <div className="cohort-preview-card" style={{ background: 'var(--white)', padding: '32px', borderRadius: '16px', boxShadow: 'var(--shadow-md)' }}>
                                             <h3 style={{ fontSize: '1rem', color: 'var(--text-dark)', display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                                                 <span><i className="fa-regular fa-eye" style={{ color: 'var(--primary-red)' }}></i> Cohort Live Preview</span>
-                                                <span style={{ fontSize: '0.75rem', color: 'var(--primary-red)', background: '#ffeef0', padding: '2px 8px', borderRadius: '12px' }}>Ready to Fetch</span>
+                                                <span style={{ fontSize: '0.75rem', color: isCounting ? '#d97706' : 'var(--primary-red)', background: isCounting ? '#fef3c7' : '#ffeef0', padding: '4px 10px', borderRadius: '12px', fontWeight: 600 }}>
+                                                    {isCounting ? 'Calculating...' : (liveStudentCount > 0 ? 'Ready to Fetch' : 'No Students Found')}
+                                                </span>
                                             </h3>
+                                            
                                             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>TARGET SCOPE</p>
-                                            <h2 style={{ fontSize: '1.4rem', color: 'var(--primary-red)', margin: '8px 0', lineHeight: '1.3' }}>
-                                                {activeDeptContext?.code} &bull; {cohortFilter.year.split(' ')[0]} &bull; {cohortFilter.semester.replace('emester ', 'em ')}
+                                            <h2 style={{ fontSize: '1.4rem', color: 'var(--primary-red)', margin: '8px 0 4px', lineHeight: '1.3' }}>
+                                                {activeDeptContext?.code || activeDeptContext?.title.substring(0,3).toUpperCase()} &bull; {cohortFilter.year.split(' ')[0]} &bull; {cohortFilter.semester.replace('emester-', 'em ')}
                                             </h2>
+                                            <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '16px', fontWeight: 600 }}>
+                                                Batch: {cohortFilter.batch}
+                                            </div>
 
-                                            <div style={{ display: 'flex', gap: '24px', marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #cbd5e1' }}>
+                                            <div style={{ display: 'flex', gap: '32px', marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #cbd5e1' }}>
                                                 <div>
-                                                    <p style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--text-dark)', marginBottom: '4px' }}><i className="fa-solid fa-spinner fa-spin" style={{ fontSize: '1rem', color: '#cbd5e1' }}></i></p>
-                                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Enrolled<br />Students</p>
+                                                    <p style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--text-dark)', marginBottom: '4px' }}>
+                                                        {isCounting ? <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: '1.2rem', color: '#cbd5e1' }}></i> : liveStudentCount}
+                                                    </p>
+                                                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>Enrolled<br />Students</p>
                                                 </div>
                                                 <div>
-                                                    <p style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--text-dark)', marginBottom: '4px' }}>--%</p>
-                                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Expected<br />Ratio</p>
+                                                    <p style={{ fontSize: '1.8rem', fontWeight: '800', color: liveCohortAvg !== null && liveCohortAvg >= 75 ? '#10b981' : (liveCohortAvg !== null ? 'var(--primary-red)' : 'var(--text-dark)'), marginBottom: '4px' }}>
+                                                        {isCounting ? <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: '1.2rem', color: '#cbd5e1' }}></i> : (liveCohortAvg !== null ? `${liveCohortAvg}%` : '--%')}
+                                                    </p>
+                                                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>Cohort<br />Average</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -2564,8 +3634,14 @@
                                             <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>&bull; {cohortFilter.semester} Cohort</span>
                                         </div>
                                     </div>
-                                    <button className="btn-save" style={{ padding: '12px 24px' }}>
-                                        <i className="fa-solid fa-file-export"></i> Export Roster (CSV)
+                                    <button 
+                                        className={`btn-save ${isExportingRoster ? 'btn-disabled' : ''}`} 
+                                        style={{ padding: '12px 24px' }} 
+                                        onClick={handleExportRosterPDF} 
+                                        disabled={isExportingRoster || rosterData.length === 0}
+                                    >
+                                        {isExportingRoster ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-file-pdf"></i>} 
+                                        {isExportingRoster ? ' Generating...' : ' Export Roster (PDF)'}
                                     </button>
                                 </div>
 
@@ -2664,8 +3740,8 @@
                                         <div className="active-dept-badge">
                                             <span></span> {activeDeptContext?.title || 'Workspace'} 
                                         </div>
-                                        <button className="btn-cancel" style={{ background: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <i className="fa-solid fa-download"></i> Export Excel
+                                        <button onClick={() => setIsExportModalOpen(true)} className="btn-cancel" style={{ background: 'white', display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid #cbd5e1' }}>
+                                            <i className="fa-solid fa-file-export"></i> Export Excel / PDF
                                         </button>
                                         <button 
                                             className="btn-save" 
@@ -2780,7 +3856,7 @@
                                                 <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>Day & Subject Matrix</p>
                                             </div>
                                             <div className="day-tabs">
-                                                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
+                                                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map(day => (
                                                     <div key={day} className={`day-tab ${day === sheetActiveDay ? 'active' : ''}`}>{day}</div>
                                                 ))}
                                             </div>
@@ -2790,17 +3866,118 @@
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span className="att-badge att-p">P</span> = Present</div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span className="att-badge att-a">A</span> = Absent</div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span className="att-badge att-od">OD</span> = On Duty</div>
-                                            <div style={{ marginLeft: 'auto', fontSize: '0.75rem', fontWeight: 500 }}>Academic Day: {sheetFilters.academicDate.split('-').reverse().join('/')}</div>
+                                            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                                <div style={{ fontSize: '0.75rem', fontWeight: 500 }}>Academic Day: {sheetFilters.academicDate.split('-').reverse().join('/')}</div>
+                                                {(() => {
+                                                    const selDateObj = new Date(sheetFilters.academicDate);
+                                                    selDateObj.setHours(0,0,0,0);
+                                                    const tdObj = new Date();
+                                                    tdObj.setHours(0,0,0,0);
+                                                    // NEW: Only show holiday button for today/future dates AND if it's not already a holiday
+                                                    if (selDateObj >= tdObj && !sheetHolidayData) {
+                                                        return (
+                                                            <button 
+                                                                className="btn-save" 
+                                                                style={{ padding: '6px 12px', fontSize: '0.75rem', background: '#f59e0b', border: '1px solid #d97706', boxShadow: 'none' }} 
+                                                                onClick={() => setIsHolidayModalOpen(true)}
+                                                            >
+                                                                <i className="fa-solid fa-umbrella-beach"></i> Mark as Holiday
+                                                            </button>
+                                                        );
+                                                    }
+                                                    return null;
+                                                })()}
+                                            </div>
                                         </div>
 
+                                        {/* NEW: Holiday Declaration Modal */}
+                                        {isHolidayModalOpen && (
+                                            <div className="map-modal-overlay">
+                                                <div className="map-modal" style={{ maxWidth: '450px' }}>
+                                                    <h3 style={{ marginBottom: '10px' }}><i className="fa-solid fa-umbrella-beach" style={{ color: '#f59e0b', marginRight: '8px' }}></i> Declare Cohort Holiday</h3>
+                                                    <p>This will excuse the target cohort from attendance processing and block student check-ins for the selected date.</p>
+
+                                                    <div className="form-group" style={{ marginBottom: '16px', marginTop: '10px' }}>
+                                                        <label>Target Academic Date</label>
+                                                        <input type="text" className="custom-input" value={sheetFilters.academicDate.split('-').reverse().join('/')} disabled style={{ backgroundColor: '#f8fafc', color: '#64748b', fontWeight: 600 }} />
+                                                    </div>
+
+                                                    <div className="form-group" style={{ marginBottom: '24px' }}>
+                                                        <label>Reason for Holiday</label>
+                                                        <div className="input-with-icon" style={{ position: 'relative' }}>
+                                                            <i className="fa-solid fa-umbrella-beach" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#f59e0b', zIndex: 2 }}></i>
+                                                            <input 
+                                                                type="text" 
+                                                                list="tn-holidays" 
+                                                                className="custom-input" 
+                                                                placeholder="Select from list or type manual reason..." 
+                                                                value={holidayReason} 
+                                                                onChange={(e) => setHolidayReason(e.target.value)} 
+                                                                required 
+                                                                style={{ paddingLeft: '40px' }}
+                                                            />
+                                                        </div>
+                                                        {/* NEW: Native Datalist for Pre-filled TN Holidays + Manual Override capability */}
+                                                        <datalist id="tn-holidays">
+                                                            <option value="🌾 Pongal / Thiruvalluvar Day" />
+                                                            <option value="🇮🇳 Republic Day (Jan 26)" />
+                                                            <option value="☀️ Tamil New Year (Chithirai Thirunal)" />
+                                                            <option value="✝️ Good Friday" />
+                                                            <option value="🌙 Ramzan (Idul Fitr)" />
+                                                            <option value="✊ May Day (May 1)" />
+                                                            <option value="🕌 Bakrid (Idul Azha)" />
+                                                            <option value="🇮🇳 Independence Day (Aug 15)" />
+                                                            <option value="🕉️ Krishna Jayanthi" />
+                                                            <option value="🐘 Vinayakar Chaturthi" />
+                                                            <option value="🕌 Milad-un-Nabi" />
+                                                            <option value="🕊️ Gandhi Jayanthi (Oct 2)" />
+                                                            <option value="🏹 Ayutha Pooja / Vijaya Dasami" />
+                                                            <option value="🪔 Deepavali" />
+                                                            <option value="🎄 Christmas (Dec 25)" />
+                                                            <option value="🌧️ Heavy Rain / Weather Warning" />
+                                                            <option value="🏫 Local Holiday / District Collector Order" />
+                                                        </datalist>
+                                                    </div>
+
+                                                    <div className="map-modal-actions">
+                                                        <button className="btn-action btn-download" onClick={() => { setIsHolidayModalOpen(false); setHolidayReason(''); }}>Cancel</button>
+                                                        <button 
+                                                            className={`btn-action btn-print ${isSavingHoliday ? 'btn-disabled' : ''}`} 
+                                                            onClick={handleSaveHoliday} 
+                                                            disabled={isSavingHoliday || !holidayReason.trim()}
+                                                            style={{ display: 'flex', gap: '8px', background: '#f59e0b', border: '1px solid #d97706' }}
+                                                        >
+                                                            {isSavingHoliday ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-check"></i>}
+                                                            {isSavingHoliday ? 'Saving...' : 'Confirm Holiday'}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
                                         <div className="att-table-wrapper" style={{ flex: 1 }}>
+                                            {sheetHolidayData ? (() => {
+                                                let rawFirstWord = (sheetHolidayData.reason || '').split(' ')[0];
+                                                // NEW: If manual text is typed without an emoji, fallback to the default Umbrella icon
+                                                const emoji = (!rawFirstWord || /[a-zA-Z0-9]/.test(rawFirstWord)) ? '🏖️' : rawFirstWord;
+                                                const colors = getEmojiDominantColor(emoji);
+                                                return (
+                                                <div style={{ padding: '60px 20px', textAlign: 'center', background: colors.bg, borderRadius: '12px', border: `1px solid ${colors.border}`, margin: '16px 0', transition: 'all 0.3s ease' }}>
+                                                    <div style={{ fontSize: '3.5rem', marginBottom: '16px', lineHeight: '1' }}>{emoji}</div>
+                                                    <h3 style={{ fontSize: '1.4rem', color: colors.text, fontWeight: '800', marginBottom: '10px' }}>Holiday Declared</h3>
+                                                    <p style={{ fontSize: '0.95rem', color: colors.text, lineHeight: '1.6', maxWidth: '300px', margin: '0 auto' }}>
+                                                        {sheetHolidayData.date.split('-').reverse().join('/')} is officially marked as a holiday.<br/>
+                                                        <strong style={{color: colors.text, marginTop: '12px', display: 'inline-block'}}>Reason: {sheetHolidayData.reason}</strong>
+                                                    </p>
+                                                </div>
+                                                );
+                                            })() : (
                                             <table className="att-table">
                                                 <thead>
                                                     <tr>
                                                         <th>Roll No</th>
                                                         <th>Student Name</th>
-                                                        {sheetCourses.length === 0 && <th style={{color: '#ef4444', letterSpacing: '0.5px'}}>NO SCHEDULED CLASSES FOR THIS DAY</th>}
-                                                        {sheetCourses.map((course, idx) => (
+                                                        {sheetCourses.length > 0 && sheetCourses.map((course, idx) => (
                                                             <th key={idx}>
                                                                 P{idx+1}<br/>
                                                                 <span style={{fontSize:'10px', color:'#94a3b8'}}>{(course.subject || 'Unknown').substring(0, 10)}...</span>
@@ -2810,17 +3987,72 @@
                                                 </thead>
                                                 <tbody>
                                                     {(() => {
-                                                        // Pagination Math
                                                         const totalStudents = sheetData.length;
                                                         const indexOfLast = currentPage * studentsPerPage;
                                                         const indexOfFirst = indexOfLast - studentsPerPage;
                                                         const currentStudents = sheetData.slice(indexOfFirst, indexOfLast);
                                                         
+                                                        // NEW: Intelligent Future Date Validation
+                                                        const selectedDateObj = new Date(sheetFilters.academicDate);
+                                                        selectedDateObj.setHours(0, 0, 0, 0);
+                                                        const todayObj = new Date();
+                                                        todayObj.setHours(0, 0, 0, 0);
+                                                        const isFutureDate = selectedDateObj > todayObj;
+
+                                                        if (isFetchingSheet) {
+                                                            return (
+                                                                <tr>
+                                                                    <td colSpan={sheetCourses.length + 2} style={{ textAlign: 'center', padding: '60px 20px', color: '#94a3b8' }}>
+                                                                        <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: '2.5rem', marginBottom: '16px', color: '#cbd5e1' }}></i>
+                                                                        <h4 style={{ fontSize: '1.1rem', color: '#64748b' }}>Fetching Attendance Records...</h4>
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        }
+
+                                                        if (isFutureDate) {
+                                                            return (
+                                                                <tr>
+                                                                    <td colSpan={sheetCourses.length + 2} style={{ textAlign: 'center', padding: '80px 20px', color: '#64748b', background: '#f8fafc', borderBottom: '1px solid transparent' }}>
+                                                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                                                                            <div style={{ width: '64px', height: '64px', background: '#fef3c7', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#d97706' }}>
+                                                                                <i className="fa-solid fa-hourglass-half" style={{ fontSize: '2rem' }}></i>
+                                                                            </div>
+                                                                            <h4 style={{ fontSize: '1.2rem', color: '#0f172a', margin: 0 }}>Future Date Selected</h4>
+                                                                            <p style={{ fontSize: '0.9rem', margin: 0, maxWidth: '400px' }}>Attendance records for {sheetFilters.academicDate.split('-').reverse().join('/')} are not yet available. Please select today or a past date.</p>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        }
+
+                                                        if (sheetCourses.length === 0) {
+                                                            return (
+                                                                <tr>
+                                                                    <td colSpan="3" style={{ textAlign: 'center', padding: '80px 20px', color: '#64748b', background: '#f8fafc', borderBottom: '1px solid transparent' }}>
+                                                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                                                                            <div style={{ width: '64px', height: '64px', background: '#f1f5f9', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#94a3b8' }}>
+                                                                                <i className="fa-regular fa-calendar-xmark" style={{ fontSize: '2.5rem' }}></i>
+                                                                            </div>
+                                                                            <h4 style={{ fontSize: '1.2rem', color: '#0f172a', margin: 0 }}>No Classes Scheduled</h4>
+                                                                            <p style={{ fontSize: '0.9rem', margin: 0, maxWidth: '400px' }}>There are no timetable periods assigned for {sheetFilters.academicDate.split('-').reverse().join('/')}. Try selecting a different date.</p>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        }
+
                                                         if (totalStudents === 0) {
                                                             return (
                                                                 <tr>
-                                                                    <td colSpan={sheetCourses.length + 2} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
-                                                                        {isFetchingSheet ? 'Fetching Data...' : 'No student records found for this cohort.'}
+                                                                    <td colSpan={sheetCourses.length + 2} style={{ textAlign: 'center', padding: '80px 20px', color: '#64748b', background: '#f8fafc', borderBottom: '1px solid transparent' }}>
+                                                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                                                                            <div style={{ width: '64px', height: '64px', background: '#f1f5f9', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#94a3b8' }}>
+                                                                                <i className="fa-solid fa-users-slash" style={{ fontSize: '2rem' }}></i>
+                                                                            </div>
+                                                                            <h4 style={{ fontSize: '1.2rem', color: '#0f172a', margin: 0 }}>No Students Found</h4>
+                                                                            <p style={{ fontSize: '0.9rem', margin: 0, maxWidth: '400px' }}>No student records match the selected Department, Year, and Semester cohort filters.</p>
+                                                                        </div>
                                                                     </td>
                                                                 </tr>
                                                             );
@@ -2835,21 +4067,25 @@
                                                                         {student.name}
                                                                     </span>
                                                                 </td>
-                                                                {sheetCourses.length === 0 && <td>-</td>}
                                                                 {student.attendance.map((status, sIdx) => (
                                                                     <td key={sIdx} className="att-cell">
-                                                                        <div className={`att-badge ${status === 'P' ? 'att-p' : status === 'OD' ? 'att-od' : 'att-a'}`}>
+                                                                        <div 
+                                                                            className={`att-badge ${status === 'P' ? 'att-p' : status === 'OD' ? 'att-od' : (status === '-' ? '' : 'att-a')}`}
+                                                                            style={status === '-' ? { background: '#f8fafc', color: '#94a3b8', border: '1px dashed #cbd5e1' } : {}}
+                                                                        >
                                                                             {status}
                                                                         </div>
                                                                         
-                                                                        {/* Admin Hover Edit Button */}
-                                                                        <button 
-                                                                            className="att-edit-btn" 
-                                                                            onClick={() => handleStatusEdit(sheetData.findIndex(s => s.rollNo === student.rollNo), sIdx)} 
-                                                                            title="Modify to OD"
-                                                                        >
-                                                                            <i className="fa-solid fa-pen"></i>
-                                                                        </button>
+                                                                        {/* Admin Hover Edit Button (Disabled for future periods) */}
+                                                                        {status !== '-' && (
+                                                                            <button 
+                                                                                className="att-edit-btn" 
+                                                                                onClick={() => handleStatusEdit(sheetData.findIndex(s => s.rollNo === student.rollNo), sIdx)} 
+                                                                                title="Modify to OD"
+                                                                            >
+                                                                                <i className="fa-solid fa-pen"></i>
+                                                                            </button>
+                                                                        )}
                                                                     </td>
                                                                 ))}
                                                             </tr>
@@ -2857,6 +4093,7 @@
                                                     })()}
                                                 </tbody>
                                             </table>
+                                            )}
                                         </div>
 
                                         {/* Dynamic Pagination UI */}
@@ -2909,7 +4146,10 @@
                                         <div className="history-item" style={{ cursor: 'default', background: 'var(--white)', border: '1px solid var(--border-light)', padding: '16px', borderRadius: '12px', position: 'relative' }}>
                                             <h4 className="hist-course" style={{ fontSize: '1rem', marginBottom: '6px' }}>{activeDeptContext?.title || 'Computer Science'}</h4>
                                             <p className="hist-dept" style={{ color: 'var(--text-main)', fontWeight: 500, marginBottom: '8px' }}>{sheetFilters.year} &bull; {sheetFilters.semester}</p>
-                                            <p className="hist-date" style={{ color: '#94a3b8' }}><i className="fa-solid fa-users"></i> {sheetFilters.batch}</p>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <span className="hist-date" style={{ color: '#94a3b8' }}><i className="fa-solid fa-users"></i> {sheetFilters.batch}</span>
+                                                <span style={{ fontSize: '0.75rem', color: '#0f172a', background: '#f1f5f9', padding: '4px 10px', borderRadius: '12px', fontWeight: 600 }}><i className="fa-regular fa-calendar"></i> {sheetFilters.academicDate.split('-').reverse().join('/')}</span>
+                                            </div>
                                         </div>
 
                                         {(() => {
@@ -2917,7 +4157,8 @@
                                             
                                             // 1. Calculate Period-by-Period Quorum Analytics
                                             const quorumData = sheetCourses.map((course, idx) => {
-                                                const presentCount = sheetData.filter(s => s.attendance[idx] === 'P').length;
+                                                // NEW: OD overrides now accurately contribute to the present quorum
+                                                const presentCount = sheetData.filter(s => s.attendance[idx] === 'P' || s.attendance[idx] === 'OD').length;
                                                 const percentage = totalStudents > 0 ? ((presentCount / totalStudents) * 100).toFixed(1) : 0;
                                                 return { 
                                                     subject: course.subject || 'Class', 
@@ -2930,16 +4171,25 @@
                                             
                                             const isOverallHealthy = quorumData.length > 0 && !quorumData.some(q => q.isWarn);
                                             
-                                            // 2. Identify Defaulters (Students with < 75% attendance specifically for this day)
+                                            // 2. Identify Defaulters
                                             const defaulters = sheetCourses.length > 0 ? sheetData.filter(s => {
-                                                const pCount = s.attendance.filter(a => a === 'P').length;
-                                                return (pCount / sheetCourses.length) < 0.75;
+                                                // NEW: Exclude future periods ('-') from the math so early in the day doesn't trigger false warnings
+                                                const validPeriods = s.attendance.filter(a => a !== '-').length;
+                                                
+                                                // If no periods have happened yet, no one can be a defaulter
+                                                if (validPeriods === 0) return false; 
+
+                                                // OD overrides and P scans count towards the safe attendance threshold
+                                                const pCount = s.attendance.filter(a => a === 'P' || a === 'OD').length;
+                                                
+                                                // Calculate threshold strictly against the periods that have actually elapsed
+                                                return (pCount / validPeriods) < 0.75;
                                             }) : [];
 
                                             return (
                                                 <React.Fragment>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
-                                                        <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-dark)' }}>Today's Subject Quorum</h4>
+                                                        <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-dark)' }}>Subject Quorum Tracker</h4>
                                                         {sheetCourses.length > 0 ? (
                                                             <span style={{ fontSize: '0.75rem', color: isOverallHealthy ? '#059669' : '#d97706', fontWeight: 700 }}>
                                                                 {isOverallHealthy ? 'Healthy' : 'Needs Attention'}
@@ -2975,7 +4225,7 @@
                                                             <i className="fa-solid fa-triangle-exclamation"></i>
                                                             <div>
                                                                 <strong style={{ display: 'block', marginBottom: '4px', color: '#92400e' }}>Cohort Warning</strong>
-                                                                <p>{defaulters.length} student{defaulters.length > 1 ? 's' : ''} {defaulters.length === 1 ? `(${defaulters[0].name.split(' ')[0]})` : ''} dropped below 75% today. Defaulter report ready.</p>
+                                                                <p>{defaulters.length} student{defaulters.length > 1 ? 's' : ''} {defaulters.length === 1 ? `(${defaulters[0].name.split(' ')[0]})` : ''} dropped below 75% on this date. Defaulter report ready.</p>
                                                             </div>
                                                         </div>
                                                     )}
@@ -2984,17 +4234,25 @@
                                         })()}
 
                                         <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                            <button className={`btn-cancel ${sheetData.length === 0 ? 'btn-disabled' : ''}`} disabled={sheetData.length === 0} style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
-                                                <i className="fa-regular fa-file-pdf"></i> Generate Period Report PDF
-                                            </button>
-                                            <button 
-                                                className={`btn-save ${sheetData.length === 0 ? 'btn-disabled' : ''}`} 
-                                                disabled={sheetData.length === 0} 
-                                                onClick={() => setActiveView('absent_alerts')}
-                                                style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#fff1f2', color: 'var(--primary-red)', border: '1px solid #fecaca' }}
-                                            >
-                                                <i className="fa-brands fa-whatsapp"></i> Notifying Absent Student On Our Parent
-                                            </button>
+                                            {(() => {
+                                                const selDateObj = new Date(sheetFilters.academicDate);
+                                                selDateObj.setHours(0,0,0,0);
+                                                const tdObj = new Date();
+                                                tdObj.setHours(0,0,0,0);
+                                                const isFutureAlertDate = selDateObj > tdObj;
+                                                
+                                                return (
+                                                    <button 
+                                                        className={`btn-save ${sheetData.length === 0 || isFutureAlertDate ? 'btn-disabled' : ''}`} 
+                                                        disabled={sheetData.length === 0 || isFutureAlertDate} 
+                                                        onClick={() => setActiveView('absent_alerts')}
+                                                        style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: isFutureAlertDate ? '#f8fafc' : '#fff1f2', color: isFutureAlertDate ? '#94a3b8' : 'var(--primary-red)', border: isFutureAlertDate ? '1px solid #e2e8f0' : '1px solid #fecaca', cursor: isFutureAlertDate ? 'not-allowed' : 'pointer' }}
+                                                    >
+                                                        {isFutureAlertDate ? <i className="fa-solid fa-ban"></i> : <i className="fa-brands fa-whatsapp"></i>} 
+                                                        {isFutureAlertDate ? 'Cannot Send Alerts for Future Dates' : 'Notifying Absent Student On Our Parent'}
+                                                    </button>
+                                                );
+                                            })()}
                                         </div>
                                     </div>
                                 </div>
@@ -3266,16 +4524,201 @@
                                 <div className="map-modal">
                                     <h3>Set Class Coordinates</h3><p>Allow location access to plot the classroom.</p>
                                     {mapError && <div className="map-error-msg">{mapError}</div>}
-                                    <div id="leaflet-map-container"></div>
+                                    
+                                    <div style={{ position: 'relative' }}>
+                                        <div id="leaflet-map-container"></div>
+                                        
+                                        {/* NEW: Translucent GPS Loading Overlay */}
+                                        {isFetchingLocation && (
+                                            <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(255,255,255,0.8)', zIndex: 1000, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', borderRadius: '12px' }}>
+                                                <i className="fa-solid fa-satellite-dish fa-beat" style={{ fontSize: '2.5rem', color: 'var(--primary-red)', marginBottom: '12px' }}></i>
+                                                <span style={{ fontWeight: 700, color: 'var(--text-dark)', fontSize: '1.1rem' }}>Acquiring GPS Signal...</span>
+                                                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>Please wait for high accuracy lock</span>
+                                            </div>
+                                        )}
+                                    </div>
+
                                     <div className="map-modal-actions">
                                         <button className="btn-action btn-download" onClick={() => setIsMapModalOpen(false)}>Cancel</button>
-                                        <button className="btn-action btn-download" onClick={handleDetectLocation}>Recalibrate</button>
+                                        <button 
+                                            className={`btn-action btn-download ${isFetchingLocation ? 'btn-disabled' : ''}`} 
+                                            disabled={isFetchingLocation} 
+                                            onClick={handleDetectLocation}
+                                        >
+                                            {isFetchingLocation ? 'Locating...' : 'Recalibrate'}
+                                        </button>
                                         <button className="btn-action btn-print" onClick={() => setIsMapModalOpen(false)}>Confirm</button>
                                     </div>
                                 </div>
                             </div>
                         )}
+
+                        {/* NEW: Export PDF / Excel Modal */}
+                        {isExportModalOpen && (
+                            <div className="map-modal-overlay">
+                                <div className="map-modal" style={{ maxWidth: '500px' }}>
+                                    <h3 style={{ marginBottom: '10px' }}><i className="fa-solid fa-file-export" style={{ color: 'var(--primary-red)', marginRight: '8px' }}></i> Export Attendance Report</h3>
+                                    <p>Select a date range to generate a comprehensive, print-ready PDF/Excel report for the target cohort.</p>
+
+                                    <div className="form-group" style={{ marginBottom: '16px', marginTop: '10px' }}>
+                                        <label>Target Department & Cohort</label>
+                                        <input type="text" className="custom-input" value={`${activeDeptContext?.title} • ${sheetFilters.year} • ${sheetFilters.semester}`} disabled style={{ backgroundColor: '#f8fafc', color: '#64748b', fontWeight: 600 }} />
+                                    </div>
+
+                                    <div className="input-row" style={{ marginBottom: '16px' }}>
+                                        <div className="form-group">
+                                            <label>Start Date</label>
+                                            <input type="date" className="custom-input" value={exportFilters.startDate} onChange={(e) => setExportFilters({...exportFilters, startDate: e.target.value})} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>End Date</label>
+                                            <input type="date" className="custom-input" value={exportFilters.endDate} onChange={(e) => setExportFilters({...exportFilters, endDate: e.target.value})} />
+                                        </div>
+                                    </div>
+
+                                    <div className="map-modal-actions" style={{ marginTop: '24px' }}>
+                                        <button className="btn-action btn-download" onClick={() => setIsExportModalOpen(false)}>Cancel</button>
+                                        <button 
+                                            className={`btn-action btn-print ${isExporting ? 'btn-disabled' : ''}`} 
+                                            onClick={handleGenerateReport} 
+                                            disabled={isExporting}
+                                            style={{ display: 'flex', gap: '8px' }}
+                                        >
+                                            {isExporting ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-print"></i>}
+                                            {isExporting ? 'Compiling Matrix...' : 'Generate Document'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* NEW: Campus Message Modal */}
+                        {isMsgModalOpen && (
+                            <div className="msg-modal-overlay">
+                                <div className="msg-modal">
+                                    <div className="msg-header">
+                                        <h3 className="msg-title"><i className="fa-solid fa-tower-broadcast" style={{color: 'var(--primary-red)'}}></i> Broadcast Message</h3>
+                                        <button className="btn-close-modal" onClick={() => setIsMsgModalOpen(false)}><i className="fa-solid fa-xmark"></i></button>
+                                    </div>
+                                    
+                                    <div className="msg-step-indicator">
+                                        <div className={`msg-step-dot ${msgStep >= 1 ? 'active' : ''}`}></div>
+                                        <div className={`msg-step-dot ${msgStep >= 2 ? 'active' : ''}`}></div>
+                                    </div>
+
+                                    {msgStep === 1 ? (
+                                        <div className="msg-step-1">
+                                            <p style={{marginBottom: '16px', color: 'var(--text-muted)', fontSize: '0.9rem'}}>Select the target audience for this broadcast.</p>
+                                            <div className="input-row" style={{marginBottom: '16px'}}>
+                                                <div className="form-group">
+                                                    <label>Department</label>
+                                                    <input type="text" className="custom-input" value={activeDeptContext?.title} disabled style={{background: '#f1f5f9'}}/>
+                                                </div>
+                                                <div className="form-group">
+                                                    <label>Batch</label>
+                                                    <select className="custom-input" value={msgFilters.batch} onChange={(e) => setMsgFilters({...msgFilters, batch: e.target.value})} required>
+                                                        <option value="">Select Batch</option>
+                                                        <option value="2023-2027">2023-2027</option>
+                                                        <option value="2024-2028">2024-2028</option>
+                                                        <option value="2025-2029">2025-2029</option>
+                                                        <option value="2026-2030">2026-2030</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div className="input-row" style={{marginBottom: '24px'}}>
+                                                <div className="form-group">
+                                                    <label>Year</label>
+                                                    <select className="custom-input" value={msgFilters.year} onChange={(e) => setMsgFilters({...msgFilters, year: e.target.value})} required>
+                                                        <option value="">Select Year</option>
+                                                        <option value="1st year">1st year</option>
+                                                        <option value="2nd year">2nd year</option>
+                                                        <option value="3rd year">3rd year</option>
+                                                        <option value="4th year">4th year</option>
+                                                    </select>
+                                                </div>
+                                                <div className="form-group">
+                                                    <label>Semester</label>
+                                                    <select className="custom-input" value={msgFilters.semester} onChange={(e) => setMsgFilters({...msgFilters, semester: e.target.value})} required>
+                                                        <option value="">Select Semester</option>
+                                                        <option value="semester-1">semester-1</option>
+                                                        <option value="semester-2">semester-2</option>
+                                                        <option value="semester-3">semester-3</option>
+                                                        <option value="semester-4">semester-4</option>
+                                                        <option value="semester-5">semester-5</option>
+                                                        <option value="semester-6">semester-6</option>
+                                                        <option value="semester-7">semester-7</option>
+                                                        <option value="semester-8">semester-8</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <button className="btn-save" style={{width: '100%', justifyContent: 'center'}} onClick={() => {
+                                                if(!msgFilters.year || !msgFilters.semester || !msgFilters.batch) return alert("Please select all filters");
+                                                setMsgStep(2);
+                                            }}>Confirm Target Audience <i className="fa-solid fa-arrow-right"></i></button>
+                                        </div>
+                                    ) : (
+                                        <div className="msg-step-2">
+                                            <div className="form-group" style={{marginBottom: '16px'}}>
+                                                <label>Cover Image (Optional)</label>
+                                                <label className="msg-img-upload">
+                                                    <input type="file" accept="image/*" style={{display: 'none'}} onChange={handleImageUpload} />
+                                                    {msgPayload.imageBase64 ? (
+                                                        <img src={msgPayload.imageBase64} className="msg-img-preview" />
+                                                    ) : (
+                                                        <div style={{color: 'var(--text-muted)'}}>
+                                                            <i className="fa-solid fa-cloud-arrow-up" style={{fontSize: '2rem', marginBottom: '8px'}}></i>
+                                                            <p>Click to upload landscape image</p>
+                                                        </div>
+                                                    )}
+                                                </label>
+                                            </div>
+                                            <div className="form-group" style={{marginBottom: '16px'}}>
+                                                <label>Message Title</label>
+                                                <input type="text" className="custom-input" placeholder="e.g. End Semester Exam Schedule" value={msgPayload.title} onChange={(e) => setMsgPayload({...msgPayload, title: e.target.value})} />
+                                            </div>
+                                            <div className="form-group" style={{marginBottom: '24px'}}>
+                                                <label>Message Details</label>
+                                                <textarea className="custom-input" rows="4" placeholder="Enter full message details..." value={msgPayload.body} onChange={(e) => setMsgPayload({...msgPayload, body: e.target.value})}></textarea>
+                                            </div>
+                                            <div style={{display: 'flex', gap: '12px'}}>
+                                                <button className="btn-cancel" style={{flex: 1}} onClick={() => setMsgStep(1)}>Back</button>
+                                                <button className={`btn-save ${isSendingMsg ? 'btn-disabled' : ''}`} style={{flex: 2, justifyContent: 'center'}} onClick={handleSendBroadcast} disabled={isSendingMsg}>
+                                                    <svg className="send-svg-icon" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                                                    {isSendingMsg ? " Broadcasting..." : " Send Notification"}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
                     </main>
+
+                    {/* NEW: Bottom Mobile Nav for Department Admin */}
+                    <nav className="bottom-mobile-nav">
+                        <a href="#" className={activeView === 'class_management' ? 'active' : ''} onClick={(e) => { e.preventDefault(); setActiveView('class_management'); }}>
+                            <i className="fa-regular fa-calendar"></i>
+                            <span>Schedule</span>
+                        </a>
+                        <a href="#" className={activeView === 'qr_generator' ? 'active' : ''} onClick={(e) => { e.preventDefault(); setActiveView('qr_generator'); }}>
+                            <i className="fa-solid fa-qrcode"></i>
+                            <span>QR Gen</span>
+                        </a>
+                        <a href="#" className={activeView === 'attendance_sheet' ? 'active' : ''} onClick={(e) => { e.preventDefault(); setActiveView('attendance_sheet'); }}>
+                            <i className="fa-solid fa-clipboard-user"></i>
+                            <span>Register</span>
+                        </a>
+                        <a href="#" className={activeView === 'cohort_selection' || activeView === 'student_report' || activeView === 'absent_alerts' ? 'active' : ''} onClick={(e) => { e.preventDefault(); setActiveView('cohort_selection'); }}>
+                            <i className="fa-solid fa-chart-pie"></i>
+                            <span>Report</span>
+                        </a>
+                        {/* NEW: Mobile Access to Parent Contacts */}
+                        <a href="#" className={activeView === 'parent_contacts' ? 'active' : ''} onClick={(e) => { e.preventDefault(); setActiveView('parent_contacts'); }}>
+                            <i className="fa-solid fa-address-book"></i>
+                            <span>Contacts</span>
+                        </a>
+                    </nav>
                 </>
             );
         }

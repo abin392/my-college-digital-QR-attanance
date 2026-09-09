@@ -4,7 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="img/ksk logo.jpeg" type="image/x-icon">
-    <title>Student Dashboard</title>
+    <title>Student Dashboard - KSK College</title>
+
+    <meta name="google-site-verification" content="1dvamYiw4ORqep9vHxBh-czgoC1WMgrYk7ElMsHsGho" />
+    
+    <!-- Google Search Engine SEO Tags -->
+    <meta name="description" content="Access the official KSK College Student Dashboard. A comprehensive, real-time academic portal featuring dynamic timetable synchronization, QR-based check-ins, and automated attendance tracking. Developed by ABIN RAJ. AR.">
+    <meta name="keywords" content="ksk college student dashboard, KSK COLLEGE STUDENT DASHBOARD, ksk college student, KSK COLLEGE STUDENT, KSK College of Engineering and Technology, KSKCET attendance, Abin Raj">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="KSK College Student Dashboard">
+    <meta property="og:description" content="The official academic and attendance management portal for KSK College. Featuring real-time QR check-ins, dynamic timetables, and automated absentee alerts. Designed, developed, and tested by ABIN RAJ. AR (2023-2027 BATCH CSE STUDENT).">
+    <meta property="og:url" content="https://kskcet-1eab0.web.app/">
     
     <!-- Google Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -231,6 +241,39 @@
         .network-strong { background: rgba(16, 185, 129, 0.9); color: white; border: 1px solid #059669; }
         .network-slow { background: rgba(245, 158, 11, 0.9); color: white; border: 1px solid #d97706; }
         .network-offline { background: rgba(239, 68, 68, 0.9); color: white; border: 1px solid #b91c1c; }
+        
+        /* NEW: Professional Connection Loader Animation */
+        .connection-loader-container { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 24px; }
+        .loader-node { width: 70px; height: 70px; border-radius: 50%; border: 3px solid var(--white); background: var(--white); display: flex; align-items: center; justify-content: center; position: relative; z-index: 2; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .loader-node img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        .loader-node i { font-size: 2rem; color: var(--text-dark); }
+        
+        /* SVG Zigzag Line */
+        .zigzag-line { width: 120px; height: 40px; z-index: 1; }
+        .zigzag-path { fill: none; stroke: var(--primary-red); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 200; stroke-dashoffset: 200; animation: zigzagDraw 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+        @keyframes zigzagDraw { 0% { stroke-dashoffset: 200; } 50% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -200; } }
+        
+        /* Radar Pulse Effect behind the icons */
+        .pulse-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; box-shadow: 0 0 0 0 rgba(187, 15, 28, 0.7); animation: loaderPulse 1.8s infinite; pointer-events: none; z-index: -1; }
+        @keyframes loaderPulse { 0% { box-shadow: 0 0 0 0 rgba(187, 15, 28, 0.5); } 70% { box-shadow: 0 0 0 15px rgba(187, 15, 28, 0); } 100% { box-shadow: 0 0 0 0 rgba(187, 15, 28, 0); } }
+        
+        /* NEW: Landscape Alerts Dashboard */
+        .alerts-container { max-width: 1000px; margin: 40px auto; padding: 0 20px; display: flex; flex-direction: column; gap: 24px; font-family: 'Inter', sans-serif; }
+        .alert-card { background: var(--white); border-radius: 16px; box-shadow: var(--shadow-md); overflow: hidden; display: flex; border: 1px solid var(--border-light); transition: transform 0.2s; }
+        .alert-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+        .alert-img-wrapper { width: 300px; min-width: 300px; background: #f8fafc; display: flex; justify-content: center; align-items: center; overflow: hidden; border-right: 1px solid var(--border-light); }
+        /* FIX: Using 'contain' and adding padding so logos sit perfectly centered without edges being cut off */
+        .alert-img-wrapper img { width: 100%; height: 100%; object-fit: contain; padding: 16px; }
+        .alert-img-placeholder { font-size: 3rem; color: #cbd5e1; }
+        .alert-content { padding: 24px; display: flex; flex-direction: column; justify-content: center; flex: 1; }
+        .alert-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
+        .alert-badge { background: #ffeef0; color: var(--primary-red); padding: 4px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .alert-title { font-size: 1.4rem; font-weight: 800; color: var(--text-dark); margin-bottom: 12px; line-height: 1.3; }
+        .alert-body { font-size: 0.95rem; color: var(--text-main); line-height: 1.6; white-space: pre-wrap; }
+        @media (max-width: 768px) {
+            .alert-card { flex-direction: column; }
+            .alert-img-wrapper { width: 100%; height: 200px; border-right: none; border-bottom: 1px solid var(--border-light); }
+        }
     </style>
 </head>
 <body>
@@ -249,7 +292,14 @@
             <a href="#" id="nav-history" onclick="window.dispatchEvent(new Event('show-history')); event.preventDefault();">History</a>
         </nav>
         <div class="user-profile">
-            <i class="fa-regular fa-bell notification-icon"></i>
+            <!-- FIX: Added onclick event to trigger the Campus Alerts page and added pointer styling -->
+            <i class="fa-regular fa-bell notification-icon" 
+               onclick="window.dispatchEvent(new Event('show-alerts'));" 
+               title="View Campus Alerts" 
+               style="cursor: pointer; font-size: 1.25rem; transition: color 0.2s ease;"
+               onMouseOver="this.style.color='var(--primary-red)'" 
+               onMouseOut="this.style.color='inherit'">
+            </i>
             
             <div class="profile-dropdown">
                 <!-- Default Icon (Shown when Logged Out) -->
@@ -279,7 +329,7 @@
             <i class="fa-solid fa-clock-rotate-left"></i>
             <span>History</span>
         </a>
-        <a href="#">
+        <a href="#" id="mob-nav-alerts" onclick="window.dispatchEvent(new Event('show-alerts')); event.preventDefault();">
             <i class="fa-regular fa-bell"></i>
             <span>Alerts</span>
         </a>
@@ -287,30 +337,48 @@
 
     <!-- 3. React History Root (Properly positioned below the navigation bars) -->
     <div id="react-history-root"></div>
+    
+    <!-- NEW: React Alerts Root -->
+    <div id="react-alerts-root"></div>
 
     <main class="dashboard-container">
         <!-- Kept your exact dashboard structure intact -->
         <div class="top-row">
             <div class="card welcome-card">
-                <p class="greeting">Good morning,</p>
+                <p class="greeting" id="dynamic-greeting">Good morning,</p>
                 <h1 class="user-name">Loading...</h1>
-                <p class="subtitle">You're on track! Your attendance for this semester is currently at 94%.</p>
+                <p class="subtitle">Action required! Your attendance for this month is currently at ...</p>
                 <div class="status-pill">
                     <i class="fa-solid fa-circle-check check-icon"></i>
-                    <span>Computer Science 101 marked present</span>
+                    <span>Attended ... out of ... Classes This Month</span>
                 </div>
             </div>
-            <div class="card check-in-card">
-                <div class="icon-circle">
-                    <i class="fa-solid fa-qrcode"></i>
-                </div>
-                <h2 class="card-title">Check In Now</h2>
-                <p class="card-desc">Class starting soon? Scan the professor's code.</p>
-                <button class="btn-primary" onclick="window.location.href='scan.html'">
-                    <i class="fa-solid fa-camera"></i> SCAN QR CODE
-                </button>
-            </div>
+            <div class="card check-in-card" id="react-check-in-root"></div>
         </div>
+
+        <!-- NEW: Dynamic Time-Based Greeting Script -->
+        <script>
+            function updateDynamicGreeting() {
+                const hour = new Date().getHours();
+                const greetingEl = document.getElementById('dynamic-greeting');
+                if (!greetingEl) return;
+
+                if (hour >= 0 && hour < 12) {
+                    // 12:00 AM to 11:59 AM
+                    greetingEl.innerHTML = '<i class="fa-solid fa-cloud-sun" style="color: #f59e0b; margin-right: 6px; font-size: 1.1em;"></i> Good morning,';
+                } else if (hour >= 12 && hour < 15) {
+                    // 12:00 PM to 2:59 PM
+                    greetingEl.innerHTML = '<i class="fa-solid fa-sun" style="color: #ea580c; margin-right: 6px; font-size: 1.1em;"></i> Good afternoon,';
+                } else {
+                    // 3:00 PM to 11:59 PM
+                    greetingEl.innerHTML = '<i class="fa-solid fa-cloud-moon" style="color: #6366f1; margin-right: 6px; font-size: 1.1em;"></i> Good evening,';
+                }
+            }
+            // Run instantly on load
+            updateDynamicGreeting();
+            // Check every 60 seconds to automatically update if the user leaves the tab open
+            setInterval(updateDynamicGreeting, 60000);
+        </script>
 
         <div class="bottom-row">
             <!-- NEW: React mount point for dynamic Today's Classes -->
@@ -340,6 +408,8 @@
             // Show UI by default
             const [isVisible, setIsVisible] = React.useState(false);
             const [isAuthLoading, setIsAuthLoading] = React.useState(true);
+            const [authLoaderPhoto, setAuthLoaderPhoto] = React.useState(null); // NEW: Holds user profile for Zigzag animation
+            const [isTransitioning, setIsTransitioning] = React.useState(false); // NEW: Controls the fly-out animation
             
             // New state to toggle between Login and Sign Up
             const [isLogin, setIsLogin] = React.useState(false);
@@ -354,27 +424,32 @@
             // State to toggle password visibility
             const [showPassword, setShowPassword] = React.useState(false);
 
-            // NEW: Network Status State
+            // NEW: Network Status State & 5-Second Auto-Hide Logic
             const [networkStatus, setNetworkStatus] = React.useState('strong'); // strong, slow, offline
+            const [showNetworkIndicator, setShowNetworkIndicator] = React.useState(false);
 
             // Live Internet Speed Detection
             React.useEffect(() => {
+                let timeoutId;
                 const updateNetworkStatus = () => {
+                    let newStatus = 'strong';
                     if (!navigator.onLine) {
-                        setNetworkStatus('offline');
-                        return;
-                    }
-                    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-                    if (conn) {
-                        // Detects weak 2G or 3G connections
-                        if (conn.effectiveType === 'slow-2g' || conn.effectiveType === '2g' || conn.effectiveType === '3g') {
-                            setNetworkStatus('slow');
-                        } else {
-                            setNetworkStatus('strong');
-                        }
+                        newStatus = 'offline';
                     } else {
-                        setNetworkStatus('strong'); // Fallback to strong if browser doesn't support connection API
+                        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                        if (conn && (conn.effectiveType === 'slow-2g' || conn.effectiveType === '2g' || conn.effectiveType === '3g')) {
+                            newStatus = 'slow';
+                        }
                     }
+                    
+                    setNetworkStatus(prev => {
+                        if (prev !== newStatus) {
+                            setShowNetworkIndicator(true);
+                            clearTimeout(timeoutId);
+                            timeoutId = setTimeout(() => setShowNetworkIndicator(false), 5000);
+                        }
+                        return newStatus;
+                    });
                 };
 
                 window.addEventListener('online', updateNetworkStatus);
@@ -383,12 +458,18 @@
                 const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
                 if (conn) conn.addEventListener('change', updateNetworkStatus);
 
-                updateNetworkStatus();
+                // Initial check for offline state on load
+                if (!navigator.onLine) {
+                    setShowNetworkIndicator(true);
+                    timeoutId = setTimeout(() => setShowNetworkIndicator(false), 5000);
+                    setNetworkStatus('offline');
+                }
 
                 return () => {
                     window.removeEventListener('online', updateNetworkStatus);
                     window.removeEventListener('offline', updateNetworkStatus);
                     if (conn) conn.removeEventListener('change', updateNetworkStatus);
+                    clearTimeout(timeoutId);
                 };
             }, []);
             
@@ -410,10 +491,11 @@
                                 window.location.href = 'admin.html';
                                 return; // Stop executing student dashboard logic
                             }
-
-                            // User is logged in: Hide Auth UI overlay, setup Dashboard UI
-                            setIsVisible(false); 
-                            setIsAuthLoading(false);
+                            
+                            // NEW: Request Browser Notification Permission
+                            if ("Notification" in window && Notification.permission !== "granted") {
+                                Notification.requestPermission();
+                            }
                             
                             document.getElementById('default-avatar-icon').style.display = 'none';
                             document.getElementById('logged-in-avatar').style.display = 'block';
@@ -423,6 +505,8 @@
                             let photoUrl = user.photoURL 
                                 ? user.photoURL 
                                 : `https://ui-avatars.com/api/?name=${user.email}&background=bb0f1c&color=fff`;
+                                
+                            setAuthLoaderPhoto(photoUrl); // Inject user photo into Zigzag Loader instantly while DB fetches
 
                             // 2. Set default display name to their Google name or email prefix
                             let displayName = user.displayName || user.email.split('@')[0];
@@ -456,6 +540,14 @@
                             // Update dashboard header dynamically
                             const dashboardNameEl = document.querySelector('.user-name');
                             if(dashboardNameEl) dashboardNameEl.textContent = displayName;
+                            
+                            // NEW: Trigger the fly-out animation before hiding!
+                            setIsTransitioning(true);
+                            setTimeout(() => {
+                                setIsVisible(false); 
+                                setIsAuthLoading(false);
+                                setIsTransitioning(false);
+                            }, 800); // Wait for the 0.8s CSS animation to finish
                         } else {
                             // User is logged out: Show Auth UI, reset Dashboard UI
                             setIsVisible(true); 
@@ -593,12 +685,16 @@
                     if (!window.firebaseAuth || !window.firebaseAuth.signInWithPopup) {
                         throw new Error("Firebase Google auth not initialized. Check firebaseconfig.js");
                     }
-                    await window.firebaseAuth.signInWithPopup(
+                    const result = await window.firebaseAuth.signInWithPopup(
                         window.firebaseAuth.auth, 
                         window.firebaseAuth.googleProvider
                     );
-                    alert("Logged in with Google successfully!");
-                    setIsVisible(false); // Hide overlay to reveal dashboard
+                    
+                    const user = result.user;
+                    let photoUrl = user.photoURL ? user.photoURL : `https://ui-avatars.com/api/?name=${user.email}&background=bb0f1c&color=fff`;
+                    setAuthLoaderPhoto(photoUrl); // Inject their photo instantly
+                    setIsAuthLoading(true); // Trigger beautiful Zigzag Transition
+                    
                 } catch (err) {
                     setError(err.message);
                 }
@@ -622,13 +718,14 @@
 
                     if (isLogin) {
                         // Firebase Login
-                        await window.firebaseAuth.signInWithEmailAndPassword(
+                        const userCredential = await window.firebaseAuth.signInWithEmailAndPassword(
                             window.firebaseAuth.auth, 
                             formData.email, 
                             formData.password
                         );
-                        alert("Logged in successfully!");
-                        setIsVisible(false); // Hide overlay to reveal dashboard
+                        const user = userCredential.user;
+                        setAuthLoaderPhoto(`https://ui-avatars.com/api/?name=${user.email}&background=bb0f1c&color=fff`);
+                        setIsAuthLoading(true); // Trigger beautiful Zigzag Transition
                     } else {
                         // Firebase Sign Up
                         const userCredential = await window.firebaseAuth.createUserWithEmailAndPassword(
@@ -638,6 +735,8 @@
                         );
                         
                         const user = userCredential.user;
+                        setAuthLoaderPhoto(`https://ui-avatars.com/api/?name=${user.email}&background=bb0f1c&color=fff`);
+                        setIsAuthLoading(true); // Trigger beautiful Zigzag Transition
 
                         // Save extra student details to Firestore Database
                         await window.firebaseAuth.setDoc(
@@ -652,38 +751,81 @@
                                 email: formData.email
                             }
                         );
-
-                        alert("Account created successfully!");
-                        setIsVisible(false); // Hide overlay to reveal dashboard
                     }
                 } catch (err) {
                     setError(err.message); // Display error message
+                    setIsAuthLoading(false);
                 }
             };
 
             if (isAuthLoading) {
                 return (
-                    <div className="react-overlay-wrapper" style={{ background: 'var(--bg-color)' }}>
-                        <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: '3rem', color: 'var(--primary-red)' }}></i>
+                    <div className={`react-overlay-wrapper ${isTransitioning ? 'flying-out' : ''}`} style={{ background: isTransitioning ? 'transparent' : 'var(--bg-color)', backdropFilter: isTransitioning ? 'blur(0px)' : 'blur(5px)', transition: 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)' }}>
+                        
+                        {/* Inline CSS for the specific flight paths */}
+                        <style>{`
+                            .flying-out .zigzag-line, .flying-out .loading-text-block { opacity: 0 !important; transition: opacity 0.3s ease; }
+                            .flying-out .pulse-ring { display: none; }
+                            .node-left, .node-right { transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s ease; z-index: 9999; }
+                            
+                            /* Flight coordinate calculations */
+                            .flying-out .node-left { transform: translate(-35vw, -40vh) scale(0.5); opacity: 0; }
+                            .flying-out .node-right { transform: translate(35vw, -40vh) scale(0.5); opacity: 0; }
+                            
+                            @media (max-width: 768px) {
+                                .flying-out .node-left { transform: translate(-40vw, -45vh) scale(0.4); }
+                                .flying-out .node-right { transform: translate(40vw, -45vh) scale(0.4); }
+                            }
+                        `}</style>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                            <div className="connection-loader-container">
+                                {/* Left Side: College Node */}
+                                <div className="loader-node node-left" style={{ borderColor: 'var(--primary-red)' }}>
+                                    <div className="pulse-ring"></div>
+                                    <img src="img/ksk logo.jpeg" alt="KSK Logo" onError={(e) => { e.target.onerror = null; e.target.src = 'ksk circle.png'; }} />
+                                </div>
+                                
+                                {/* Middle: Animated Zigzag Connection */}
+                                <svg className="zigzag-line" viewBox="0 0 100 40">
+                                    <path className="zigzag-path" d="M 0 20 L 25 5 L 50 35 L 75 5 L 100 20"></path>
+                                </svg>
+                                
+                                {/* Right Side: User Profile Node */}
+                                <div className="loader-node node-right" style={{ borderColor: '#0f172a', overflow: 'hidden' }}>
+                                    <div className="pulse-ring" style={{ animationDelay: '0.9s', animationDuration: '1.8s', boxShadow: '0 0 0 0 rgba(15, 23, 42, 0.7)' }}></div>
+                                    {authLoaderPhoto ? (
+                                        <img src={authLoaderPhoto} alt="User Profile" />
+                                    ) : (
+                                        <i className="fa-solid fa-user-shield"></i>
+                                    )}
+                                </div>
+                            </div>
+                            
+                            <div className="loading-text-block">
+                                <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '8px', letterSpacing: '-0.5px' }}>Establishing Secure Connection...</h2>
+                                <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 500 }}>Syncing Dashboard with KSK College Servers</p>
+                            </div>
+                        </div>
                     </div>
                 );
             }
 
-            // NEW: Network Indicator Component
-            const networkIndicatorUI = (
+            // NEW: Network Indicator Component (Only visible for 5s)
+            const networkIndicatorUI = showNetworkIndicator ? (
                 <div className={`network-indicator network-${networkStatus}`}>
                     {networkStatus === 'strong' && <><i className="fa-solid fa-wifi"></i> Your internet strong</>}
                     {networkStatus === 'slow' && <><i className="fa-solid fa-satellite-dish"></i> Your internet slow</>}
                     {networkStatus === 'offline' && <><i className="fa-solid fa-plane-slash"></i> You're offline</>}
                 </div>
-            );
+            ) : null;
 
-            // If user is logged in (Dashboard View), keep the Network Indicator visible over the HTML!
+            // Only show indicator on the Student Dashboard, NOT the login form!
             if (!isVisible) return networkIndicatorUI;
 
             return (
                 <div className="react-overlay-wrapper">
-                    {networkIndicatorUI}
+                    {/* Network indicator completely removed from Auth UI */}
                     <div className="auth-brand-header">
                         <h1 className="auth-logo">AttendancePro</h1>
                         <p>Join the platform. Manage your presence.</p>
@@ -896,40 +1038,282 @@
         const root = ReactDOM.createRoot(document.getElementById('react-auth-root'));
         root.render(<SignUpUI />);
 
-        // NEW: History Single-Page Application (SPA) Logic
+        // NEW: History Single-Page Application (SPA) Logic with Database Integration
         function HistoryUI() {
             const [isVisible, setIsVisible] = React.useState(false);
+            const [historyData, setHistoryData] = React.useState([]);
+            const [stats, setStats] = React.useState({ percentage: 0, missed: 0, attended: 0, total: 0 });
+            const [isLoading, setIsLoading] = React.useState(true);
+
+            // Helpers for exact timetable math
+            const normalizeNum = (str) => {
+                if (!str) return "";
+                const match = String(str).match(/\d+/);
+                return match ? match[0] : String(str).toLowerCase().trim();
+            };
+
+            const timeToMinutes = (timeStr) => {
+                if (!timeStr) return -1; 
+                const match12 = timeStr.match(/(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)/i);
+                if (match12) {
+                    let hours = parseInt(match12[1], 10);
+                    const mins = parseInt(match12[2], 10);
+                    const ampm = match12[3].toUpperCase();
+                    if (hours === 12 && ampm === 'AM') hours = 0; 
+                    if (hours < 12 && ampm === 'PM') hours += 12; 
+                    return (hours * 60) + mins;
+                }
+                const match24 = timeStr.match(/(\d{1,2}):(\d{2})/);
+                if (match24) return (parseInt(match24[1], 10) * 60) + parseInt(match24[2], 10);
+                return -1;
+            };
+
+            const extractCode = (str) => {
+                const part = (str || "").split(/[-:\s]/)[0];
+                return part ? part.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() : '';
+            };
 
             React.useEffect(() => {
+                const loadHistoryData = async (e) => {
+                    const userData = e.detail;
+                    if (!userData || !userData.department) return;
+                    setIsLoading(true);
+
+                    try {
+                        // 1. Fetch Timetable
+                        const ttRef = window.firebaseAuth.collection(window.firebaseAuth.db, "timetables");
+                        const ttSnap = await window.firebaseAuth.getDocs(ttRef);
+                        let matchedTimetable = null;
+
+                        ttSnap.forEach(doc => {
+                            const data = doc.data();
+                            if (!data.context) return;
+                            const dbDept = (data.context.program || "").toLowerCase().trim();
+                            const userDept = (userData.department || "").toLowerCase().trim();
+                            const dbBatch = (data.context.batch || "").toLowerCase().trim();
+                            const userBatch = (userData.batch || "").toLowerCase().trim();
+                            const dbYear = normalizeNum(data.context.year);
+                            const userYear = normalizeNum(userData.year);
+                            const dbSem = normalizeNum(data.context.semester);
+                            const userSem = normalizeNum(userData.semester);
+
+                            // FIX: Timetable Date Range Check (Syncs with Dashboard to prevent picking old/expired timetables)
+                            const todayForTT = new Date();
+                            todayForTT.setHours(0, 0, 0, 0); 
+                            let isWithinDateRange = true; 
+                            if (data.context.startDate && data.context.endDate) {
+                                const startDate = new Date(data.context.startDate);
+                                const endDate = new Date(data.context.endDate);
+                                startDate.setHours(0, 0, 0, 0);
+                                endDate.setHours(0, 0, 0, 0);
+                                isWithinDateRange = (todayForTT >= startDate) && (todayForTT <= endDate);
+                            }
+
+                            if (dbDept === userDept && dbBatch === userBatch && dbYear === userYear && dbSem === userSem && isWithinDateRange) {
+                                matchedTimetable = data;
+                            }
+                        });
+
+                        // 2. Fetch User Logs
+                        const logsRef = window.firebaseAuth.collection(window.firebaseAuth.db, "qr_attendance_records");
+                        const logsSnap = await window.firebaseAuth.getDocs(logsRef);
+                        const studentLogs = [];
+                        
+                        logsSnap.forEach(doc => {
+                            const data = doc.data();
+                            const logDept = (data.departmentName || "").toLowerCase().trim();
+                            const userDept = (userData.department || "").toLowerCase().trim();
+                            const logYear = normalizeNum(data.academicYear);
+                            const userYear = normalizeNum(userData.year);
+                            const logSem = normalizeNum(data.academicSemester);
+                            const userSem = normalizeNum(userData.semester);
+
+                            // FIX: Strict Cohort Filter (Prevents cross-semester log bleeding)
+                            if (data.studentId === userData.rollNo && logDept === userDept && logYear === userYear && logSem === userSem) {
+                                studentLogs.push(data);
+                            }
+                        });
+
+                        // NEW: Safely Fetch Holidays for accurate mathematical exclusion
+                        const cohortHolidays = new Set();
+                        try {
+                            const hRef = window.firebaseAuth.collection(window.firebaseAuth.db, "holidays");
+                            const hSnap = await window.firebaseAuth.getDocs(hRef);
+                            
+                            hSnap.forEach(doc => {
+                                const data = doc.data();
+                                const logDept = (data.department || "").toLowerCase().trim();
+                                const userDept = (userData.department || "").toLowerCase().trim();
+                                const logYear = normalizeNum(data.year);
+                                const userYear = normalizeNum(userData.year);
+                                const logSem = normalizeNum(data.semester);
+                                const userSem = normalizeNum(userData.semester);
+                                const logBatch = (data.batch || "").toLowerCase().trim();
+                                const userBatch = (userData.batch || "").toLowerCase().trim();
+
+                                if (logDept === userDept && logYear === userYear && logSem === userSem && logBatch === userBatch) {
+                                    cohortHolidays.add(data.date);
+                                }
+                            });
+                        } catch (holidayErr) {
+                            console.warn("History holiday fetch safely skipped:", holidayErr);
+                        }
+
+                        // 3. Define Month Boundaries
+                        const today = new Date();
+                        const currentMins = today.getHours() * 60 + today.getMinutes();
+                        
+                        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+                        startOfMonth.setHours(0,0,0,0);
+                        const sTime = startOfMonth.getTime();
+                        
+                        // FIX: Move 'today' boundary to the absolute end of the day to ensure morning check-ins aren't excluded!
+                        const endOfToday = new Date(today);
+                        endOfToday.setHours(23,59,59,999);
+                        const eTime = endOfToday.getTime();
+                        
+                        let currDate = new Date(startOfMonth);
+                        let evaluatedTotal = 0;
+                        let attendedTotal = 0;
+                        let missedTotal = 0;
+                        let totalMonthClasses = 0; // Forces denominator to identical match Dashboard
+                        const pastSessions = [];
+
+                        // NEW: Calculate exact numerator identical to Dashboard
+                        let exactMonthlyAttended = 0;
+                        const countedUniqueLogs = new Set();
+                        studentLogs.forEach(log => {
+                            if (log.status === 'P' || log.status === 'OD' || log.status === 'Present') {
+                                const logLocalTimeStr = log.scanVerifiedLocalTime || "";
+                                const dbLocalDateOnly = logLocalTimeStr.split(',')[0].trim();
+                                if (dbLocalDateOnly) {
+                                    const [m, d, y] = dbLocalDateOnly.split('/');
+                                    const logDateObj = new Date(y, m - 1, d, 12, 0, 0); 
+                                    const logTime = logDateObj.getTime();
+                                    
+                                    if (logTime >= sTime && logTime <= eTime) {
+                                        const uniqueKey = `${dbLocalDateOnly}_${log.courseName}`;
+                                        if (!countedUniqueLogs.has(uniqueKey)) {
+                                            countedUniqueLogs.add(uniqueKey);
+                                            exactMonthlyAttended++;
+                                        }
+                                    }
+                                }
+                            }
+                        });
+
+                        // 4. Iterate and Calculate
+                        while (currDate <= today) {
+                            const isToday = currDate.toDateString() === today.toDateString();
+                            const dayName = currDate.toLocaleDateString('en-US', { weekday: 'long' });
+                            const dateStrLocal = `${currDate.getMonth() + 1}/${currDate.getDate()}/${currDate.getFullYear()}`;
+                            const displayDate = currDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                            
+                            const isoDate = `${currDate.getFullYear()}-${String(currDate.getMonth() + 1).padStart(2, '0')}-${String(currDate.getDate()).padStart(2, '0')}`;
+
+                            // Skip weekends AND explicitly skip declared holidays
+                            if (dayName !== 'Saturday' && dayName !== 'Sunday' && !cohortHolidays.has(isoDate) && matchedTimetable && matchedTimetable.schedule) {
+                                const dailyClasses = matchedTimetable.schedule[dayName] || [];
+                                totalMonthClasses += dailyClasses.length; // Align perfectly with Dashboard calculation
+
+                                dailyClasses.forEach(cls => {
+                                    const startMins = timeToMinutes(cls.startTime);
+                                    
+                                    // Evaluate all past days, but for TODAY, only evaluate if 20 mins have passed
+                                    const isEvaluated = !isToday || (currentMins > startMins + 20);
+
+                                    if (isEvaluated) {
+                                        evaluatedTotal++;
+                                        
+                                        const ttCode = extractCode(cls.subject);
+                                        const ttSubjectFull = (cls.subject || "").toLowerCase();
+
+                                        const matchingLogs = studentLogs.filter(log => {
+                                            const logLocalTimeStr = log.scanVerifiedLocalTime || "";
+                                            const dbLocalDateOnly = logLocalTimeStr.split(',')[0].trim();
+                                            if (dbLocalDateOnly !== dateStrLocal) return false;
+
+                                            const logCode = extractCode(log.courseName);
+                                            const logCourseFull = (log.courseName || "").toLowerCase();
+                                            return (logCode && ttCode && logCode === ttCode) || logCourseFull.includes(ttCode) || ttSubjectFull.includes(logCode);
+                                        });
+
+                                        const validLog = matchingLogs.find(l => l.isManualOverride) || matchingLogs[0];
+                                        let status = validLog ? (validLog.status === 'OD' ? 'OD' : 'Present') : 'Absent';
+                                        
+                                        if (status === 'Present' || status === 'OD') {
+                                            attendedTotal++;
+                                        } else {
+                                            missedTotal++;
+                                        }
+
+                                        pastSessions.push({
+                                            dateObj: new Date(currDate.getTime() + startMins * 60000),
+                                            displayDate,
+                                            timeStr: cls.startTime,
+                                            subject: cls.subject,
+                                            faculty: cls.faculty,
+                                            status
+                                        });
+                                    }
+                                });
+                            }
+                            currDate.setDate(currDate.getDate() + 1);
+                        }
+
+                        // Sort chronological descending (newest first)
+                        pastSessions.sort((a, b) => b.dateObj - a.dateObj);
+                        
+                        // NEW: Dashboard-Identical Percentage Formatting
+                        const percentage = totalMonthClasses > 0 ? parseFloat(((exactMonthlyAttended / totalMonthClasses) * 100).toFixed(1)) : 100;
+                        setStats({ percentage, missed: missedTotal, attended: exactMonthlyAttended, total: totalMonthClasses });
+                        setHistoryData(pastSessions);
+
+                    } catch (err) {
+                        console.error("Error generating history:", err);
+                    } finally {
+                        setIsLoading(false);
+                    }
+                };
+
+                window.addEventListener('user-profile-loaded', loadHistoryData);
+                
                 const showHistory = () => {
                     setIsVisible(true);
-                    // Hide the standard HTML dashboard
                     document.querySelector('.dashboard-container').style.display = 'none';
+                    const alertsRoot = document.getElementById('react-alerts-root');
+                    if(alertsRoot) alertsRoot.style.display = 'none';
                     
-                    // Update active state on Nav links
-                    document.getElementById('nav-dashboard').classList.remove('active');
-                    document.getElementById('mob-nav-dashboard').classList.remove('active');
-                    document.getElementById('nav-history').classList.add('active');
-                    document.getElementById('mob-nav-history').classList.add('active');
+                    // FIX: Un-hide the History root container if returning from the Alerts page!
+                    const historyRoot = document.getElementById('react-history-root');
+                    if(historyRoot) historyRoot.style.display = '';
+                    
+                    document.querySelectorAll('.nav-links a, .bottom-mobile-nav a').forEach(el => el.classList.remove('active'));
+                    document.getElementById('nav-history')?.classList.add('active');
+                    document.getElementById('mob-nav-history')?.classList.add('active');
                 };
 
                 const showDashboard = () => {
                     setIsVisible(false);
-                    // Show the standard HTML dashboard
-                    document.querySelector('.dashboard-container').style.display = 'block';
+                    // FIX: Remove inline display style to restore original CSS layout (grid/flex)
+                    document.querySelector('.dashboard-container').style.display = ''; 
+                    const alertsRoot = document.getElementById('react-alerts-root');
+                    if(alertsRoot) alertsRoot.style.display = 'none';
                     
-                    // Update active state on Nav links
-                    document.getElementById('nav-history').classList.remove('active');
-                    document.getElementById('mob-nav-history').classList.remove('active');
-                    document.getElementById('nav-dashboard').classList.add('active');
-                    document.getElementById('mob-nav-dashboard').classList.add('active');
+                    // FIX: Ensure History root isn't permanently stuck invisible if navigating Dashboard -> Alerts -> Dashboard -> History
+                    const historyRoot = document.getElementById('react-history-root');
+                    if(historyRoot) historyRoot.style.display = '';
+                    
+                    document.querySelectorAll('.nav-links a, .bottom-mobile-nav a').forEach(el => el.classList.remove('active'));
+                    document.getElementById('nav-dashboard')?.classList.add('active');
+                    document.getElementById('mob-nav-dashboard')?.classList.add('active');
                 };
 
-                // Listeners for the Navigation Clicks
                 window.addEventListener('show-history', showHistory);
                 window.addEventListener('show-dashboard', showDashboard);
 
                 return () => {
+                    window.removeEventListener('user-profile-loaded', loadHistoryData);
                     window.removeEventListener('show-history', showHistory);
                     window.removeEventListener('show-dashboard', showDashboard);
                 };
@@ -939,122 +1323,78 @@
 
             return (
                 <main className="history-container">
-                    
                     <div className="page-header-row">
                         <div className="page-title">
                             <h1>Your History</h1>
                             <p>Track your attendance across all registered courses.</p>
                         </div>
-                        <div className="search-container">
-                            <div className="search-box">
-                                <input type="text" placeholder="Search courses..." />
-                            </div>
-                            <button className="filter-btn"><i className="fa-solid fa-filter"></i></button>
-                        </div>
+                        {/* Search and filter removed per instructions */}
                     </div>
 
-                    <div className="overview-grid">
+                    <div className="overview-grid" style={{ gridTemplateColumns: '1fr' }}>
                         <div className="card">
-                            <h2 className="card-header-title">Current Semester Overview</h2>
-                            <div className="stats-row">
-                                <div className="stat-item">
-                                    <h4>OVERALL ATTENDANCE</h4>
-                                    <div className="stat-value">92%</div>
+                            <h2 className="card-header-title">Current Month Attendance Overview</h2>
+                            {isLoading ? (
+                                <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8' }}>
+                                    <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: '2rem' }}></i>
                                 </div>
-                                <div className="stat-item">
-                                    <h4>MISSED SESSIONS</h4>
-                                    <div className="stat-value danger">3</div>
-                                </div>
-                            </div>
-                            <div className="action-pill">Action Required: Check CS301</div>
+                            ) : (
+                                <>
+                                    <div className="stats-row">
+                                        <div className="stat-item">
+                                            <h4>OVERALL ATTENDANCE</h4>
+                                            <div className="stat-value" style={{ color: stats.percentage >= 75 ? '#10b981' : 'var(--primary-red)' }}>{stats.percentage}%</div>
+                                        </div>
+                                        <div className="stat-item">
+                                            <h4>MISSED SESSIONS</h4>
+                                            <div className={`stat-value ${stats.missed > 0 ? 'danger' : ''}`}>{stats.missed}</div>
+                                        </div>
+                                    </div>
+                                    {stats.percentage < 75 && (
+                                        <div className="action-pill">Action Required: Low Attendance Detected</div>
+                                    )}
+                                </>
+                            )}
                         </div>
-
-                        <div className="card today-card">
-                            <div className="date-label">TODAY</div>
-                            <i className="fa-regular fa-circle-check check-circle"></i>
-                            <h3>Advanced UI Design</h3>
-                            <p className="course-code">DES402</p>
-                            <div className="time-log">10:05 AM</div>
-                            <p className="status-text">Checked in on time</p>
-                        </div>
+                        {/* Today card removed per instructions */}
                     </div>
 
                     <div>
                         <h2 className="section-title">Past Sessions</h2>
                         <div className="sessions-list">
-                            
-                            <div className="session-item">
-                                <div className="session-info-wrapper">
-                                    <div className="icon-box"><i className="fa-solid fa-laptop"></i></div>
-                                    <div className="session-info">
-                                        <h3>Data Structures</h3>
-                                        <p>CS301 &bull; Prof. Alan Turing</p>
-                                    </div>
+                            {isLoading ? (
+                                <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>Loading past sessions...</div>
+                            ) : historyData.length === 0 ? (
+                                <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8', background: 'var(--white)', borderRadius: '12px' }}>
+                                    No past sessions evaluated for this month yet.
                                 </div>
-                                <div className="session-meta">
-                                    <div className="date-time">
-                                        <p>Oct 24, 2026</p>
-                                        <p>09:00 AM</p>
+                            ) : (
+                                historyData.map((session, idx) => (
+                                    <div key={idx} className={`session-item ${session.status === 'Absent' ? 'warning' : ''}`}>
+                                        <div className="session-info-wrapper">
+                                            <div className="icon-box">
+                                                <i className={`fa-solid ${session.status === 'Absent' ? 'fa-xmark' : (session.status === 'OD' ? 'fa-user-shield' : 'fa-check')}`} style={{ color: session.status === 'OD' ? '#ca8a04' : 'inherit' }}></i>
+                                            </div>
+                                            <div className="session-info">
+                                                <h3>{session.subject}</h3>
+                                                <p>{session.faculty ? `Prof. ${session.faculty}` : 'Class Session'}</p>
+                                            </div>
+                                        </div>
+                                        <div className="session-meta">
+                                            <div className="date-time">
+                                                <p>{session.displayDate}</p>
+                                                <p>{session.timeStr}</p>
+                                            </div>
+                                            <span 
+                                                className={`badge ${session.status === 'Absent' ? 'badge-absent' : 'badge-present'}`} 
+                                                style={session.status === 'OD' ? { background: '#fef08a', color: '#ca8a04', borderColor: '#fde047' } : {}}
+                                            >
+                                                <i className={`fa-solid ${session.status === 'Absent' ? 'fa-xmark' : (session.status === 'OD' ? 'fa-user-shield' : 'fa-check')}`}></i> {session.status}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <span className="badge badge-present"><i className="fa-solid fa-check"></i> Present</span>
-                                </div>
-                            </div>
-
-                            <div className="session-item warning">
-                                <div className="session-info-wrapper">
-                                    <div className="icon-box"><i className="fa-solid fa-pen-ruler"></i></div>
-                                    <div className="session-info">
-                                        <h3>Advanced UI Design</h3>
-                                        <p>DES402 &bull; Prof. J. Ive</p>
-                                    </div>
-                                </div>
-                                <div className="session-meta">
-                                    <div className="date-time">
-                                        <p>Oct 22, 2026</p>
-                                        <p>10:15 AM <span style={{color: 'var(--primary-red)'}}>(15m late)</span></p>
-                                    </div>
-                                    <span className="badge badge-late"><i className="fa-regular fa-clock"></i> Late</span>
-                                </div>
-                            </div>
-
-                            <div className="session-item warning">
-                                <div className="session-info-wrapper">
-                                    <div className="icon-box"><i className="fa-solid fa-flask"></i></div>
-                                    <div className="session-info">
-                                        <h3>Quantum Mechanics</h3>
-                                        <p>PHY401 &bull; Prof. R. Feynman</p>
-                                    </div>
-                                </div>
-                                <div className="session-meta">
-                                    <div className="date-time">
-                                        <p>Oct 20, 2026</p>
-                                        <p>14:00 PM</p>
-                                    </div>
-                                    <span className="badge badge-absent"><i className="fa-solid fa-xmark"></i> Absent</span>
-                                </div>
-                            </div>
-
-                            <div className="session-item">
-                                <div className="session-info-wrapper">
-                                    <div className="icon-box"><i className="fa-solid fa-laptop"></i></div>
-                                    <div className="session-info">
-                                        <h3>Data Structures</h3>
-                                        <p>CS301 &bull; Prof. Alan Turing</p>
-                                    </div>
-                                </div>
-                                <div className="session-meta">
-                                    <div className="date-time">
-                                        <p>Oct 17, 2026</p>
-                                        <p>09:00 AM</p>
-                                    </div>
-                                    <span className="badge badge-present"><i className="fa-solid fa-check"></i> Present</span>
-                                </div>
-                            </div>
-
-                        </div>
-                        
-                        <div className="load-more-container">
-                            <button className="load-more-btn">Load More <i className="fa-solid fa-chevron-down"></i></button>
+                                ))
+                            )}
                         </div>
                     </div>
                 </main>
@@ -1064,12 +1404,232 @@
         const historyRoot = ReactDOM.createRoot(document.getElementById('react-history-root'));
         historyRoot.render(<HistoryUI />);
 
-        // NEW: Dynamic Today's Classes Component with Live Scan Status
+        // NEW: Smart Check-In Card Component (Handles Break Times, Cooldown, 20m Late Interception, & End of Day Lock)
+        function CheckInCardUI() {
+            const [cooldown, setCooldown] = React.useState(0);
+            const [isLocked, setIsLocked] = React.useState(false);
+            const [breakMsg, setBreakMsg] = React.useState(""); 
+            const [isEndOfDay, setIsEndOfDay] = React.useState(false); // NEW: End of day state
+            const [todayHoliday, setTodayHoliday] = React.useState(null); // NEW: Holiday state
+
+            // NEW: Tracks if the current scan window is completely missed (> 20m late)
+            const [scanWindow, setScanWindow] = React.useState({ status: 'open', lateClassName: '' });
+            const [showLateModal, setShowLateModal] = React.useState(false);
+
+            React.useEffect(() => {
+                const handleScanStatus = (e) => setScanWindow(e.detail);
+                const handleHoliday = (e) => setTodayHoliday(e.detail);
+                const handleLogout = () => setTodayHoliday(null);
+                
+                window.addEventListener('scan-window-status', handleScanStatus);
+                window.addEventListener('today-is-holiday', handleHoliday);
+                window.addEventListener('logout-user', handleLogout);
+                
+                return () => {
+                    window.removeEventListener('scan-window-status', handleScanStatus);
+                    window.removeEventListener('today-is-holiday', handleHoliday);
+                    window.removeEventListener('logout-user', handleLogout);
+                };
+            }, []);
+
+            React.useEffect(() => {
+                const checkLock = () => {
+                    const now = new Date();
+                    const currentMins = now.getHours() * 60 + now.getMinutes();
+                    
+                    // NEW: 1. End of Day Check (4:20 PM [980 mins] to 9:20 AM [560 mins])
+                    if (currentMins >= 980 || currentMins < 560) {
+                        setIsEndOfDay(true);
+                        setIsLocked(true);
+                        setBreakMsg("");
+                        setCooldown(0);
+                        return; // Stop evaluating other locks
+                    } else {
+                        setIsEndOfDay(false);
+                    }
+
+                    let activeBreak = "";
+
+                    // Mathematical Check for the 3 Break Windows
+                    if (currentMins >= 670 && currentMins < 680) activeBreak = "Morning Break";
+                    else if (currentMins >= 780 && currentMins < 825) activeBreak = "Lunch Break";
+                    else if (currentMins >= 920 && currentMins < 930) activeBreak = "Evening Break";
+
+                    if (activeBreak) {
+                        setBreakMsg(activeBreak);
+                        setIsLocked(true);
+                        setCooldown(0);
+                    } else {
+                        setBreakMsg("");
+                        const lockUntil = localStorage.getItem('kskcet_scan_lock_until');
+                        
+                        if (lockUntil) {
+                            const nowTime = now.getTime();
+                            const until = parseInt(lockUntil, 10);
+                            if (nowTime < until) {
+                                setIsLocked(true);
+                                setCooldown(Math.ceil((until - nowTime) / 1000));
+                            } else {
+                                setIsLocked(false);
+                                setCooldown(0);
+                                localStorage.removeItem('kskcet_scan_lock_until');
+                            }
+                        } else {
+                            setIsLocked(false);
+                            setCooldown(0);
+                        }
+                    }
+                };
+
+                checkLock();
+                const timer = setInterval(checkLock, 1000);
+                window.addEventListener('scan-lock-updated', checkLock);
+                
+                return () => {
+                    clearInterval(timer);
+                    window.removeEventListener('scan-lock-updated', checkLock);
+                };
+            }, []);
+
+            const formatTime = (seconds) => {
+                const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const s = (seconds % 60).toString().padStart(2, '0');
+                return `${m}:${s}`;
+            };
+
+            let cardDesc = "Class starting soon? Scan the professor's code.";
+            let btnText = "SCAN QR CODE";
+            let iconClass = "fa-camera";
+            let isBtnDisabled = isLocked || !!todayHoliday; // NEW: Combine strict locks with holiday state
+            
+            // UI Priority Rendering (Holiday takes absolute priority over everything)
+            if (todayHoliday) {
+                cardDesc = "Campus is closed today. Enjoy your holiday safely and responsibly!";
+                btnText = "HOLIDAY DECLARED";
+                iconClass = "fa-umbrella-beach";
+            } else if (isEndOfDay) {
+                cardDesc = "Today's classes have finished. Have a safe journey home, and continue your classes tomorrow morning.";
+                btnText = "SEE YOU TOMORROW";
+                iconClass = "fa-moon";
+            } else if (breakMsg) {
+                cardDesc = `Scanner paused. It's time for ${breakMsg}.`;
+                btnText = breakMsg.toUpperCase();
+                iconClass = "fa-mug-hot"; 
+            } else if (isLocked) {
+                cardDesc = "Attendance logged. Scanner resting for the period.";
+                btnText = `SCANNER LOCKED (${formatTime(cooldown)})`;
+                iconClass = "fa-hourglass-half";
+            }
+
+            return (
+                <React.Fragment>
+                    <div className="icon-circle" style={{ background: isBtnDisabled ? '#f1f5f9' : '', color: isBtnDisabled ? '#64748b' : '' }}>
+                        <i className={`fa-solid ${todayHoliday ? 'fa-umbrella-beach' : (isLocked ? 'fa-lock' : 'fa-qrcode')}`}></i>
+                    </div>
+                    <h2 className="card-title">{todayHoliday ? 'Campus Closed' : 'Check In Now'}</h2>
+                    <p className="card-desc">{cardDesc}</p>
+                    
+                    {/* NEW: Smart Intercept Button */}
+                    <button 
+                        className={`btn-primary ${isBtnDisabled ? 'btn-disabled' : ''}`} 
+                        onClick={() => {
+                            if (isBtnDisabled) return;
+                            // Intercept the click if the student is 20m late to the only active class!
+                            if (scanWindow.status === 'late') {
+                                setShowLateModal(true);
+                                return;
+                            }
+                            window.location.href = 'scan.html';
+                        }}
+                        disabled={isBtnDisabled}
+                        style={{ 
+                            background: isBtnDisabled ? '#94a3b8' : 'var(--primary-red)', 
+                            display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center',
+                            cursor: isBtnDisabled ? 'not-allowed' : 'pointer'
+                        }}
+                    >
+                        <i className={`fa-solid ${iconClass}`}></i> 
+                        {btnText}
+                    </button>
+
+                    {/* NEW: 20m Late Modal Overlay */}
+                    {showLateModal && (
+                        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(15, 23, 42, 0.7)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
+                            <div style={{ background: '#ffffff', borderRadius: '24px', padding: '40px 24px', width: '90%', maxWidth: '400px', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
+                                <i className="fa-solid fa-clock-rotate-left" style={{ fontSize: '3.5rem', color: '#ef4444', marginBottom: '20px' }}></i>
+                                <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '12px', letterSpacing: '-0.5px' }}>Attendance Locked</h3>
+                                <p style={{ color: '#64748b', marginBottom: '28px', lineHeight: '1.5', fontSize: '0.95rem' }}>
+                                    You are more than <strong>20 minutes late</strong> for the current session:<br/>
+                                    <span style={{ color: '#0f172a', fontWeight: '700', display: 'block', marginTop: '8px' }}>{scanWindow.lateClassName}</span><br/>
+                                    The professor's attendance registry is closed.
+                                </p>
+                                <button 
+                                    onClick={() => setShowLateModal(false)} 
+                                    style={{ width: '100%', padding: '14px', background: '#0f172a', color: 'white', border: 'none', borderRadius: '12px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', transition: 'background 0.2s' }}
+                                >
+                                    Acknowledge
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </React.Fragment>
+            );
+        }
+        
+        const checkInRoot = ReactDOM.createRoot(document.getElementById('react-check-in-root'));
+        checkInRoot.render(<CheckInCardUI />);
+
+        // NEW: HTML5 Canvas Emoji Dominant Color Extractor
+        const getEmojiDominantColor = (emojiStr) => {
+            if (!emojiStr) return { bg: '#fffbeb', border: '#fde68a', text: '#92400e' };
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = 50; canvas.height = 50;
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, 50, 50);
+                ctx.font = '40px Arial';
+                ctx.fillText(emojiStr, 5, 40);
+                
+                const data = ctx.getImageData(0, 0, 50, 50).data;
+                let r = 0, g = 0, b = 0, count = 0;
+                
+                for (let i = 0; i < data.length; i += 4) {
+                    if (data[i] > 240 && data[i+1] > 240 && data[i+2] > 240) continue; 
+                    if (data[i] < 30 && data[i+1] < 30 && data[i+2] < 30) continue; 
+                    
+                    r += data[i]; g += data[i+1]; b += data[i+2];
+                    count++;
+                }
+                
+                if (count === 0) return { bg: '#fffbeb', border: '#fde68a', text: '#92400e' }; 
+                
+                r = Math.floor(r / count); g = Math.floor(g / count); b = Math.floor(b / count);
+                const darken = (val) => Math.floor(val * 0.45); 
+                
+                return {
+                    bg: `rgba(${r}, ${g}, ${b}, 0.15)`,
+                    border: `rgba(${r}, ${g}, ${b}, 0.4)`,
+                    text: `rgb(${darken(r)}, ${darken(g)}, ${darken(b)})`
+                };
+            } catch (e) {
+                return { bg: '#fffbeb', border: '#fde68a', text: '#92400e' };
+            }
+        };
+
+        // NEW: Dynamic Today's Classes Component with Break Injection & 5m Buffer Sync
         function TodayClassesUI() {
             const [todayClasses, setTodayClasses] = React.useState([]);
             const [isLoading, setIsLoading] = React.useState(true);
+            const [holidayData, setHolidayData] = React.useState(null); // NEW: Holiday State
+            const [ticker, setTicker] = React.useState(0); // NEW: Auto-refresh visual ticker
 
-            // Helper to parse DB 12h format into 24h strictly for mathematical sorting
+            // Live UI Timer: Forces the Ongoing/Upcoming statuses to visually update every 30 seconds
+            React.useEffect(() => {
+                const timer = setInterval(() => setTicker(t => t + 1), 30000);
+                return () => clearInterval(timer);
+            }, []);
+
             const to24h = (time12) => {
                 if (!time12) return "00:00";
                 const parts = time12.split(' ');
@@ -1080,7 +1640,6 @@
                 return `${hours.padStart(2, '0')}:${minutes}`;
             };
             
-            // Helper to convert any 12-hour time string into absolute mathematical minutes (0 - 1440)
             const timeToMinutes = (timeStr) => {
                 if (!timeStr) return -1; 
                 const match12 = timeStr.match(/(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)/i);
@@ -1106,7 +1665,6 @@
                     }
 
                     try {
-                        // 1. Fetch Timetable
                         const collRef = window.firebaseAuth.collection(window.firebaseAuth.db, "timetables");
                         const snapshot = await window.firebaseAuth.getDocs(collRef);
                         
@@ -1146,59 +1704,303 @@
                             }
                         });
 
-                        // 2. Fetch Today's QR Scans to mark Present/Absent Live!
+                        const todayDate = new Date();
+                        const yyyy = todayDate.getFullYear();
+                        const mm = String(todayDate.getMonth() + 1).padStart(2, '0');
+                        const dd = String(todayDate.getDate()).padStart(2, '0');
+                        const isoToday = `${yyyy}-${mm}-${dd}`;
+
+                        // NEW: 1. Safely Check for Active Holidays
+                        let activeHoliday = null;
+                        const cohortHolidays = new Set();
+                        try {
+                            const hRef = window.firebaseAuth.collection(window.firebaseAuth.db, "holidays");
+                            const hSnap = await window.firebaseAuth.getDocs(hRef);
+                            
+                            hSnap.forEach(doc => {
+                                const data = doc.data();
+                                const logDept = (data.department || "").toLowerCase().trim();
+                                const userDept = (userData.department || "").toLowerCase().trim();
+                                const logYear = normalizeNum(data.year);
+                                const userYear = normalizeNum(userData.year);
+                                const logSem = normalizeNum(data.semester);
+                                const userSem = normalizeNum(userData.semester);
+                                const logBatch = (data.batch || "").toLowerCase().trim();
+                                const userBatch = (userData.batch || "").toLowerCase().trim();
+
+                                if (logDept === userDept && logYear === userYear && logSem === userSem && logBatch === userBatch) {
+                                    cohortHolidays.add(data.date); 
+                                    if (data.date === isoToday) {
+                                        activeHoliday = data; 
+                                    }
+                                }
+                            });
+                        } catch (holidayErr) {
+                            console.warn("Holiday fetch skipped. Ensure Firebase rules allow access:", holidayErr);
+                        }
+
+                        // FIX: Ensure the Holiday UI renders, but DO NOT return early so the Monthly/Weekly math fully updates the dashboard!
+                        if (activeHoliday) {
+                            setHolidayData(activeHoliday);
+                            // NEW: Broadcast the holiday status to the CheckIn Card so it locks the scanner!
+                            window.dispatchEvent(new CustomEvent('today-is-holiday', { detail: activeHoliday }));
+                        } else {
+                            window.dispatchEvent(new CustomEvent('today-is-holiday', { detail: null }));
+                        }
+
+                        // 2. Resume normal processing to fetch attendance logs
                         const logsRef = window.firebaseAuth.collection(window.firebaseAuth.db, "qr_attendance_records");
                         const logsSnap = await window.firebaseAuth.getDocs(logsRef);
                         const studentLogs = [];
                         
-                        // Strict format to prevent timezone bugs
-                        const todayLocalStr = new Date().toLocaleDateString('en-US');
+                        const targetLocalFormat = `${todayDate.getMonth() + 1}/${todayDate.getDate()}/${todayDate.getFullYear()}`;
+                        
+                        let latestScanTimestamp = 0;
+                        let latestExpirationMins = 45; 
+                        
+                        // NEW: Monthly & Weekly Attendance Variables
+                        let monthlyAttendedCount = 0;
+                        const countedMonthlyPeriods = new Set();
+                        const startOfMonth = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1);
+                        startOfMonth.setHours(0,0,0,0);
+                        const sTime = startOfMonth.getTime();
+                        const eTime = todayDate.getTime() + (24 * 60 * 60 * 1000) - 1; // End of today
+
+                        let weeklyAttendedCount = 0;
+                        const countedWeeklyPeriods = new Set();
+                        const startOfWeek = new Date(todayDate);
+                        const diffToMonday = startOfWeek.getDay() === 0 ? -6 : 1 - startOfWeek.getDay();
+                        startOfWeek.setDate(startOfWeek.getDate() + diffToMonday);
+                        startOfWeek.setHours(0,0,0,0);
+                        const sWeekTime = startOfWeek.getTime();
+
+                        let latestClassTime = 0;
+                        let latestClassName = '';
                         
                         logsSnap.forEach(doc => {
                             const data = doc.data();
-                            if (data.studentId === userData.rollNo || data.studentEmail === userData.email) {
-                                const logDate = data.scanVerifiedLocalTime ? data.scanVerifiedLocalTime.split(',')[0].trim() : "";
-                                const dateObj = new Date(logDate);
-                                if (!isNaN(dateObj) && dateObj.toLocaleDateString('en-US') === todayLocalStr) {
+                            
+                            const logDept = (data.departmentName || "").toLowerCase().trim();
+                            const userDept = (userData.department || "").toLowerCase().trim();
+                            const logYear = normalizeNum(data.academicYear);
+                            const userYear = normalizeNum(userData.year);
+                            const logSem = normalizeNum(data.academicSemester);
+                            const userSem = normalizeNum(userData.semester);
+
+                            if (data.studentId === userData.rollNo && logDept === userDept && logYear === userYear && logSem === userSem) {
+                                const logLocalTimeStr = data.scanVerifiedLocalTime || "";
+                                const dbLocalDateOnly = logLocalTimeStr.split(',')[0].trim();
+                                
+                                // Standard Today's Logs Extraction
+                                if (dbLocalDateOnly === targetLocalFormat) {
                                     studentLogs.push(data);
-                                } else if (data.scanVerifiedTimestamp && new Date(data.scanVerifiedTimestamp).toLocaleDateString('en-US') === todayLocalStr) {
-                                    studentLogs.push(data);
+                                    
+                                    const tsObj = data.scanVerifiedTimestamp ? new Date(data.scanVerifiedTimestamp) : null;
+                                    if (tsObj && tsObj.getTime() > latestScanTimestamp) {
+                                        latestScanTimestamp = tsObj.getTime();
+                                        latestExpirationMins = parseInt(data.qrExpirationLimitMinutes || 45, 10);
+                                    }
+                                }
+
+                                // NEW: Monthly & Weekly Attendance Aggregation
+                                if (dbLocalDateOnly && (data.status === 'P' || data.status === 'OD' || data.status === 'Present')) {
+                                    const [m, d, y] = dbLocalDateOnly.split('/');
+                                    const logDateObj = new Date(y, m - 1, d, 12, 0, 0); 
+                                    const logTime = logDateObj.getTime();
+                                    
+                                    if (logTime >= sTime && logTime <= eTime) {
+                                        const uniqueKey = `${dbLocalDateOnly}_${data.courseName}`;
+                                        if (!countedMonthlyPeriods.has(uniqueKey)) {
+                                            countedMonthlyPeriods.add(uniqueKey);
+                                            monthlyAttendedCount++;
+                                            
+                                            // Check Weekly Boundaries
+                                            if (logTime >= sWeekTime) {
+                                                countedWeeklyPeriods.add(uniqueKey);
+                                                weeklyAttendedCount++;
+                                            }
+
+                                            const exactTime = data.scanVerifiedTimestamp ? new Date(data.scanVerifiedTimestamp).getTime() : logTime;
+                                            if (exactTime > latestClassTime) {
+                                                latestClassTime = exactTime;
+                                                latestClassName = data.courseName || '';
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         });
 
+                        if (latestScanTimestamp > 0) {
+                            const lockUntil = latestScanTimestamp + (latestExpirationMins * 60 * 1000);
+                            if (new Date().getTime() < lockUntil) {
+                                localStorage.setItem('kskcet_scan_lock_until', lockUntil.toString());
+                                window.dispatchEvent(new Event('scan-lock-updated'));
+                            }
+                        }
+
                         if (matchedTimetable && matchedTimetable.schedule) {
+                            // NEW: Calculate Monthly & Weekly "Classes Held" up to Today
+                            let totalMonthlyClasses = 0;
+                            let totalWeeklyClasses = 0;
+                            let currDate = new Date(startOfMonth);
+                            currDate.setHours(0,0,0,0);
+                            const iterEndD = new Date(todayDate);
+                            iterEndD.setHours(0,0,0,0);
+                            const todayMins = todayDate.getHours() * 60 + todayDate.getMinutes();
+
+                            while (currDate <= iterEndD) {
+                                const dayNameStr = currDate.toLocaleDateString('en-US', { weekday: 'long' });
+                                const loopIsoDate = `${currDate.getFullYear()}-${String(currDate.getMonth() + 1).padStart(2, '0')}-${String(currDate.getDate()).padStart(2, '0')}`;
+                                
+                                // NEW: Exclude weekends and EXPLICITLY skip holidays
+                                if (dayNameStr !== 'Saturday' && dayNameStr !== 'Sunday' && !cohortHolidays.has(loopIsoDate)) {
+                                    const dailyClasses = matchedTimetable.schedule[dayNameStr] || [];
+                                    totalMonthlyClasses += dailyClasses.length;
+                                    
+                                    // NEW: Weekly classes logic (includes strict 20+ min auto-absent constraint for today)
+                                    if (currDate.getTime() >= sWeekTime) {
+                                        if (currDate.getTime() === iterEndD.getTime()) {
+                                            dailyClasses.forEach(cls => {
+                                                const startMins = timeToMinutes(cls.startTime);
+                                                // Only count today's class as "missable/held" if 20 mins have elapsed
+                                                if (todayMins > (startMins + 20)) {
+                                                    totalWeeklyClasses++;
+                                                }
+                                            });
+                                        } else {
+                                            totalWeeklyClasses += dailyClasses.length;
+                                        }
+                                    }
+                                }
+                                currDate.setDate(currDate.getDate() + 1);
+                            }
+
+                            // NEW: Dynamically Update the Weekly Overview HTML Container
+                            const weeklyMissedCount = Math.max(0, totalWeeklyClasses - weeklyAttendedCount);
+                            const statBoxes = document.querySelectorAll('.overview-card .stat-number');
+                            if (statBoxes.length >= 2) {
+                                statBoxes[0].textContent = weeklyAttendedCount;
+                                statBoxes[0].style.color = '#10b981'; // Dynamic Green for attended
+                                statBoxes[1].textContent = weeklyMissedCount;
+                                statBoxes[1].style.color = weeklyMissedCount > 0 ? 'var(--primary-red)' : 'var(--text-dark)'; // Red only if they actually missed a class
+                            }
+
+                            // Update the Dashboard Welcome Card DOM
+                            const percentage = totalMonthlyClasses > 0 ? parseFloat(((monthlyAttendedCount / totalMonthlyClasses) * 100).toFixed(1)) : 100;
+                            const subtitleEl = document.querySelector('.welcome-card .subtitle');
+                            if (subtitleEl) {
+                                const trackMsg = percentage >= 75 ? "You're on track!" : "Action required!";
+                                subtitleEl.textContent = `${trackMsg} Your attendance for this month is currently at ${percentage}%.`;
+                            }
+                            const pillSpan = document.querySelector('.welcome-card .status-pill span');
+                            if (pillSpan) {
+                                // NEW: Replaces the latest class name with the exact "Classes Held vs Attended" mathematical fraction
+                                pillSpan.textContent = `Attended ${monthlyAttendedCount} out of ${totalMonthlyClasses} Classes This Month`;
+                            }
+                            const pillIcon = document.querySelector('.welcome-card .status-pill i');
+                            if (pillIcon) {
+                                if (percentage < 75) {
+                                    pillIcon.className = "fa-solid fa-triangle-exclamation check-icon";
+                                    pillIcon.style.color = "var(--primary-red)";
+                                } else {
+                                    pillIcon.className = "fa-solid fa-circle-check check-icon";
+                                    pillIcon.style.color = "#10b981";
+                                }
+                            }
+
                             const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-                            const currentDay = days[new Date().getDay()];
+                            const currentDay = days[todayDate.getDay()];
                             
                             let todaysSchedule = [...(matchedTimetable.schedule[currentDay] || [])];
                             
-                            // Map the mathematical time-bounds and 20-min deadline rules onto the UI
                             todaysSchedule = todaysSchedule.map(cls => {
                                 const startMins = timeToMinutes(cls.startTime);
+                                const endMins = timeToMinutes(cls.endTime);
                                 
-                                const validLog = studentLogs.find(log => {
+                                const extractCode = (str) => {
+                                    const part = (str || "").split(/[-:\s]/)[0];
+                                    return part ? part.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() : '';
+                                };
+                                const ttCode = extractCode(cls.subject);
+                                const ttSubjectFull = (cls.subject || "").toLowerCase();
+                                
+                                // 1. Filter ALL matching logs for this specific time window and subject
+                                const matchingLogs = studentLogs.filter(log => {
                                     const scanMins = timeToMinutes(log.scanVerifiedLocalTime || log.scanVerifiedTimestamp);
                                     if (scanMins === -1 || startMins === -1) return false;
-                                    // ONLY Present if scanned between -15 mins and +20 mins of start time
-                                    return scanMins >= (startMins - 15) && scanMins <= (startMins + 20);
+                                    
+                                    const logCode = extractCode(log.courseName);
+                                    const logCourseFull = (log.courseName || "").toLowerCase();
+                                    const isSubjectMatch = (logCode && ttCode && logCode === ttCode) || logCourseFull.includes(ttCode) || ttSubjectFull.includes(logCode);
+                                    
+                                    if (!isSubjectMatch) return false;
+                                    return scanMins >= (startMins - 5) && scanMins <= (startMins + 20);
                                 });
+
+                                // NEW: 2. Prioritize admin manual overrides (OD) over standard scans (P)
+                                const validLog = matchingLogs.find(l => l.isManualOverride) || matchingLogs[0];
                                 
                                 const lateLog = !validLog && studentLogs.find(log => {
                                     const scanMins = timeToMinutes(log.scanVerifiedLocalTime || log.scanVerifiedTimestamp);
-                                    if (scanMins === -1 || startMins === -1) return false;
-                                    // Marked Absent if scanned MORE than 20 mins after start time
-                                    return scanMins > (startMins + 20);
+                                    if (scanMins === -1 || startMins === -1 || endMins === -1) return false;
+                                    
+                                    const logCode = extractCode(log.courseName);
+                                    const logCourseFull = (log.courseName || "").toLowerCase();
+                                    const isSubjectMatch = (logCode && ttCode && logCode === ttCode) || logCourseFull.includes(ttCode) || ttSubjectFull.includes(logCode);
+                                    
+                                    if (!isSubjectMatch) return false;
+                                    return scanMins > (startMins + 20) && scanMins <= endMins;
                                 });
+
+                                // Extract scan time and check if they are "Late Present"
+                                let finalStatus = validLog ? (validLog.status === 'OD' ? 'OD' : 'Present') : (lateLog ? 'Absent' : 'Pending');
+                                let isLatePresent = false;
+                                let scanTimeStr = '';
+
+                                if (validLog && finalStatus === 'Present') {
+                                    const scanMins = timeToMinutes(validLog.scanVerifiedLocalTime || validLog.scanVerifiedTimestamp);
+                                    
+                                    if (scanMins > startMins && scanMins <= (startMins + 20)) {
+                                        isLatePresent = true;
+                                        const rawTime = validLog.scanVerifiedLocalTime || validLog.scanVerifiedTimestamp || "";
+                                        const timeMatch = rawTime.match(/(\d{1,2}:\d{2})(?::\d{2})?\s*(AM|PM)?/i);
+                                        if (timeMatch) scanTimeStr = `${timeMatch[1]} ${timeMatch[2] || ''}`.trim();
+                                    }
+                                }
 
                                 return {
                                     ...cls,
-                                    attStatus: validLog ? (validLog.status === 'OD' ? 'OD' : 'Present') : (lateLog ? 'Absent' : 'Pending')
+                                    attStatus: finalStatus,
+                                    isLatePresent: isLatePresent,
+                                    scanTime: scanTimeStr
                                 };
                             });
 
+                            // Sort mathematically before injecting breaks
                             todaysSchedule.sort((a, b) => to24h(a.startTime).localeCompare(to24h(b.startTime)));
-                            setTodayClasses(todaysSchedule);
+                            
+                            const scheduleWithBreaks = [];
+                            let addedMorning = false;
+                            let addedLunch = false;
+                            let addedEvening = false;
+
+                            todaysSchedule.forEach(cls => {
+                                const startMins = timeToMinutes(cls.startTime);
+                                
+                                if (!addedMorning && startMins >= 680) { scheduleWithBreaks.push({ isBreak: true, subject: '☕ Morning Break', startTime: '11:10 AM', endTime: '11:20 AM', room: 'Campus', faculty: '' }); addedMorning = true; }
+                                if (!addedLunch && startMins >= 825) { scheduleWithBreaks.push({ isBreak: true, subject: '🍱 Lunch Break', startTime: '01:00 PM', endTime: '01:45 PM', room: 'Campus', faculty: '' }); addedLunch = true; }
+                                if (!addedEvening && startMins >= 930) { scheduleWithBreaks.push({ isBreak: true, subject: '☕ Evening Break', startTime: '03:20 PM', endTime: '03:30 PM', room: 'Campus', faculty: '' }); addedEvening = true; }
+                                
+                                scheduleWithBreaks.push(cls);
+                            });
+
+                            const lastClsEnd = todaysSchedule.length > 0 ? timeToMinutes(todaysSchedule[todaysSchedule.length - 1].endTime) : 0;
+                            if (!addedMorning && lastClsEnd > 660) scheduleWithBreaks.push({ isBreak: true, subject: '☕ Morning Break', startTime: '11:10 AM', endTime: '11:20 AM', room: 'Campus', faculty: '' });
+                            if (!addedLunch && lastClsEnd > 770) scheduleWithBreaks.push({ isBreak: true, subject: '🍱 Lunch Break', startTime: '01:00 PM', endTime: '01:45 PM', room: 'Campus', faculty: '' });
+                            if (!addedEvening && lastClsEnd > 910) scheduleWithBreaks.push({ isBreak: true, subject: '☕ Evening Break', startTime: '03:20 PM', endTime: '03:30 PM', room: 'Campus', faculty: '' });
+
+                            setTodayClasses(scheduleWithBreaks);
                         }
                     } catch (err) {
                         console.error("Error fetching timetable:", err);
@@ -1215,44 +2017,151 @@
                 };
             }, []);
 
-            // UI Status Generator (Prioritizes Present/Absent status first, then falls back to Ongoing/Upcoming live time clock)
-            const getStatus = (cls) => {
+            // Background Evaluator for the Check-In Card Late Status Modal
+            React.useEffect(() => {
+                if (!todayClasses.length) return;
+                
+                const now = new Date();
+                const currentMins = now.getHours() * 60 + now.getMinutes();
+                
+                let isAnyClassActive = false;
+                let isLateForActive = false;
+                let lateClassName = '';
+
+                for (let cls of todayClasses) {
+                    if (cls.isBreak) continue; // Skip custom break blocks for late checks!
+
+                    const startMins = timeToMinutes(cls.startTime);
+                    const endMins = timeToMinutes(cls.endTime);
+                    
+                    // UPDATE: -5 Minutes strict window constraint
+                    if (currentMins >= (startMins - 5) && currentMins <= (startMins + 20)) {
+                        isAnyClassActive = true;
+                        isLateForActive = false;
+                        break; 
+                    } else if (currentMins > (startMins + 20) && currentMins <= endMins) {
+                        isLateForActive = true;
+                        lateClassName = cls.subject;
+                    }
+                }
+
+                if (!isAnyClassActive && isLateForActive) {
+                    window.dispatchEvent(new CustomEvent('scan-window-status', { detail: { status: 'late', lateClassName } }));
+                } else {
+                    window.dispatchEvent(new CustomEvent('scan-window-status', { detail: { status: 'open', lateClassName: '' } }));
+                }
+            }, [todayClasses, ticker]);
+
+            // UI Status Generator: Features Sequential Buffer Check to prevent back-to-back overlaps!
+            const getStatus = (cls, index, scheduleArray) => {
                 const now = new Date();
                 const currentMins = now.getHours() * 60 + now.getMinutes();
                 const startMins = timeToMinutes(cls.startTime);
                 const endMins = timeToMinutes(cls.endTime);
                 
-                // 1. Database Scan Statuses (Takes absolute priority so Present/Absent UI is never overridden)
-                if (cls.attStatus === 'Present') return { text: 'Present', wrapperClass: 'present', badge: 'badge badge-present', icon: 'fa-solid fa-check' };
-                if (cls.attStatus === 'OD') return { text: 'On Duty', wrapperClass: 'present', badge: 'badge badge-present', icon: 'fa-solid fa-clipboard-check' };
-                if (cls.attStatus === 'Absent') return { text: 'Absent', wrapperClass: 'upcoming', badge: 'badge badge-absent', icon: 'fa-solid fa-xmark' };
-                
-                // 2. Live Time-Based Statuses (Shown only when the student hasn't scanned yet)
-                if (currentMins < startMins) {
+                // NEW: Handle Injected Breaks Custom UI Styles
+                if (cls.isBreak) {
+                    if (currentMins >= startMins && currentMins < endMins) {
+                        return { text: 'Break Time', wrapperClass: 'present', badge: 'badge', icon: 'fa-solid fa-mug-hot', customStyle: { background: '#fef3c7', color: '#d97706', border: '1px solid #fde68a' } };
+                    }
+                    if (currentMins >= endMins) {
+                        return { text: 'Completed', wrapperClass: 'upcoming', badge: null };
+                    }
                     return { text: 'Upcoming', wrapperClass: 'upcoming', badge: null };
                 }
-                
-                if (currentMins >= startMins && currentMins <= endMins) {
-                    // If the class has started, but it's past the 20-min attendance window and they haven't scanned
-                    if (currentMins > startMins + 20) {
-                        return { text: 'Absent', wrapperClass: 'upcoming', badge: 'badge badge-absent', icon: 'fa-solid fa-xmark' };
+
+                if (startMins === -1 || endMins === -1) return { text: 'Pending', wrapperClass: 'upcoming', badge: null };
+
+                // 1. Scanned Database Statuses Take Absolute Priority
+                if (cls.attStatus === 'Present') {
+                    // NEW: Display the Late Present UI with Timestamp and Clock Icon
+                    if (cls.isLatePresent) {
+                        return { 
+                            text: `Present (${cls.scanTime})`, 
+                            wrapperClass: 'present', 
+                            badge: 'badge', 
+                            icon: 'fa-solid fa-user-clock', 
+                            customStyle: { background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0' } 
+                        };
                     }
-                    // Otherwise, the class is currently active within the scan window
+                    return { text: 'Present', wrapperClass: 'present', badge: 'badge badge-present', icon: 'fa-solid fa-check', customStyle: {} };
+                }
+                if (cls.attStatus === 'OD') return { text: 'On Duty', wrapperClass: 'present', badge: 'badge', icon: 'fa-solid fa-user-shield', customStyle: { background: '#fef08a', color: '#ca8a04', border: '1px solid #fde047' } };
+                if (cls.attStatus === 'Absent') return { text: 'Absent', wrapperClass: 'upcoming', badge: 'badge badge-absent', icon: 'fa-solid fa-xmark', customStyle: {} };
+                
+                // 2. Unscanned (Pending) Logic based on live device time
+                if (currentMins > endMins) {
+                    return { text: 'Absent', wrapperClass: 'upcoming', badge: 'badge badge-absent', icon: 'fa-solid fa-xmark', customStyle: {} };
+                }
+                
+                // 3. Ongoing Logic (Includes the strictly requested 5-minute early check-in buffer!)
+                if (currentMins >= (startMins - 5) && currentMins <= endMins) {
+                    if (currentMins > (startMins + 20)) {
+                        return { text: 'Absent', wrapperClass: 'upcoming', badge: 'badge badge-absent', icon: 'fa-solid fa-xmark', customStyle: {} };
+                    }
+
+                    // SEQUENTIAL CHECK: If we are in the 5-min early buffer, ensure the previous class is completely handled first
+                    if (currentMins < startMins && index > 0) {
+                        let prevCls = null;
+                        // Find the actual previous CLASS (ignore breaks)
+                        for(let i = index - 1; i >= 0; i--) {
+                            if(!scheduleArray[i].isBreak) {
+                                prevCls = scheduleArray[i];
+                                break;
+                            }
+                        }
+                        
+                        if (prevCls) {
+                            const prevStartMins = timeToMinutes(prevCls.startTime);
+                            // If the previous class is STILL scannable (current time is within its start+20m window)
+                            if (currentMins <= (prevStartMins + 20) && prevCls.attStatus === 'Pending') {
+                                return { text: 'Upcoming', wrapperClass: 'upcoming', badge: null };
+                            }
+                        }
+                    }
+
+                    // BREAK OVERLAP CHECK: Prevent "Ongoing" if a break is actively happening
+                    if (currentMins < startMins) {
+                        let isBreakActive = false;
+                        if (currentMins >= 670 && currentMins < 680) isBreakActive = true;
+                        if (currentMins >= 780 && currentMins < 825) isBreakActive = true;
+                        if (currentMins >= 920 && currentMins < 930) isBreakActive = true;
+                        
+                        if (isBreakActive) {
+                            return { text: 'Upcoming', wrapperClass: 'upcoming', badge: null }; // Suppress Ongoing UI
+                        }
+                    }
+
                     return { text: 'Ongoing', wrapperClass: 'present', badge: null };
                 }
                 
-                // If class time has passed entirely and no scan was recorded
-                return { text: 'Absent', wrapperClass: 'upcoming', badge: 'badge badge-absent', icon: 'fa-solid fa-xmark' };
+                // 4. Future classes (> 5 mins away)
+                return { text: 'Upcoming', wrapperClass: 'upcoming', badge: null };
             };
 
             return (
                 <React.Fragment>
                     <div className="card-header">
                         <h2><i className="fa-regular fa-calendar"></i> Today's Classes</h2>
-                        <span className="badge-total">{isLoading ? 'Loading...' : `${todayClasses.length} Total`}</span>
+                        <span className="badge-total">{isLoading ? 'Loading...' : (holidayData ? 'Holiday' : `${todayClasses.length} Total`)}</span>
                     </div>
                     
-                    {!isLoading && (
+                    {!isLoading && holidayData ? (() => {
+                        let rawFirstWord = (holidayData.reason || '').split(' ')[0];
+                        // NEW: If manual text is typed without an emoji, fallback to the default Umbrella icon
+                        const emoji = (!rawFirstWord || /[a-zA-Z0-9]/.test(rawFirstWord)) ? '🏖️' : rawFirstWord;
+                        const colors = getEmojiDominantColor(emoji);
+                        return (
+                        <div style={{ padding: '40px 20px', textAlign: 'center', background: colors.bg, borderRadius: '12px', border: `1px solid ${colors.border}`, margin: '16px 0', transition: 'all 0.3s ease' }}>
+                            <div style={{ fontSize: '3.5rem', marginBottom: '16px', lineHeight: '1' }}>{emoji}</div>
+                            <h3 style={{ fontSize: '1.4rem', color: colors.text, fontWeight: '800', marginBottom: '10px' }}>Holiday Declared</h3>
+                            <p style={{ fontSize: '0.95rem', color: colors.text, lineHeight: '1.6', maxWidth: '300px', margin: '0 auto' }}>
+                                {holidayData.date.split('-').reverse().join('/')} is officially marked as a holiday.<br/>
+                                <strong style={{color: colors.text, marginTop: '12px', display: 'inline-block'}}>Reason: {holidayData.reason}</strong>
+                            </p>
+                        </div>
+                        );
+                    })() : !isLoading && (
                         <div className="class-list">
                             {todayClasses.length === 0 ? (
                                 <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.95rem' }}>
@@ -1260,15 +2169,16 @@
                                 </div>
                             ) : (
                                 todayClasses.map((cls, idx) => {
-                                    const status = getStatus(cls);
+                                    // Pass the index and full array into getStatus to enable sequential checking
+                                    const status = getStatus(cls, idx, todayClasses);
                                     return (
                                         <div key={idx} className={`class-item ${status.wrapperClass}`}>
                                             <div className="class-info">
-                                                <h3>{cls.subject || 'Class Session'}</h3>
-                                                <p>{cls.startTime} - {cls.endTime} &bull; {cls.room || 'TBA'} {cls.faculty ? `(${cls.faculty})` : ''}</p>
+                                                <h3>{cls.subject || 'Break Time'}</h3>
+                                                <p>{cls.startTime} - {cls.endTime} {cls.room ? `• ${cls.room}` : ''} {cls.faculty ? `(${cls.faculty})` : ''}</p>
                                             </div>
                                             {status.badge ? (
-                                                <div className={status.badge} style={{ width: 'auto', padding: '6px 14px' }}>
+                                                <div className={status.badge} style={{ width: 'auto', padding: '6px 14px', ...status.customStyle }}>
                                                     <i className={status.icon}></i> {status.text}
                                                 </div>
                                             ) : (
@@ -1286,6 +2196,128 @@
 
         const todayClassesRoot = ReactDOM.createRoot(document.getElementById('react-today-classes-root'));
         todayClassesRoot.render(<TodayClassesUI />);
+
+        // NEW: Real-Time Alerts Dashboard
+        function AlertsUI() {
+            const [isVisible, setIsVisible] = React.useState(false);
+            const [alerts, setAlerts] = React.useState([]);
+            const [isLoading, setIsLoading] = React.useState(true);
+            const [userCtx, setUserCtx] = React.useState(null);
+
+            React.useEffect(() => {
+                const loadAlerts = async (e) => {
+                    const userData = e.detail;
+                    setUserCtx(userData);
+                    setIsLoading(true);
+
+                    try {
+                        // Fetch all alerts using the proven getDocs method
+                        const alertsRef = window.firebaseAuth.collection(window.firebaseAuth.db, "campus_alerts");
+                        const alertsSnap = await window.firebaseAuth.getDocs(alertsRef);
+                        
+                        const fetchedAlerts = [];
+                        alertsSnap.forEach((doc) => {
+                            const data = doc.data();
+                            // Filter locally using JavaScript to bypass Firebase Composite Index requirements
+                            if (data.department === userData.department && 
+                                data.year === userData.year && 
+                                data.semester === userData.semester && 
+                                data.batch === userData.batch) {
+                                fetchedAlerts.push({ id: doc.id, ...data });
+                            }
+                        });
+
+                        // Sort by newest first
+                        fetchedAlerts.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                        setAlerts(fetchedAlerts);
+
+                        // Fire Browser Push Notification if a brand new alert was just posted
+                        if (fetchedAlerts.length > 0 && "Notification" in window && Notification.permission === "granted") {
+                            const newestAlert = fetchedAlerts[0];
+                            const alertTime = new Date(newestAlert.timestamp).getTime();
+                            // Only trigger notification if the alert was published within the last 60 seconds
+                            if (Date.now() - alertTime < 60000) { 
+                                new Notification("KSK College Alert", {
+                                    body: newestAlert.title,
+                                    icon: "img/ksk logo.jpeg"
+                                });
+                            }
+                        }
+                    } catch (err) {
+                        console.error("Error fetching campus alerts:", err);
+                    } finally {
+                        setIsLoading(false); // Guarantees the loading spinner always stops!
+                    }
+                };
+
+                window.addEventListener('user-profile-loaded', loadAlerts);
+                
+                // Navigation Link Handlers
+                const showAlerts = () => {
+                    setIsVisible(true);
+                    const alertsRoot = document.getElementById('react-alerts-root');
+                    if(alertsRoot) alertsRoot.style.display = 'block';
+                    document.querySelector('.dashboard-container').style.display = 'none';
+                    document.getElementById('react-history-root').style.display = 'none';
+                    // Update Active Nav States
+                    document.querySelectorAll('.nav-links a, .bottom-mobile-nav a').forEach(el => el.classList.remove('active'));
+                    document.getElementById('nav-alerts')?.classList.add('active');
+                    document.getElementById('mob-nav-alerts')?.classList.add('active');
+                };
+                
+                window.addEventListener('show-alerts', showAlerts);
+
+                return () => {
+                    window.removeEventListener('user-profile-loaded', loadAlerts);
+                    window.removeEventListener('show-alerts', showAlerts);
+                    if (unsubscribe) unsubscribe();
+                };
+            }, []);
+
+            if (!isVisible) return null;
+
+            return (
+                <main className="alerts-container">
+                    <div className="page-title" style={{marginBottom: '20px'}}>
+                        <h1 style={{fontSize: '2.8rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-1px'}}>Campus Alerts</h1>
+                        <p style={{color: 'var(--text-muted)', fontSize: '1.05rem'}}>Official notifications and exam schedules.</p>
+                    </div>
+
+                    {isLoading ? (
+                        <div style={{ textAlign: 'center', padding: '40px' }}><i className="fa-solid fa-spinner fa-spin" style={{ fontSize: '2rem', color: '#94a3b8' }}></i></div>
+                    ) : alerts.length === 0 ? (
+                        <div className="empty-schedule-state" style={{ padding: '60px', background: 'var(--white)', borderRadius: '16px', border: '1px dashed #cbd5e1' }}>
+                            <i className="fa-solid fa-bell-slash" style={{ fontSize: '3rem', color: '#cbd5e1', margin: '0 auto 16px' }}></i>
+                            <h4 style={{ fontSize: '1.2rem', color: 'var(--text-dark)' }}>No Recent Alerts</h4>
+                            <p style={{ color: 'var(--text-muted)' }}>You're all caught up! Important campus messages will appear here.</p>
+                        </div>
+                    ) : (
+                        alerts.map(alert => (
+                            <div key={alert.id} className="alert-card">
+                                <div className="alert-img-wrapper">
+                                    {alert.image ? (
+                                        <img src={alert.image} alt="Alert Cover" />
+                                    ) : (
+                                        <i className="fa-solid fa-building-columns alert-img-placeholder"></i>
+                                    )}
+                                </div>
+                                <div className="alert-content">
+                                    <div className="alert-meta">
+                                        <span className="alert-badge"><i className="fa-solid fa-circle-exclamation"></i> Official Notice</span>
+                                        <span>{new Date(alert.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                                    </div>
+                                    <h2 className="alert-title">{alert.title}</h2>
+                                    <p className="alert-body">{alert.body}</p>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </main>
+            );
+        }
+
+        const alertsRoot = ReactDOM.createRoot(document.getElementById('react-alerts-root'));
+        alertsRoot.render(<AlertsUI />);
 
         </script>
 

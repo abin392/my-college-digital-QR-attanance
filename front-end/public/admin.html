@@ -392,6 +392,31 @@
         @media (max-width: 1024px) {
             .timetable-grid { grid-template-columns: 1fr; }
         }
+
+        /* NEW: Professional Connection Loader Animation & Flight Path */
+        .connection-loader-container { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 24px; }
+        .loader-node { width: 70px; height: 70px; border-radius: 50%; border: 3px solid var(--white); background: var(--white); display: flex; align-items: center; justify-content: center; position: relative; z-index: 2; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; }
+        .loader-node img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        .loader-node i { font-size: 2rem; color: var(--text-dark); }
+        
+        .zigzag-line { width: 120px; height: 40px; z-index: 1; }
+        .zigzag-path { fill: none; stroke: var(--primary-red); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 200; stroke-dashoffset: 200; animation: zigzagDraw 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+        @keyframes zigzagDraw { 0% { stroke-dashoffset: 200; } 50% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -200; } }
+        
+        .pulse-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; box-shadow: 0 0 0 0 rgba(187, 15, 28, 0.7); animation: loaderPulse 1.8s infinite; pointer-events: none; z-index: -1; }
+        @keyframes loaderPulse { 0% { box-shadow: 0 0 0 0 rgba(187, 15, 28, 0.5); } 70% { box-shadow: 0 0 0 15px rgba(187, 15, 28, 0); } 100% { box-shadow: 0 0 0 0 rgba(187, 15, 28, 0); } }
+
+        .react-overlay-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; background: radial-gradient(circle at 30% 20%, #e6eff9 0%, #f4f7fb 40%, #e0eaf5 100%); font-family: 'Inter', sans-serif; overflow-y: auto; backdrop-filter: blur(5px); }
+
+        .flying-out .zigzag-line, .flying-out .loading-text-block { opacity: 0 !important; transition: opacity 0.3s ease; }
+        .flying-out .pulse-ring { display: none; }
+        .node-left, .node-right { transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s ease; z-index: 9999; }
+        .flying-out .node-left { transform: translate(-35vw, -40vh) scale(0.5); opacity: 0; }
+        .flying-out .node-right { transform: translate(35vw, -40vh) scale(0.5); opacity: 0; }
+        @media (max-width: 768px) {
+            .flying-out .node-left { transform: translate(-40vw, -45vh) scale(0.4); }
+            .flying-out .node-right { transform: translate(40vw, -45vh) scale(0.4); }
+        }
     </style>
 </head>
 <body>
@@ -415,12 +440,49 @@
                 departmentName: '', shortForm: '', hod: '', faculty: '', courses: '', password: ''
             });
 
+            // NEW: Live Database Validation State for Department Name
+            const [deptNameStatus, setDeptNameStatus] = React.useState('idle'); // idle, checking, available, taken
+
+            React.useEffect(() => {
+                const deptValue = newDeptForm.departmentName; 
+
+                if (!deptValue || deptValue.trim() === '') {
+                    setDeptNameStatus('idle');
+                    return;
+                }
+
+                setDeptNameStatus('checking');
+                // 600ms debounce to prevent database spamming while typing
+                const timeoutId = setTimeout(async () => {
+                    try {
+                        let exists = false;
+                        const deptsRef = window.firebaseAuth.collection(window.firebaseAuth.db, "departments");
+                        const snap = await window.firebaseAuth.getDocs(deptsRef);
+                        
+                        snap.forEach(doc => {
+                            if (doc.data().title && doc.data().title.toLowerCase() === deptValue.toLowerCase().trim()) {
+                                exists = true;
+                            }
+                        });
+                        
+                        setDeptNameStatus(exists ? 'taken' : 'available');
+                    } catch (err) {
+                        console.warn("DB Verification error:", err);
+                        setDeptNameStatus('available'); // Fallback gracefully if permissions lag
+                    }
+                }, 600); 
+
+                return () => clearTimeout(timeoutId);
+            }, [newDeptForm.departmentName]);
+
             // NEW: Verification Modal State
             const [isVerifyModalOpen, setIsVerifyModalOpen] = React.useState(false);
             const [verifyPassword, setVerifyPassword] = React.useState('');
             const [isVerifying, setIsVerifying] = React.useState(false);
             const [verifyError, setVerifyError] = React.useState('');
             const [showVerifyPassword, setShowVerifyPassword] = React.useState(false);
+            const [isTransitioning, setIsTransitioning] = React.useState(false); // NEW: Cinematic Transition State
+            const [isConnectingContext, setIsConnectingContext] = React.useState(false); // NEW: Full-screen overlay state
 
             const handleVerifySubmit = (e) => {
                 e.preventDefault();
@@ -431,26 +493,35 @@
                 setIsVerifying(true);
                 setVerifyError('');
 
-                // Simulate brief loading for UX, then verify against Database password
-                setTimeout(() => {
-                    // Securely decrypt the stored password for verification
-                    let decryptedStoredPassword = '';
-                    try {
-                        decryptedStoredPassword = selectedDept.password ? decodeURIComponent(atob(selectedDept.password)) : '';
-                    } catch (e) {
-                        console.error("Decryption error", e);
-                    }
+                // Securely decrypt the stored password for verification
+                let decryptedStoredPassword = '';
+                try {
+                    decryptedStoredPassword = selectedDept.password ? decodeURIComponent(atob(selectedDept.password)) : '';
+                } catch (e) {
+                    console.error("Decryption error", e);
+                }
+                
+                if (selectedDept && verifyPassword === decryptedStoredPassword) {
+                    // Password matches! Trigger the cinematic overlay
+                    setIsVerifyModalOpen(false); // Hide the modal instantly
+                    setIsConnectingContext(true); // Show the Zigzag loader
                     
-                    if (selectedDept && verifyPassword === decryptedStoredPassword) {
-                        // Store the selected department so department.html knows the context
-                        localStorage.setItem('active_department', JSON.stringify(selectedDept));
-                        // Redirect to workspace
-                        window.location.href = 'department.html';
-                    } else {
-                        setVerifyError("Incorrect department access key.");
-                    }
+                    // Store the selected department so department.html knows the context
+                    localStorage.setItem('active_department', JSON.stringify(selectedDept));
+                    
+                    // Wait 1.5 seconds for the animation to play, then trigger the Fly-Out
+                    setTimeout(() => {
+                        setIsTransitioning(true);
+                        
+                        // Wait 800ms for the icons to fly to the corners, THEN change the page!
+                        setTimeout(() => {
+                            window.location.href = 'department.html';
+                        }, 800);
+                    }, 1500);
+                } else {
+                    setVerifyError("Incorrect department access key.");
                     setIsVerifying(false);
-                }, 800);
+                }
             };
 
             // Fetch Real Departments & Calculate Student Counts from Firebase
@@ -1060,6 +1131,36 @@
 
             return (
                 <>
+                    {/* NEW: Cinematic Zigzag Loader Overlay */}
+                    {isConnectingContext && (
+                        <div className={`react-overlay-wrapper ${isTransitioning ? 'flying-out' : ''}`} style={{ background: isTransitioning ? 'transparent' : 'var(--bg-color)', backdropFilter: isTransitioning ? 'blur(0px)' : 'blur(5px)', transition: 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                                <div className="connection-loader-container">
+                                    {/* Left Side: College Node */}
+                                    <div className="loader-node node-left" style={{ borderColor: 'var(--primary-red)' }}>
+                                        <div className="pulse-ring"></div>
+                                        <img src="img/ksk logo.jpeg" alt="KSK Logo" onError={(e) => { e.target.onerror = null; e.target.src = 'ksk circle.png'; }} />
+                                    </div>
+                                    
+                                    {/* Middle: Animated Zigzag Connection */}
+                                    <svg className="zigzag-line" viewBox="0 0 100 40">
+                                        <path className="zigzag-path" d="M 0 20 L 25 5 L 50 35 L 75 5 L 100 20"></path>
+                                    </svg>
+                                    
+                                    {/* Right Side: Admin Department Node */}
+                                    <div className="loader-node node-right" style={{ borderColor: '#0f172a' }}>
+                                        <div className="pulse-ring" style={{ animationDelay: '0.9s', animationDuration: '1.8s', boxShadow: '0 0 0 0 rgba(15, 23, 42, 0.7)' }}></div>
+                                        <i className="fa-solid fa-building-shield"></i>
+                                    </div>
+                                </div>
+                                
+                                <div className="loading-text-block">
+                                    <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-dark)', margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>Verifying Department...</h2>
+                                    <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 500, margin: 0 }}>Syncing Admin Workspace</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     {/* Mobile Overlay */}
                     <div 
                         className={`mobile-overlay ${isSidebarOpen ? 'show' : ''}`} 
@@ -1176,17 +1277,7 @@
                                     </div>
                                 </div>
 
-                                <div className="dept-header-top">
-                                    <div className="dept-search-bar">
-                                        <input type="text" className="dept-search-input" placeholder="Search departments by name or code..." />
-                                        <select className="dept-select">
-                                            <option>All Academic Wings</option>
-                                            <option>Wing A</option>
-                                            <option>Wing B</option>
-                                            <option>Wing C</option>
-                                            <option>Wing D</option>
-                                        </select>
-                                    </div>
+                                <div className="dept-header-top" style={{ justifyContent: 'flex-end' }}>
                                     <button className="btn-add-dept" onClick={() => setIsAddDeptModalOpen(true)}>
                                         <i className="fa-solid fa-plus"></i> Add Department
                                     </button>
@@ -1278,16 +1369,39 @@
                                             <form onSubmit={handleAddDepartmentSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                                 <div className="form-group">
                                                     <label>Department Name</label>
-                                                    <div className="select-wrapper">
-                                                        <select className="custom-input" name="departmentName" value={newDeptForm.departmentName} onChange={handleDeptFormChange} required>
+                                                    <div className="input-with-icon select-wrapper" style={{ position: 'relative' }}>
+                                                        <i className="fa-regular fa-building" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#64748b', zIndex: 2 }}></i>
+                                                        <select 
+                                                            className="custom-input" 
+                                                            name="departmentName" 
+                                                            value={newDeptForm.departmentName} 
+                                                            onChange={handleDeptFormChange} 
+                                                            required
+                                                            style={{ 
+                                                                paddingLeft: '40px',
+                                                                borderColor: deptNameStatus === 'available' ? '#10b981' : (deptNameStatus === 'taken' ? '#ef4444' : ''),
+                                                                paddingRight: '60px',
+                                                                color: newDeptForm.departmentName === "" ? "#94a3b8" : "var(--text-dark)"
+                                                            }}
+                                                        >
                                                             <option value="" disabled>Select Core Program...</option>
                                                             <option value="Computer Science">💻 Computer Science</option>
+                                                            <option value="Artificial Intelligence & Machine Learning">🤖 Artificial Intelligence & Machine Learning</option>
                                                             <option value="Artificial Intelligence & Data Science">🤖 Artificial Intelligence & Data Science</option>
                                                             <option value="Biomedical Engineering">🧬 Biomedical Engineering</option>
                                                             <option value="Mechanical Engineering">⚙️ Mechanical Engineering</option>
                                                             <option value="Electrical Engineering">⚡ Electrical Engineering</option>
                                                         </select>
+                                                        
+                                                        {/* Live Validation Icons shifted slightly left to clear the native dropdown arrow */}
+                                                        {deptNameStatus === 'checking' && <i className="fa-solid fa-spinner fa-spin" style={{ position: 'absolute', right: '35px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', zIndex: 2 }}></i>}
+                                                        {deptNameStatus === 'available' && <i className="fa-solid fa-circle-check" style={{ position: 'absolute', right: '35px', top: '50%', transform: 'translateY(-50%)', color: '#10b981', zIndex: 2 }}></i>}
+                                                        {deptNameStatus === 'taken' && <i className="fa-solid fa-circle-xmark" style={{ position: 'absolute', right: '35px', top: '50%', transform: 'translateY(-50%)', color: '#ef4444', zIndex: 2 }}></i>}
                                                     </div>
+                                                    
+                                                    {/* Live DB Professional Alert Text */}
+                                                    {deptNameStatus === 'taken' && <span style={{ fontSize: '0.75rem', color: '#ef4444', marginTop: '4px', fontWeight: '600', display: 'block' }}>This department name is already in use. Please choose another.</span>}
+                                                    {deptNameStatus === 'available' && <span style={{ fontSize: '0.75rem', color: '#10b981', marginTop: '4px', fontWeight: '600', display: 'block' }}>Department name verified and available for registration.</span>}
                                                 </div>
                                                 
                                                 <div className="input-row">
@@ -1317,7 +1431,7 @@
                                                     <input type="password" className="custom-input" name="password" placeholder="Enter admin password to save" value={newDeptForm.password} onChange={handleDeptFormChange} required />
                                                 </div>
 
-                                                <button type="submit" className={`btn-save ${isSavingDept ? 'btn-disabled' : ''}`} style={{ marginTop: '16px', justifyContent: 'center', width: '100%', padding: '14px' }} disabled={isSavingDept}>
+                                                <button type="submit" className={`btn-save ${(isSavingDept || deptNameStatus !== 'available' || !newDeptForm.password) ? 'btn-disabled' : ''}`} style={{ marginTop: '16px', justifyContent: 'center', width: '100%', padding: '14px' }} disabled={isSavingDept || deptNameStatus !== 'available' || !newDeptForm.password}>
                                                     {isSavingDept ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-cloud-arrow-up"></i>}
                                                     {isSavingDept ? " Syncing to Database..." : " Save Department"}
                                                 </button>
@@ -1379,7 +1493,6 @@
                                                         <label className="verify-remember">
                                                             <input type="checkbox" defaultChecked /> Remember access for this session
                                                         </label>
-                                                        <a href="#" className="verify-forgot" onClick={(e) => e.preventDefault()}>Forgot password?</a>
                                                     </div>
                                                 </form>
                                             </div>
